@@ -2,3 +2,4 @@ flask
 flask-cors
 google-genai
 pandas
+python-dotenv
