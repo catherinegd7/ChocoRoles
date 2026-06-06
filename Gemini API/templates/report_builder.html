@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ArcaBot – Generador de Reportes | Arca Continental</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    body { background: #0c1220; }
+
+    .opt-section { border-bottom: 1px solid #1f2937; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #1f2937; color: #9ca3af;
+      border: 1px solid #374151; border-radius: 99px;
+      padding: 4px 12px; font-size: .75rem; cursor: pointer;
+      transition: all .18s; white-space: nowrap;
+    }
+    .chip:hover { background: #374151; color: #e5e7eb; border-color: #4b5563; }
+    .chip.active { background: #7f1d1d; color: #fca5a5; border-color: #ef4444; }
+    .chip.active-green { background: #14532d; color: #86efac; border-color: #22c55e; }
+
+    .msg-bot  { background: #1e2d3d; border-radius: 0 .75rem .75rem .75rem; }
+    .msg-user { background: #7f1d1d; border-radius: .75rem 0 .75rem .75rem; }
+
+    .param-pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: #14532d; color: #86efac;
+      border: 1px solid #22c55e; border-radius: 99px;
+      padding: 2px 10px; font-size: .7rem;
+    }
+    .param-pill.pending { background: #1f2937; color: #6b7280; border-color: #374151; }
+
+    /* ── Chart card ── */
+    .chart-card { background: #111827; border: 1px solid #1f2937; border-radius: .875rem; padding: 1.4rem; }
+    .chart-card h4 {
+      font-size: .72rem; font-weight: 700; color: #6b7280;
+      text-transform: uppercase; letter-spacing: .07em; margin-bottom: 1rem;
+    }
+
+    /* ── Data table in reports ── */
+    .data-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+    .data-table th { background: #0c1220; color: #4b5563; text-transform: uppercase; font-size: .65rem; letter-spacing: .06em; padding: .5rem .75rem; text-align: left; }
+    .data-table td { padding: .55rem .75rem; border-bottom: 1px solid #1f2937; color: #e5e7eb; vertical-align: middle; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: rgba(255,255,255,.02); }
+
+    /* ── Gemini narrative ── */
+    .report-out p  { color: #d1d5db; line-height: 1.7; margin: .4rem 0; font-size: .9rem; }
+    .report-out ul { list-style: none; margin: .5rem 0; padding: 0; }
+    .report-out li { color: #d1d5db; padding: .35rem 0 .35rem 1.5rem; position: relative; font-size: .88rem; line-height: 1.5; }
+    .report-out li::before { content: '→'; position: absolute; left: 0; color: #ef4444; font-weight: 700; }
+    .report-out strong { color: #fca5a5; }
+    .report-out .rec {
+      background: linear-gradient(135deg, rgba(127,29,29,.35), rgba(127,29,29,.15));
+      border: 1px solid rgba(239,68,68,.3); border-left: 3px solid #ef4444;
+      padding: .9rem 1.2rem; border-radius: 0 .6rem .6rem 0; margin: 1rem 0;
+      color: #fca5a5; font-size: .88rem; line-height: 1.6;
+    }
+
+    /* ── Spinner ── */
+    .spin { border: 3px solid #1f2937; border-top-color: #ef4444; border-radius: 50%; width: 26px; height: 26px; animation: sp .7s linear infinite; }
+    @keyframes sp { to { transform: rotate(360deg); } }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #374151; border-radius: 99px; }
+
+    /* ── Animations ── */
+    @keyframes fadeUp { from { opacity:0; transform: translateY(24px); } to { opacity:1; transform: none; } }
+    .fade-up { animation: fadeUp .45s ease both; }
+
+    @keyframes pulseRing { 0%,100% { opacity:.15; transform: scale(1); } 50% { opacity:.25; transform: scale(1.04); } }
+    .pulse-ring { animation: pulseRing 3s ease infinite; }
+
+    .hero-center {
+      background: radial-gradient(ellipse at center, rgba(239,68,68,.08) 0%, transparent 70%);
+    }
+
+    /* ── Modal ── */
+    #report-modal { display: none; }
+    #report-modal.open { display: flex; }
+  </style>
+</head>
+
+<body class="text-gray-100 flex flex-col h-screen overflow-hidden">
+
+  <!-- ═══ REPORT MODAL ═══ -->
+  <div id="report-modal" class="fixed inset-0 z-50 items-center justify-center bg-black/75 backdrop-blur-sm">
+    <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-5xl flex flex-col shadow-2xl mx-4" style="max-height:90vh">
+
+      <!-- Modal header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-800 flex-shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 bg-red-600 rounded-lg flex items-center justify-center">
+            <i class="fas fa-chart-bar text-white text-sm"></i>
+          </div>
+          <div>
+            <p class="font-bold text-white text-sm">Reporte Visual — Gemini AI</p>
+            <p class="text-gray-500 text-xs" id="modal-meta"></p>
+          </div>
+        </div>
+        <button onclick="closeModal()"
+          class="text-gray-500 hover:text-white w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-800 transition-colors">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Modal body — scrollable report content -->
+      <div id="modal-body" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
+
+    </div>
+  </div>
+
+  <!-- ═══ HEADER ═══ -->
+  <header class="flex-shrink-0 bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 bg-red-600 rounded-lg flex items-center justify-center">
+        <i class="fas fa-robot text-white text-sm"></i>
+      </div>
+      <div>
+        <p class="font-bold text-white text-sm leading-tight">ArcaBot – Generador de Reportes</p>
+        <p class="text-gray-500 text-xs">Haz preguntas sobre los datos o genera un reporte visual</p>
+      </div>
+    </div>
+    <a href="/" class="flex items-center gap-2 text-gray-500 hover:text-gray-200 text-sm transition-colors">
+      <i class="fas fa-arrow-left text-xs"></i> Dashboard
+    </a>
+  </header>
+
+  <!-- ═══ BODY ═══ -->
+  <div class="flex flex-1 overflow-hidden">
+
+    <!-- ─── LEFT PANEL ─── -->
+    <aside class="w-72 flex-shrink-0 bg-gray-900 border-r border-gray-800 flex flex-col overflow-y-auto">
+
+      <div class="opt-section p-4">
+        <p class="text-xs font-bold text-gray-500 uppercase mb-2.5 tracking-wider">
+          <i class="fas fa-chart-bar mr-1.5 text-red-400"></i>Tipo de Análisis
+        </p>
+        <div id="chips-analysis" class="flex flex-wrap gap-1.5">
+          <span class="chip text-gray-600 text-xs">Cargando...</span>
+        </div>
+      </div>
+
+      <div class="opt-section p-4">
+        <p class="text-xs font-bold text-gray-500 uppercase mb-2.5 tracking-wider">
+          <i class="fas fa-globe-americas mr-1.5 text-blue-400"></i>País
+        </p>
+        <div id="chips-country" class="flex flex-wrap gap-1.5"></div>
+      </div>
+
+      <div class="opt-section p-4">
+        <p class="text-xs font-bold text-gray-500 uppercase mb-2.5 tracking-wider">
+          <i class="fas fa-warehouse mr-1.5 text-orange-400"></i>CEDIS
+        </p>
+        <div id="chips-cedis" class="flex flex-wrap gap-1.5"></div>
+      </div>
+
+      <div class="opt-section p-4">
+        <p class="text-xs font-bold text-gray-500 uppercase mb-2.5 tracking-wider">
+          <i class="fas fa-briefcase mr-1.5 text-purple-400"></i>Unidad de Negocio
+        </p>
+        <div id="chips-bu" class="flex flex-wrap gap-1.5"></div>
+      </div>
+
+      <div class="opt-section p-4">
+        <p class="text-xs font-bold text-gray-500 uppercase mb-2.5 tracking-wider">
+          <i class="fas fa-chart-pie mr-1.5 text-green-400"></i>Gráficas a incluir
+        </p>
+        <div id="chips-charts" class="flex flex-wrap gap-1.5"></div>
+      </div>
+
+      <!-- Status + generate -->
+      <div class="mt-auto p-4 border-t border-gray-800">
+        <p class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-3">Selección actual</p>
+        <div class="space-y-1.5 mb-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-600">Análisis</span>
+            <span class="param-pill pending" id="badge-analysis">Sin definir</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-600">País</span>
+            <span class="param-pill" id="badge-country"><i class="fas fa-check text-xs"></i> Todos</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-600">CEDIS</span>
+            <span class="param-pill" id="badge-cedis"><i class="fas fa-check text-xs"></i> Todos</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-600">Unidad</span>
+            <span class="param-pill" id="badge-bu"><i class="fas fa-check text-xs"></i> Todos</span>
+          </div>
+        </div>
+
+        <button id="btn-generate" onclick="generateReport()"
+          class="w-full bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl py-3 text-sm font-bold flex items-center justify-center gap-2 transition-colors"
+          disabled>
+          <i class="fas fa-sparkles"></i> Generar Reporte Visual
+        </button>
+        <p class="text-gray-700 text-xs text-center mt-2" id="generate-hint">Selecciona un tipo de análisis</p>
+      </div>
+    </aside>
+
+    <!-- ─── MAIN AREA (chat only) ─── -->
+    <main class="flex-1 flex flex-col overflow-hidden">
+
+      <!-- Chat messages -->
+      <div id="chat-messages" class="flex-1 overflow-y-auto p-5 space-y-4"></div>
+
+      <!-- Input bar -->
+      <div class="flex-shrink-0 border-t border-gray-800 bg-gray-900/80 p-4">
+        <div class="flex gap-3 max-w-3xl mx-auto">
+          <input id="chat-input" type="text"
+            placeholder="Pregunta algo sobre los datos: '¿cuál CEDIS tiene más sustituciones?', '¿cuántos clientes críticos hay?'…"
+            class="flex-1 bg-gray-800 text-gray-200 placeholder-gray-600 text-sm px-4 py-3 rounded-xl border border-gray-700 focus:outline-none focus:border-red-500 transition-colors"
+            onkeydown="if(event.key==='Enter') sendChat()"/>
+          <button onclick="sendChat()" class="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-xl transition-colors">
+            <i class="fas fa-paper-plane text-sm"></i>
+          </button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ═══ SCRIPTS ═══ -->
+  <script>
+    const API = 'http://localhost:5000';
+    const sessionId = 'rb-' + Math.random().toString(36).slice(2);
+    let params = { analysis_type: null, country: 'todos', cedis: 'todos', business_unit: 'todos', chart_types: ['bar', 'doughnut', 'table'] };
+    let options = {};
+    let chartInstances = {};
+    let activeChips = {};
+    let lastReportData = null;
+
+    // ── Action registry — avoids serializing functions into onclick ──
+    const _actions = {};
+    let _actIdx = 0;
+    function regAction(fn) {
+      const k = 'act_' + (++_actIdx);
+      _actions[k] = fn;
+      return k;
+    }
+
+    // ── Boot ──────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadOptions();
+      addBotMessage(
+        `¡Hola! Soy ArcaBot.\n\nPuedo responder preguntas sobre los datos de sustituciones de Arca Continental, o generar un **reporte visual** con gráficas.\n\nSelecciona el tipo de análisis en el panel izquierdo para el reporte, o escríbeme lo que necesitas saber.`,
+        [
+          { label: '📦 ¿Qué productos se sustituyen más?', action: () => quickSend('¿Cuáles son los productos que más se sustituyen?') },
+          { label: '🚨 ¿Cuántos clientes críticos hay?',  action: () => quickSend('¿Cuántos clientes críticos hay y cuál es su score?') },
+          { label: '🏭 ¿Cuál CEDIS tiene más problemas?', action: () => quickSend('¿Cuál es el CEDIS con más sustituciones?') },
+        ]
+      );
+    });
+
+    // ── Options ───────────────────────────────────────────────────
+    async function loadOptions() {
+      const res = await fetch(API + '/api/rb/options');
+      options = await res.json();
+      buildChips();
+    }
+
+    function buildChips() {
+      // Analysis
+      const ca = document.getElementById('chips-analysis');
+      ca.innerHTML = '';
+      options.analysis_types.forEach(at => {
+        const el = makeChip(`<i class="fas ${at.icon}"></i>${at.label}`, () => {
+          selectParam('analysis_type', at.value, el);
+        });
+        el.title = at.desc;
+        ca.appendChild(el);
+      });
+
+      // Country
+      const cc = document.getElementById('chips-country');
+      cc.innerHTML = '';
+      const allC = makeChip('Todos', () => selectParam('country', 'todos', allC));
+      allC.classList.add('active'); activeChips['country'] = allC;
+      cc.appendChild(allC);
+      options.countries.forEach(c => {
+        const el = makeChip(c, () => selectParam('country', c, el));
+        cc.appendChild(el);
+      });
+
+      // CEDIS
+      const cd = document.getElementById('chips-cedis');
+      cd.innerHTML = '';
+      const allD = makeChip('Todos', () => selectParam('cedis', 'todos', allD));
+      allD.classList.add('active'); activeChips['cedis'] = allD;
+      cd.appendChild(allD);
+      options.cedis.forEach(c => {
+        const el = makeChip('CEDIS ' + c, () => selectParam('cedis', c, el));
+        cd.appendChild(el);
+      });
+
+      // BU
+      const cb = document.getElementById('chips-bu');
+      cb.innerHTML = '';
+      const allB = makeChip('Todos', () => selectParam('business_unit', 'todos', allB));
+      allB.classList.add('active'); activeChips['business_unit'] = allB;
+      cb.appendChild(allB);
+      options.business_units.forEach(b => {
+        const el = makeChip(b, () => selectParam('business_unit', b, el));
+        cb.appendChild(el);
+      });
+
+      // Chart types (multi-select)
+      const cch = document.getElementById('chips-charts');
+      cch.innerHTML = '';
+      options.chart_types.forEach(ct => {
+        const el = makeChip(ct.label, () => toggleChartType(ct.value, el));
+        if (params.chart_types.includes(ct.value)) el.classList.add('active-green');
+        cch.appendChild(el);
+      });
+    }
+
+    function makeChip(html, onClick) {
+      const el = document.createElement('span');
+      el.className = 'chip';
+      el.innerHTML = html;
+      el.onclick = onClick;
+      return el;
+    }
+
+    function selectParam(key, value, el) {
+      params[key] = value;
+      if (activeChips[key]) activeChips[key].classList.remove('active');
+      el.classList.add('active');
+      activeChips[key] = el;
+      updateBadges();
+      updateGenerateButton();
+    }
+
+    function toggleChartType(value, el) {
+      if (params.chart_types.includes(value)) {
+        params.chart_types = params.chart_types.filter(v => v !== value);
+        el.classList.remove('active-green');
+      } else {
+        params.chart_types.push(value);
+        el.classList.add('active-green');
+      }
+    }
+
+    function updateBadges() {
+      const map = {
+        analysis_type: { id: 'badge-analysis', fmt: v => options.analysis_types?.find(a => a.value === v)?.label || v },
+        country:       { id: 'badge-country',  fmt: v => v },
+        cedis:         { id: 'badge-cedis',    fmt: v => v === 'todos' ? 'Todos' : 'CEDIS ' + v },
+        business_unit: { id: 'badge-bu',       fmt: v => v },
+      };
+      Object.entries(map).forEach(([key, conf]) => {
+        const el = document.getElementById(conf.id);
+        const val = params[key];
+        if (!val) { el.className = 'param-pill pending'; el.textContent = 'Sin definir'; }
+        else { el.className = 'param-pill'; el.innerHTML = `<i class="fas fa-check text-xs"></i> ${conf.fmt(val)}`; }
+      });
+    }
+
+    function updateGenerateButton() {
+      const btn = document.getElementById('btn-generate');
+      const hint = document.getElementById('generate-hint');
+      if (params.analysis_type) {
+        btn.disabled = false;
+        hint.textContent = '¡Listo para generar!';
+        hint.className = 'text-green-500 text-xs text-center mt-2 font-medium';
+      } else {
+        btn.disabled = true;
+        hint.textContent = 'Selecciona un tipo de análisis';
+        hint.className = 'text-gray-700 text-xs text-center mt-2';
+      }
+    }
+
+    // ── Chat (pure Q&A) ───────────────────────────────────────────
+    async function sendChat() {
+      const input = document.getElementById('chat-input');
+      const msg = input.value.trim();
+      if (!msg) return;
+      input.value = '';
+      addUserMessage(msg);
+      await callBot(msg);
+    }
+
+    function quickSend(msg) { addUserMessage(msg); callBot(msg); }
+
+    async function callBot(msg) {
+      addTyping();
+      try {
+        const res = await fetch(API + '/api/rb/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: msg, session_id: sessionId }),
+        });
+        const data = await res.json();
+        removeTyping();
+        addBotMessage(data.response || 'No pude generar una respuesta.');
+      } catch (e) {
+        removeTyping();
+        addBotMessage('Error al conectar: ' + e.message);
+      }
+    }
+
+    // ── Message rendering ─────────────────────────────────────────
+    const msgs = () => document.getElementById('chat-messages');
+
+    function addUserMessage(text) {
+      const div = document.createElement('div');
+      div.className = 'flex justify-end';
+      div.innerHTML = `<div class="msg-user text-white text-sm px-4 py-3 max-w-lg leading-relaxed">${esc(text)}</div>`;
+      msgs().appendChild(div);
+      scrollChat();
+    }
+
+    function addBotMessage(text, actionButtons = null) {
+      const div = document.createElement('div');
+      div.className = 'flex gap-3 max-w-2xl';
+      const fmt = text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/_(.*?)_/g, '<em>$1</em>')
+        .replace(/\n/g, '<br>');
+
+      let btnsHtml = '';
+      if (actionButtons && actionButtons.length) {
+        const btnItems = actionButtons.map(b => {
+          const k = regAction(b.action);
+          return `<button class="chip hover:!bg-red-900/40 hover:!text-red-300 hover:!border-red-700"
+            onclick="_actions['${k}']()">${esc(b.label)}</button>`;
+        }).join('');
+        btnsHtml = `<div class="flex flex-wrap gap-2 mt-3">${btnItems}</div>`;
+      }
+
+      div.innerHTML = `
+        <div class="w-8 h-8 bg-red-700 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+          <i class="fas fa-robot text-white text-xs"></i>
+        </div>
+        <div class="msg-bot text-gray-200 text-sm px-4 py-3 leading-relaxed">${fmt}${btnsHtml}</div>`;
+      msgs().appendChild(div);
+      scrollChat();
+    }
+
+    function addSystemMsg(html) {
+      const div = document.createElement('div');
+      div.className = 'flex justify-center';
+      div.innerHTML = `<div class="text-xs text-gray-500 bg-gray-800/50 px-4 py-1.5 rounded-full">${html}</div>`;
+      msgs().appendChild(div);
+      scrollChat();
+      return div;
+    }
+
+    let typingEl = null;
+    function addTyping() {
+      typingEl = document.createElement('div');
+      typingEl.className = 'flex gap-3 max-w-2xl';
+      typingEl.innerHTML = `
+        <div class="w-8 h-8 bg-red-700 rounded-full flex items-center justify-center flex-shrink-0">
+          <i class="fas fa-robot text-white text-xs"></i>
+        </div>
+        <div class="msg-bot px-4 py-3 flex gap-1.5 items-center">
+          <div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay:0s"></div>
+          <div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay:.15s"></div>
+          <div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay:.3s"></div>
+        </div>`;
+      msgs().appendChild(typingEl);
+      scrollChat();
+    }
+    function removeTyping() { if (typingEl) { typingEl.remove(); typingEl = null; } }
+    function scrollChat() { const m = msgs(); setTimeout(() => m.scrollTop = m.scrollHeight, 60); }
+
+    // ── Count-up animation ────────────────────────────────────────
+    function countUp(el, target, decimals = 0, suffix = '', duration = 1400) {
+      let startTime = null;
+      const step = (ts) => {
+        if (!startTime) startTime = ts;
+        const p = Math.min((ts - startTime) / duration, 1);
+        const eased = 1 - Math.pow(1 - p, 4);
+        const val = eased * target;
+        el.textContent = decimals > 0
+          ? val.toFixed(decimals) + suffix
+          : Math.round(val).toLocaleString('es-MX') + suffix;
+        if (p < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }
+
+    // ── Report Generation ─────────────────────────────────────────
+    async function generateReport() {
+      if (!params.analysis_type) {
+        addBotMessage('Primero selecciona un tipo de análisis en el panel izquierdo.');
+        return;
+      }
+
+      const loadEl = addSystemMsg(
+        '<i class="fas fa-circle-notch fa-spin text-red-400 mr-2"></i>Generando reporte visual con Gemini AI…'
+      );
+      document.getElementById('btn-generate').disabled = true;
+
+      try {
+        const res = await fetch(API + '/api/rb/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ params }),
+        });
+        const data = await res.json();
+        loadEl.remove();
+
+        if (!data.ok) throw new Error(data.error || 'Error desconocido');
+
+        lastReportData = data;
+
+        // Message 1: report ready + open button
+        addBotMessage(
+          `✅ ¡Reporte listo! Generé **${data.charts.length} gráficas** con análisis de **${data.meta.sustituciones.toLocaleString('es-MX')}** sustituciones.\n\nHaz clic para visualizarlo:`,
+          [{ label: '📊 Ver Reporte Visual', action: openModal }]
+        );
+
+        // Message 2: Gemini's recommended next report (with short delay for UX)
+        if (data.recommendation) {
+          const rec = data.recommendation;
+          setTimeout(() => {
+            addBotMessage(
+              `💡 **Siguiente análisis recomendado: ${rec.label}**\n${rec.reason}`,
+              [{ label: `📈 Generar: ${rec.label}`, action: () => applyRecommendation(rec) }]
+            );
+          }, 900);
+        }
+
+      } catch (e) {
+        loadEl.remove();
+        addBotMessage('Error generando el reporte: ' + e.message);
+      } finally {
+        document.getElementById('btn-generate').disabled = false;
+      }
+    }
+
+    function applyRecommendation(rec) {
+      // Set the new analysis type in params
+      params.analysis_type = rec.analysis_type;
+
+      // Update the chip UI to reflect the new selection
+      const container = document.getElementById('chips-analysis');
+      if (container && options.analysis_types) {
+        const found = options.analysis_types.find(a => a.value === rec.analysis_type);
+        if (found) {
+          container.querySelectorAll('.chip').forEach(chip => chip.classList.remove('active'));
+          container.querySelectorAll('.chip').forEach(chip => {
+            if (chip.textContent.trim().includes(found.label)) {
+              chip.classList.add('active');
+              activeChips['analysis_type'] = chip;
+            }
+          });
+        }
+      }
+      updateBadges();
+      updateGenerateButton();
+      generateReport();
+    }
+
+    // ── Modal open / close ────────────────────────────────────────
+    function openModal() {
+      if (!lastReportData) return;
+      renderReport(lastReportData);
+      document.getElementById('report-modal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      document.getElementById('report-modal').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    // Close modal on backdrop click
+    document.getElementById('report-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+
+    // ── renderReport ──────────────────────────────────────────────
+    function renderReport(data) {
+      // Destroy old charts
+      Object.values(chartInstances).forEach(c => { try { c.destroy(); } catch(_) {} });
+      chartInstances = {};
+
+      // Meta line
+      const filtros = Object.entries(data.meta.filtros)
+        .filter(([k, v]) => v && v !== 'todos' && !Array.isArray(v) && k !== 'ready')
+        .map(([k, v]) => `${k}: ${v}`).join(' · ');
+      document.getElementById('modal-meta').textContent =
+        new Date().toLocaleString('es-MX') + (filtros ? ' · ' + filtros : ' · Todos los datos');
+
+      const main = document.getElementById('modal-body');
+      main.innerHTML = '';
+
+      const tasa    = data.meta.tasa_sustitucion;
+      const pedidos = data.meta.pedidos_analizados;
+      const sust    = data.meta.sustituciones;
+      const critCard = data.summary_cards.find(c => c.label.includes('Crítico'));
+      const criticos = critCard ? parseInt(critCard.value) : null;
+
+      // ── 1. HERO METRICS ROW ──────────────────────────────────────
+      const hero = document.createElement('div');
+      hero.className = 'grid grid-cols-3 gap-4 fade-up';
+      hero.innerHTML = `
+        <div class="chart-card flex flex-col items-center justify-center py-10">
+          <p class="text-gray-600 text-xs font-bold uppercase tracking-widest mb-3">Pedidos Analizados</p>
+          <p class="text-5xl lg:text-6xl font-black text-white count-hero" data-val="${pedidos}" data-dec="0">0</p>
+          <p class="text-gray-600 text-xs mt-2">pedidos en el periodo</p>
+        </div>
+        <div class="chart-card hero-center flex flex-col items-center justify-center py-10 relative overflow-hidden">
+          <div class="absolute inset-0 flex items-center justify-center pulse-ring pointer-events-none">
+            <div class="w-56 h-56 rounded-full border-4 border-red-600/20"></div>
+          </div>
+          <div class="absolute inset-0 flex items-center justify-center pulse-ring pointer-events-none" style="animation-delay:.6s">
+            <div class="w-40 h-40 rounded-full border-2 border-red-500/15"></div>
+          </div>
+          <p class="text-gray-500 text-xs font-bold uppercase tracking-widest mb-3 z-10">Tasa de Sustitución</p>
+          <p class="text-7xl lg:text-8xl font-black text-red-400 z-10 count-hero" data-val="${tasa}" data-dec="1" data-suf="%">0%</p>
+          <p class="text-gray-600 text-xs mt-2 z-10">de pedidos con cambios</p>
+        </div>
+        <div class="chart-card flex flex-col items-center justify-center py-10 gap-2">
+          <p class="text-gray-600 text-xs font-bold uppercase tracking-widest mb-1">Sustituciones</p>
+          <p class="text-5xl lg:text-6xl font-black text-orange-400 count-hero" data-val="${sust}" data-dec="0">0</p>
+          <p class="text-gray-600 text-xs mb-3">productos cambiados</p>
+          ${criticos !== null ? `
+          <div class="w-full border-t border-gray-800 pt-3 flex flex-col items-center">
+            <p class="text-gray-600 text-xs font-bold uppercase tracking-widest mb-1">Críticos</p>
+            <p class="text-3xl font-black text-red-400 count-hero" data-val="${criticos}" data-dec="0">0</p>
+            <p class="text-gray-600 text-xs">clientes en alerta roja</p>
+          </div>` : ''}
+        </div>`;
+      main.appendChild(hero);
+
+      // ── 2. CHARTS ────────────────────────────────────────────────
+      const charts   = data.charts;
+      const tables   = charts.filter(c => c.type === 'table');
+      const visuals  = charts.filter(c => c.type !== 'table');
+      const doughnuts = visuals.filter(c => c.type === 'doughnut');
+      const bars      = visuals.filter(c => c.type === 'bar');
+
+      if (doughnuts.length && bars.length) {
+        const doughnut = doughnuts[0];
+        const firstBar = bars[0];
+        const critCount = doughnut.data.datasets[0].data[0] || 0;
+        const totalRisk = doughnut.data.datasets[0].data.reduce((a, b) => a + b, 0);
+        const RISK_COLORS = ['#ef4444', '#fb923c', '#60a5fa'];
+
+        const twoCol = document.createElement('div');
+        twoCol.className = 'grid gap-4 fade-up';
+        twoCol.style.cssText = 'grid-template-columns: 2fr 3fr; animation-delay:.1s';
+        twoCol.innerHTML = `
+          <div class="chart-card">
+            <h4><i class="fas fa-exclamation-triangle mr-2" style="color:#ef4444"></i>${doughnut.title}</h4>
+            <div class="flex flex-col items-center">
+              <div class="relative" style="width:190px;height:190px">
+                <canvas id="canvas_${doughnut.id}"></canvas>
+                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <p class="text-4xl font-black text-red-400 count-hero" data-val="${critCount}" data-dec="0">0</p>
+                  <p class="text-xs text-gray-500 font-medium">críticos</p>
+                </div>
+              </div>
+              <div class="w-full mt-5 space-y-3">
+                ${doughnut.data.labels.map((lbl, i) => {
+                  const val = doughnut.data.datasets[0].data[i] || 0;
+                  const pct = totalRisk > 0 ? Math.round(val / totalRisk * 100) : 0;
+                  return `<div class="flex items-center gap-3">
+                    <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${RISK_COLORS[i]}"></div>
+                    <span class="text-xs text-gray-500 flex-1 truncate">${lbl}</span>
+                    <div class="flex items-center gap-2">
+                      <div class="w-16 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full" style="width:${pct}%;background:${RISK_COLORS[i]}"></div>
+                      </div>
+                      <span class="text-xl font-black w-8 text-right" style="color:${RISK_COLORS[i]}">${val}</span>
+                    </div>
+                  </div>`;
+                }).join('')}
+              </div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h4><i class="fas fa-chart-bar mr-2" style="color:#ef4444"></i>${firstBar.title}</h4>
+            <div style="height:290px;position:relative"><canvas id="canvas_${firstBar.id}"></canvas></div>
+          </div>`;
+        main.appendChild(twoCol);
+
+        bars.slice(1).forEach((bar, i) => {
+          const card = document.createElement('div');
+          card.className = 'chart-card fade-up';
+          card.style.animationDelay = (0.15 + i * 0.08) + 's';
+          card.innerHTML = `
+            <h4><i class="fas fa-warehouse mr-2" style="color:#fb923c"></i>${bar.title}</h4>
+            <div style="height:270px;position:relative"><canvas id="canvas_${bar.id}"></canvas></div>`;
+          main.appendChild(card);
+        });
+
+        if (doughnuts[1]) {
+          const d2 = doughnuts[1];
+          const BU_COLORS = ['rgba(167,139,250,.9)', 'rgba(52,211,153,.9)', 'rgba(251,191,36,.9)', 'rgba(236,72,153,.9)'];
+          const d2total = d2.data.datasets[0].data.reduce((a, b) => a + b, 0);
+          const card = document.createElement('div');
+          card.className = 'chart-card fade-up grid gap-8 items-center';
+          card.style.cssText = 'grid-template-columns: 1fr 1fr; animation-delay:.2s';
+          card.innerHTML = `
+            <div>
+              <h4><i class="fas fa-briefcase mr-2" style="color:#a78bfa"></i>${d2.title}</h4>
+              <div style="height:210px;position:relative"><canvas id="canvas_${d2.id}"></canvas></div>
+            </div>
+            <div class="space-y-4">
+              ${d2.data.labels.map((lbl, i) => {
+                const val = d2.data.datasets[0].data[i] || 0;
+                const pct = d2total > 0 ? Math.round(val / d2total * 100) : 0;
+                return `<div>
+                  <div class="flex items-center justify-between mb-1">
+                    <div class="flex items-center gap-2">
+                      <div class="w-3 h-3 rounded-sm" style="background:${BU_COLORS[i]}"></div>
+                      <span class="text-sm text-gray-300 font-medium">${lbl}</span>
+                    </div>
+                    <span class="text-2xl font-black text-white">${val.toLocaleString('es-MX')}</span>
+                  </div>
+                  <div class="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                    <div class="h-full rounded-full" style="width:${pct}%;background:${BU_COLORS[i]}"></div>
+                  </div>
+                  <p class="text-gray-600 text-xs mt-0.5 text-right">${pct}% del total</p>
+                </div>`;
+              }).join('')}
+            </div>`;
+          main.appendChild(card);
+        }
+      } else {
+        visuals.forEach((ch, i) => {
+          const card = document.createElement('div');
+          card.className = 'chart-card fade-up';
+          card.style.animationDelay = (i * 0.1) + 's';
+          card.innerHTML = `
+            <h4>${ch.title}</h4>
+            <div style="height:270px;position:relative"><canvas id="canvas_${ch.id}"></canvas></div>`;
+          main.appendChild(card);
+        });
+      }
+
+      // ── 3. TABLES ────────────────────────────────────────────────
+      tables.forEach((t, i) => {
+        const freqMax = Math.max(...t.rows.map(r => Number(r[2]) || 0), 1);
+        const card = document.createElement('div');
+        card.className = 'chart-card fade-up';
+        card.style.animationDelay = (0.25 + i * 0.08) + 's';
+        card.innerHTML = `
+          <h4><i class="fas fa-exchange-alt mr-2" style="color:#ef4444"></i>${t.title}</h4>
+          <table class="data-table">
+            <thead><tr>${t.headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+            <tbody>${t.rows.map((row, ri) => {
+              const freq = Number(row[2]) || 0;
+              const pct  = Math.round(freq / freqMax * 100);
+              const col  = ri === 0 ? '#ef4444' : ri < 3 ? '#fb923c' : '#6b7280';
+              return `<tr>
+                <td><span class="text-gray-300 text-xs">${row[0]}</span></td>
+                <td><span style="color:#fb923c;font-size:.8rem">→</span> <span class="text-gray-300 text-xs">${row[1]}</span></td>
+                <td style="min-width:140px">
+                  <div class="flex items-center gap-2">
+                    <div class="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+                      <div class="h-full rounded-full" style="width:${pct}%;background:${col}"></div>
+                    </div>
+                    <span class="font-bold text-sm" style="color:${col};min-width:30px;text-align:right">${freq}</span>
+                  </div>
+                </td>
+              </tr>`;
+            }).join('')}</tbody>
+          </table>`;
+        main.appendChild(card);
+      });
+
+      // ── 4. GEMINI NARRATIVE ───────────────────────────────────────
+      const narCard = document.createElement('div');
+      narCard.className = 'chart-card fade-up';
+      narCard.style.animationDelay = '.35s';
+      narCard.innerHTML = `
+        <h4><i class="fas fa-robot mr-2" style="color:#ef4444"></i>Análisis e Insights de Gemini AI</h4>
+        <div class="report-out">${data.narrative}</div>`;
+      main.appendChild(narCard);
+
+      // ── Initialize Chart.js ───────────────────────────────────────
+      setTimeout(() => {
+        visuals.forEach(ch => {
+          const ctx = document.getElementById('canvas_' + ch.id)?.getContext('2d');
+          if (!ctx) return;
+          const isDoughnut = ch.type === 'doughnut';
+          chartInstances['canvas_' + ch.id] = new Chart(ctx, {
+            type: ch.type,
+            data: ch.data,
+            options: {
+              responsive: true, maintainAspectRatio: false,
+              indexAxis: ch.options?.indexAxis || 'x',
+              cutout: isDoughnut ? '65%' : undefined,
+              plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label || ''}: ${ctx.formattedValue}` } },
+              },
+              scales: isDoughnut ? undefined : {
+                x: { ticks: { color: '#6b7280', font: { size: 10 } }, grid: { color: '#1f2937' } },
+                y: { ticks: { color: '#6b7280', font: { size: 10 } }, grid: { color: '#1f2937' } },
+              },
+            },
+          });
+        });
+      }, 80);
+
+      // ── Count-up animations ───────────────────────────────────────
+      setTimeout(() => {
+        main.querySelectorAll('.count-hero').forEach(el => {
+          countUp(el, parseFloat(el.dataset.val || 0), parseInt(el.dataset.dec || 0), el.dataset.suf || '');
+        });
+      }, 160);
+    }
+
+    // ── Utils ──────────────────────────────────────────────────────
+    function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  </script>
+</body>
+</html>

@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArcaBot Dashboard – Arca Continental</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    body { background: #0c1220; }
+
+    .sidebar { background: #111827; border-right: 1px solid #1f2937; }
+    .nav-item { transition: all .2s; border-radius: .5rem; }
+    .nav-item:hover, .nav-item.active { background: #1f2937; color: #ef4444; }
+    .nav-item.active { border-left: 3px solid #ef4444; }
+    .card { background: #111827; border: 1px solid #1f2937; border-radius: .75rem; }
+    .kpi-card { transition: transform .2s; }
+    .kpi-card:hover { transform: translateY(-2px); }
+    .badge-critico { background: #7f1d1d; color: #fca5a5; }
+    .badge-alto    { background: #78350f; color: #fcd34d; }
+    .badge-medio   { background: #1e3a5f; color: #93c5fd; }
+
+    /* Sustituciones tabs */
+    .sust-tab { padding: .45rem 1rem; border-radius: .6rem; font-size: .78rem; font-weight: 600; color: #6b7280; transition: all .18s; white-space: nowrap; }
+    .sust-tab:hover { color: #d1d5db; background: rgba(255,255,255,.05); }
+    .sust-tab.active { background: #1f2937; color: #fca5a5; }
+    .sust-panel { display: none; }
+    .sust-panel.active { display: block; }
+
+    /* Report content */
+    #report-content h2 { font-size: 1.15rem; font-weight: 700; color: #f87171; margin: 1.2rem 0 .5rem; }
+    #report-content h3 { font-size: 1rem; font-weight: 600; color: #fca5a5; margin: .9rem 0 .4rem; }
+    #report-content p  { color: #d1d5db; line-height: 1.6; margin: .3rem 0; }
+    #report-content ul { list-style: disc; margin-left: 1.5rem; color: #d1d5db; }
+    #report-content li { margin: .25rem 0; }
+    #report-content table { width: 100%; border-collapse: collapse; margin: .75rem 0; }
+    #report-content th { background: #1f2937; color: #9ca3af; font-size: .78rem; text-transform: uppercase; padding: .5rem .75rem; text-align: left; }
+    #report-content td { padding: .5rem .75rem; border-bottom: 1px solid #1f2937; color: #e5e7eb; font-size: .88rem; }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #111827; }
+    ::-webkit-scrollbar-thumb { background: #374151; border-radius: 99px; }
+    .loader { border: 3px solid #1f2937; border-top-color: #ef4444; border-radius: 50%; width: 28px; height: 28px; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Toast notifications ── */
+    .toast { transform: translateX(110%); opacity: 0; transition: transform .35s cubic-bezier(.34,1.56,.64,1), opacity .3s ease; }
+    .toast.show { transform: translateX(0); opacity: 1; }
+    .toast-progress { height: 3px; border-radius: 99px; animation: drain linear forwards; }
+    @keyframes drain { from { width: 100%; } to { width: 0%; } }
+
+    /* Bell badge pulse */
+    @keyframes bellPop { 0%,100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+    .bell-pop { animation: bellPop .4s ease; }
+  </style>
+</head>
+<body class="text-gray-100 flex h-screen overflow-hidden">
+
+  <!-- ═══ TOAST CONTAINER ═══ -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-3 items-end pointer-events-none" style="max-width:360px"></div>
+
+  <!-- ═══════════════════════════════ SIDEBAR ═══════════════════════════════ -->
+  <aside class="sidebar w-64 flex-shrink-0 flex flex-col h-full overflow-y-auto">
+    <div class="p-5 border-b border-gray-800">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-red-600 rounded-lg flex items-center justify-center">
+          <i class="fas fa-robot text-white text-sm"></i>
+        </div>
+        <div>
+          <p class="font-bold text-white text-sm leading-tight">ArcaBot</p>
+          <p class="text-gray-500 text-xs">Arca Continental</p>
+        </div>
+      </div>
+    </div>
+
+    <nav class="flex-1 p-4 space-y-1">
+      <p class="text-gray-600 text-xs uppercase font-semibold px-3 pt-2 pb-1">Principal</p>
+      <a href="#" class="nav-item active flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300" onclick="return showSection('dashboard', this)">
+        <i class="fas fa-chart-line w-4 text-center"></i> Dashboard
+      </a>
+      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300" onclick="return showSection('reportes', this)">
+        <i class="fas fa-file-alt w-4 text-center"></i> Reportes IA
+      </a>
+      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300" onclick="return showSection('clientes', this)">
+        <i class="fas fa-exclamation-triangle w-4 text-center"></i> Clientes en Riesgo
+      </a>
+      <p class="text-gray-600 text-xs uppercase font-semibold px-3 pt-4 pb-1">Análisis</p>
+      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300" onclick="return showSection('sustituciones', this)">
+        <i class="fas fa-exchange-alt w-4 text-center"></i> Sustituciones
+      </a>
+      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300" onclick="return showSection('cedis', this)">
+        <i class="fas fa-warehouse w-4 text-center"></i> CEDIS
+      </a>
+    </nav>
+
+    <div class="p-4 border-t border-gray-800">
+      <!-- Opens report builder in same tab -->
+      <a href="/report-builder"
+        class="w-full bg-red-600 hover:bg-red-700 text-white rounded-lg py-2.5 text-sm font-medium flex items-center justify-center gap-2 transition-colors">
+        <i class="fas fa-robot"></i> Abrir ArcaBot Chat
+      </a>
+      <p class="text-gray-600 text-xs text-center mt-2" id="last-update">Cargando datos...</p>
+    </div>
+  </aside>
+
+  <!-- ═══════════════════════════════ MAIN ═══════════════════════════════ -->
+  <main class="flex-1 flex flex-col overflow-hidden">
+    <!-- Top bar -->
+    <header class="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center justify-between flex-shrink-0">
+      <div>
+        <h1 class="text-white font-semibold text-base" id="section-title">Dashboard de Operaciones</h1>
+        <p class="text-gray-500 text-xs" id="section-subtitle">Vista general de sustituciones y riesgos</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="header-loader" class="loader hidden"></div>
+        <span class="text-gray-500 text-xs" id="data-date"></span>
+
+        <!-- Notification bell -->
+        <button id="bell-btn" onclick="replayNotifications()" title="Ver alertas" class="relative p-2 text-gray-500 hover:text-white transition-colors">
+          <i class="fas fa-bell text-lg"></i>
+          <span id="bell-badge" class="hidden absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center font-bold"></span>
+        </button>
+
+        <div class="flex items-center gap-2 bg-gray-800 rounded-full px-3 py-1.5">
+          <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+          <span class="text-xs text-gray-300">Sistema activo</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <div class="flex-1 overflow-y-auto p-6">
+
+      <!-- ─── SECTION: DASHBOARD ─── -->
+      <section id="sec-dashboard" class="section-content">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div class="card kpi-card p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-gray-500 text-xs font-medium uppercase">Total Pedidos</span>
+              <div class="w-8 h-8 bg-blue-900/50 rounded-lg flex items-center justify-center">
+                <i class="fas fa-shopping-cart text-blue-400 text-xs"></i>
+              </div>
+            </div>
+            <p class="text-2xl font-bold text-white" id="kpi-pedidos">–</p>
+            <p class="text-xs text-gray-500 mt-1">pedidos registrados</p>
+          </div>
+          <div class="card kpi-card p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-gray-500 text-xs font-medium uppercase">Sustituciones</span>
+              <div class="w-8 h-8 bg-orange-900/50 rounded-lg flex items-center justify-center">
+                <i class="fas fa-exchange-alt text-orange-400 text-xs"></i>
+              </div>
+            </div>
+            <p class="text-2xl font-bold text-white" id="kpi-sust">–</p>
+            <p class="text-xs text-gray-500 mt-1">productos cambiados</p>
+          </div>
+          <div class="card kpi-card p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-gray-500 text-xs font-medium uppercase">Tasa Global</span>
+              <div class="w-8 h-8 bg-yellow-900/50 rounded-lg flex items-center justify-center">
+                <i class="fas fa-percent text-yellow-400 text-xs"></i>
+              </div>
+            </div>
+            <p class="text-2xl font-bold text-white" id="kpi-tasa">–</p>
+            <p class="text-xs text-gray-500 mt-1">de pedidos sustituidos</p>
+          </div>
+          <div class="card kpi-card p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-gray-500 text-xs font-medium uppercase">Clientes Críticos</span>
+              <div class="w-8 h-8 bg-red-900/50 rounded-lg flex items-center justify-center">
+                <i class="fas fa-user-times text-red-400 text-xs"></i>
+              </div>
+            </div>
+            <p class="text-2xl font-bold text-red-400" id="kpi-criticos">–</p>
+            <p class="text-xs text-gray-500 mt-1">en riesgo de abandono</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+          <div class="card p-5">
+            <h3 class="text-sm font-semibold text-gray-300 mb-4">
+              <i class="fas fa-arrow-down-short-wide text-red-400 mr-2"></i>Productos Más Sustituidos
+            </h3>
+            <div class="h-64"><canvas id="chart-products"></canvas></div>
+          </div>
+          <div class="card p-5">
+            <h3 class="text-sm font-semibold text-gray-300 mb-4">
+              <i class="fas fa-warehouse text-orange-400 mr-2"></i>CEDIS con Más Sustituciones
+            </h3>
+            <div class="h-64"><canvas id="chart-cedis"></canvas></div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div class="card p-5 lg:col-span-2">
+            <h3 class="text-sm font-semibold text-gray-300 mb-4">
+              <i class="fas fa-shield-alt text-yellow-400 mr-2"></i>Score de Riesgo (Top Clientes)
+            </h3>
+            <div class="h-52"><canvas id="chart-risk"></canvas></div>
+          </div>
+          <div class="card p-5">
+            <h3 class="text-sm font-semibold text-gray-300 mb-4">
+              <i class="fas fa-building text-blue-400 mr-2"></i>Por Unidad de Negocio
+            </h3>
+            <div class="h-52"><canvas id="chart-bu"></canvas></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── SECTION: REPORTES ─── -->
+      <section id="sec-reportes" class="section-content hidden">
+        <!-- Redirect prompt -->
+        <div class="card p-8 mb-6 flex flex-col items-center text-center gap-4">
+          <div class="w-16 h-16 bg-red-900/40 rounded-full flex items-center justify-center">
+            <i class="fas fa-robot text-red-400 text-2xl"></i>
+          </div>
+          <div>
+            <h3 class="text-white font-bold text-lg">Reportes con ArcaBot</h3>
+            <p class="text-gray-400 text-sm mt-1 max-w-md">
+              Usa el generador conversacional para construir reportes personalizados con gráficas y análisis de Gemini AI.
+              Puedes filtrar por país, CEDIS, producto y más.
+            </p>
+          </div>
+          <a href="/report-builder" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-semibold text-sm flex items-center gap-2 transition-colors">
+            <i class="fas fa-chart-bar"></i> Abrir Generador de Reportes
+          </a>
+        </div>
+
+        <!-- Legacy quick reports -->
+        <div class="mb-4">
+          <p class="text-gray-500 text-xs uppercase font-semibold mb-3">O genera un reporte rápido:</p>
+          <div class="flex flex-wrap gap-3">
+            <button onclick="generateReport('diario')"   class="report-btn bg-gray-800 hover:bg-red-700 border border-gray-700 hover:border-red-600 text-gray-300 hover:text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2">
+              <i class="fas fa-calendar-day"></i> Diario
+            </button>
+            <button onclick="generateReport('semanal')"  class="report-btn bg-gray-800 hover:bg-red-700 border border-gray-700 hover:border-red-600 text-gray-300 hover:text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2">
+              <i class="fas fa-calendar-week"></i> Semanal
+            </button>
+            <button onclick="generateReport('mensual')"  class="report-btn bg-gray-800 hover:bg-red-700 border border-gray-700 hover:border-red-600 text-gray-300 hover:text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2">
+              <i class="fas fa-calendar-alt"></i> Mensual
+            </button>
+            <button onclick="generateReport('anual')"    class="report-btn bg-gray-800 hover:bg-red-700 border border-gray-700 hover:border-red-600 text-gray-300 hover:text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2">
+              <i class="fas fa-calendar"></i> Anual
+            </button>
+          </div>
+        </div>
+        <div id="report-loading" class="hidden flex flex-col items-center justify-center py-16 gap-3">
+          <div class="loader"></div>
+          <p class="text-gray-500 text-sm">Generando reporte con Gemini AI...</p>
+        </div>
+        <div id="report-placeholder" class="card p-10 flex flex-col items-center justify-center text-center">
+          <i class="fas fa-file-chart-column text-gray-700 text-5xl mb-4"></i>
+          <p class="text-gray-500 text-sm">Selecciona un periodo para el reporte rápido</p>
+        </div>
+        <div id="report-container" class="card p-6 hidden">
+          <div class="flex items-center justify-between mb-4 pb-4 border-b border-gray-800">
+            <div class="flex items-center gap-2">
+              <i class="fas fa-robot text-red-400"></i>
+              <span class="text-sm font-semibold text-white">Reporte generado por Gemini AI</span>
+            </div>
+            <span class="text-gray-600 text-xs" id="report-timestamp"></span>
+          </div>
+          <div id="report-content"></div>
+        </div>
+      </section>
+
+      <!-- ─── SECTION: CLIENTES EN RIESGO ─── -->
+      <section id="sec-clientes" class="section-content hidden">
+        <div class="card overflow-hidden">
+          <div class="px-5 py-4 border-b border-gray-800 flex items-center justify-between">
+            <h3 class="text-sm font-semibold text-gray-300">
+              <i class="fas fa-exclamation-triangle text-red-400 mr-2"></i>Clientes en Riesgo de Abandono
+            </h3>
+            <span class="text-xs text-gray-600">Ordenados por score de riesgo</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="bg-gray-900/50">
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cliente ID</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sustituciones</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Pedidos</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tasa Sust.</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Score Riesgo</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nivel</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acción Sugerida</th>
+                </tr>
+              </thead>
+              <tbody id="risk-table-body" class="divide-y divide-gray-800">
+                <tr><td colspan="7" class="px-4 py-8 text-center text-gray-600 text-sm">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── SECTION: SUSTITUCIONES ─── -->
+      <section id="sec-sustituciones" class="section-content hidden">
+
+        <!-- Tab bar -->
+        <div class="flex gap-1 bg-gray-800/40 p-1 rounded-xl mb-5 w-fit">
+          <button class="sust-tab active" onclick="showSustTab('pares', this)">
+            <i class="fas fa-exchange-alt mr-1.5"></i>Pares Frecuentes
+          </button>
+          <button class="sust-tab" onclick="showSustTab('solicitados', this)">
+            <i class="fas fa-box-open mr-1.5"></i>Más Sustituidos
+          </button>
+          <button class="sust-tab" onclick="showSustTab('sustitutos', this)">
+            <i class="fas fa-random mr-1.5"></i>Sustitutos Usados
+          </button>
+        </div>
+
+        <!-- Panel 1: pares -->
+        <div id="sust-pares" class="sust-panel active">
+          <div class="card overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-800 flex items-center justify-between">
+              <h3 class="text-sm font-semibold text-gray-300">
+                <i class="fas fa-exchange-alt text-red-400 mr-2"></i>Pares de Sustitución Más Frecuentes
+              </h3>
+              <span class="text-xs text-gray-600">Producto pedido → sustituto entregado</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="bg-gray-900/50">
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Producto Solicitado</th>
+                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase"></th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Producto Sustituto</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Frecuencia</th>
+                  </tr>
+                </thead>
+                <tbody id="sust-table-body" class="divide-y divide-gray-800">
+                  <tr><td colspan="5" class="px-4 py-8 text-center text-gray-600">Cargando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 2: artículos más sustituidos -->
+        <div id="sust-solicitados" class="sust-panel">
+          <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
+            <!-- Chart -->
+            <div class="card p-5 lg:col-span-3">
+              <h3 class="text-sm font-semibold text-gray-300 mb-4">
+                <i class="fas fa-chart-bar text-red-400 mr-2"></i>Top 10 — Productos con Más Sustituciones
+              </h3>
+              <div class="h-72"><canvas id="chart-sust-solicitados"></canvas></div>
+            </div>
+            <!-- KPI column -->
+            <div class="lg:col-span-2 flex flex-col gap-3">
+              <div class="card p-4 flex-1">
+                <p class="text-xs text-gray-500 font-semibold uppercase mb-3">Concentración del Problema</p>
+                <div id="sust-concentration" class="space-y-2.5 text-sm"></div>
+              </div>
+              <div class="card p-4">
+                <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Total de sustituciones</p>
+                <p class="text-3xl font-black text-orange-400" id="sust-total-count">—</p>
+                <p class="text-xs text-gray-600 mt-1">eventos registrados en el periodo</p>
+              </div>
+            </div>
+          </div>
+          <!-- Table -->
+          <div class="card overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-800">
+              <h3 class="text-sm font-semibold text-gray-300">
+                <i class="fas fa-sort-amount-down text-red-400 mr-2"></i>Detalle por Artículo
+              </h3>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="bg-gray-900/50">
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Producto</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Veces Sustituido</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">% del Total</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Volumen</th>
+                  </tr>
+                </thead>
+                <tbody id="sust-sol-table" class="divide-y divide-gray-800">
+                  <tr><td colspan="5" class="px-4 py-8 text-center text-gray-600">Cargando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 3: sustitutos más usados -->
+        <div id="sust-sustitutos" class="sust-panel">
+          <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
+            <!-- Chart -->
+            <div class="card p-5 lg:col-span-3">
+              <h3 class="text-sm font-semibold text-gray-300 mb-4">
+                <i class="fas fa-chart-bar text-green-400 mr-2"></i>Top 10 — Productos Más Usados Como Sustituto
+              </h3>
+              <div class="h-72"><canvas id="chart-sust-sustitutos"></canvas></div>
+            </div>
+            <!-- Info column -->
+            <div class="lg:col-span-2 flex flex-col gap-3">
+              <div class="card p-4 flex-1">
+                <p class="text-xs text-gray-500 font-semibold uppercase mb-1">¿Qué es esto?</p>
+                <p class="text-gray-400 text-xs leading-relaxed mt-2">
+                  Estos son los productos que el almacén <strong class="text-gray-200">entrega en reemplazo</strong> cuando el artículo solicitado no está disponible.
+                  Un sustituto con muchos <strong class="text-green-400">productos distintos</strong> que reemplaza indica un ítem comodín de alta disponibilidad.
+                </p>
+                <div class="mt-4 space-y-2" id="sust-top3-comodin"></div>
+              </div>
+              <div class="card p-4">
+                <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Sustituto #1</p>
+                <p class="text-sm font-bold text-green-400 leading-tight" id="sust-top1-name">—</p>
+                <p class="text-xs text-gray-600 mt-1" id="sust-top1-detail">—</p>
+              </div>
+            </div>
+          </div>
+          <!-- Table -->
+          <div class="card overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-800">
+              <h3 class="text-sm font-semibold text-gray-300">
+                <i class="fas fa-random text-green-400 mr-2"></i>Detalle de Sustitutos
+              </h3>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="bg-gray-900/50">
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Producto Sustituto</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Veces Usado</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">% del Total</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reemplaza a</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Volumen</th>
+                  </tr>
+                </thead>
+                <tbody id="sust-sub-table" class="divide-y divide-gray-800">
+                  <tr><td colspan="6" class="px-4 py-8 text-center text-gray-600">Cargando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ─── SECTION: CEDIS ─── -->
+      <section id="sec-cedis" class="section-content hidden">
+        <div class="card p-5">
+          <h3 class="text-sm font-semibold text-gray-300 mb-4">
+            <i class="fas fa-warehouse text-orange-400 mr-2"></i>CEDIS – Detalle de Sustituciones
+          </h3>
+          <div class="h-96"><canvas id="chart-cedis-detail"></canvas></div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ═══════════════════════════════ SCRIPTS ═══════════════════════════════ -->
+  <script>
+    const API = 'http://localhost:5000';
+    let dashboardData = null;
+    let chartsCreated = {};
+    let pendingNotifications = [];
+
+    // ─── NAVIGATION ───────────────────────────────────────────────────────────
+    const SECTIONS = {
+      dashboard:    { title: 'Dashboard de Operaciones',  sub: 'Vista general de sustituciones y riesgos' },
+      reportes:     { title: 'Reportes Ejecutivos IA',    sub: 'Generados con Gemini AI a partir de datos reales' },
+      clientes:     { title: 'Clientes en Riesgo',        sub: 'Clientes con mayor probabilidad de abandono' },
+      sustituciones:{ title: 'Análisis de Sustituciones', sub: 'Pares de productos sustituidos con mayor frecuencia' },
+      cedis:        { title: 'Análisis por CEDIS',        sub: 'Centros de distribución con más sustituciones' },
+    };
+
+    function showSection(name, el) {
+      document.querySelectorAll('.section-content').forEach(s => s.classList.add('hidden'));
+      document.getElementById('sec-' + name).classList.remove('hidden');
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      el.classList.add('active');
+      const info = SECTIONS[name];
+      document.getElementById('section-title').textContent = info.title;
+      document.getElementById('section-subtitle').textContent = info.sub;
+      if (name === 'cedis' && dashboardData && !chartsCreated['cedis-detail']) buildCedisDetailChart();
+      return false;
+    }
+
+    // ─── DATA LOADING ─────────────────────────────────────────────────────────
+    async function loadData() {
+      document.getElementById('header-loader').classList.remove('hidden');
+      try {
+        const res = await fetch(API + '/api/stats');
+        dashboardData = await res.json();
+        updateKPIs();
+        buildCharts();
+        buildRiskTable();
+        buildSustTable();
+        const now = new Date().toLocaleString('es-MX');
+        document.getElementById('last-update').textContent = 'Actualizado: ' + now;
+        document.getElementById('data-date').textContent = now;
+        // Fire alerts after short delay
+        setTimeout(() => scheduleNotifications(), 1200);
+      } catch (e) {
+        showError('No se pudo conectar al servidor (puerto 5000).');
+      } finally {
+        document.getElementById('header-loader').classList.add('hidden');
+      }
+    }
+
+    function showError(msg) {
+      const banner = document.createElement('div');
+      banner.className = 'fixed top-4 right-4 bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded-lg text-sm z-50 max-w-sm';
+      banner.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i>' + msg;
+      document.body.appendChild(banner);
+      setTimeout(() => banner.remove(), 6000);
+    }
+
+    function updateKPIs() {
+      const s = dashboardData.summary;
+      document.getElementById('kpi-pedidos').textContent  = s.total_pedidos.toLocaleString('es-MX');
+      document.getElementById('kpi-sust').textContent     = s.total_sustituciones.toLocaleString('es-MX');
+      document.getElementById('kpi-tasa').textContent     = s.tasa_sustitucion + '%';
+      document.getElementById('kpi-criticos').textContent = s.clientes_criticos;
+    }
+
+    // ─── CHARTS ───────────────────────────────────────────────────────────────
+    const CD = {
+      plugins: { legend: { labels: { color: '#9ca3af', font: { size: 11 } } } },
+      scales: {
+        x: { ticks: { color: '#6b7280', font: { size: 10 } }, grid: { color: '#1f2937' } },
+        y: { ticks: { color: '#6b7280', font: { size: 10 } }, grid: { color: '#1f2937' } },
+      },
+    };
+
+    function buildCharts() {
+      const prods = dashboardData.productos_mas_sustituidos.slice(0, 8);
+      mkChart('chart-products', 'bar', {
+        labels: prods.map(p => trunc(p.producto, 25)),
+        datasets: [{ label: 'Sustituciones', data: prods.map(p => p.frecuencia),
+          backgroundColor: 'rgba(239,68,68,.7)', borderColor: '#ef4444', borderWidth: 1, borderRadius: 4 }],
+      }, { ...CD, indexAxis: 'y', plugins: { legend: { display: false } } });
+
+      const cedis = dashboardData.cedis_criticos.slice(0, 8);
+      mkChart('chart-cedis', 'bar', {
+        labels: cedis.map(c => 'CEDIS ' + c.cedis),
+        datasets: [{ label: 'Sustituciones', data: cedis.map(c => c.total_sustituciones),
+          backgroundColor: 'rgba(251,146,60,.7)', borderColor: '#fb923c', borderWidth: 1, borderRadius: 4 }],
+      }, { ...CD, plugins: { legend: { display: false } } });
+
+      mkChart('chart-risk', 'bar', {
+        labels: dashboardData.clientes_riesgo.slice(0, 10).map((_, i) => 'C' + (i+1)),
+        datasets: [{ label: 'Score de Riesgo', data: dashboardData.clientes_riesgo.slice(0, 10).map(c => c.riesgo_score),
+          backgroundColor: dashboardData.clientes_riesgo.slice(0, 10).map(c =>
+            c.nivel_riesgo === 'Crítico' ? 'rgba(239,68,68,.8)' : c.nivel_riesgo === 'Alto' ? 'rgba(251,146,60,.8)' : 'rgba(96,165,250,.8)'
+          ), borderRadius: 4 }],
+      }, { ...CD, plugins: { legend: { display: false } },
+        scales: { ...CD.scales, y: { ...CD.scales.y, max: 100, ticks: { ...CD.scales.y.ticks, callback: v => v + '%' } } } });
+
+      const bu = dashboardData.por_business_unit;
+      mkChart('chart-bu', 'doughnut', {
+        labels: bu.map(b => b.business_unit),
+        datasets: [{ data: bu.map(b => b.total),
+          backgroundColor: ['rgba(239,68,68,.8)','rgba(251,146,60,.8)','rgba(96,165,250,.8)','rgba(167,139,250,.8)'],
+          borderColor: '#0c1220', borderWidth: 2 }],
+      }, { plugins: { legend: { labels: { color: '#9ca3af', font: { size: 10 }, boxWidth: 12 } } } });
+    }
+
+    function buildCedisDetailChart() {
+      const cedis = dashboardData.cedis_criticos;
+      mkChart('chart-cedis-detail', 'bar', {
+        labels: cedis.map(c => 'CEDIS ' + c.cedis),
+        datasets: [{ label: 'Sustituciones', data: cedis.map(c => c.total_sustituciones),
+          backgroundColor: 'rgba(251,146,60,.7)', borderColor: '#fb923c', borderWidth: 1, borderRadius: 6 }],
+      }, { ...CD, plugins: { legend: { display: false } } });
+      chartsCreated['cedis-detail'] = true;
+    }
+
+    function mkChart(id, type, data, options) {
+      if (chartsCreated[id]) chartsCreated[id].destroy();
+      const ctx = document.getElementById(id)?.getContext('2d');
+      if (!ctx) return;
+      chartsCreated[id] = new Chart(ctx, { type, data, options: { responsive: true, maintainAspectRatio: false, ...options } });
+    }
+
+    // ─── TABLES ───────────────────────────────────────────────────────────────
+    function buildRiskTable() {
+      const tbody = document.getElementById('risk-table-body');
+      const actions = {
+        Crítico: '🚨 Llamada inmediata + bono 2x puntos + prioridad máxima',
+        Alto:    '⚠️ Compensación + revisión de próximo pedido',
+        Medio:   '📋 Monitorear y ofrecer beneficios preventivos',
+      };
+      tbody.innerHTML = dashboardData.clientes_riesgo.map(c => `
+        <tr class="hover:bg-gray-800/30 transition-colors">
+          <td class="px-4 py-3 text-gray-400 text-xs font-mono">${c.customer_id}</td>
+          <td class="px-4 py-3 text-white font-semibold">${c.sustituciones}</td>
+          <td class="px-4 py-3 text-gray-400">${c.total_pedidos}</td>
+          <td class="px-4 py-3 text-gray-300">${c.tasa_sustitucion}%</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="h-1.5 w-24 bg-gray-700 rounded-full overflow-hidden">
+                <div class="h-full rounded-full" style="width:${c.riesgo_score}%;background:${c.riesgo_score>=70?'#ef4444':c.riesgo_score>=40?'#fb923c':'#60a5fa'}"></div>
+              </div>
+              <span class="text-sm font-bold" style="color:${c.riesgo_score>=70?'#f87171':c.riesgo_score>=40?'#fb923c':'#93c5fd'}">${c.riesgo_score}%</span>
+            </div>
+          </td>
+          <td class="px-4 py-3">
+            <span class="px-2 py-0.5 rounded-full text-xs font-medium badge-${c.nivel_riesgo.toLowerCase()}">${c.nivel_riesgo}</span>
+          </td>
+          <td class="px-4 py-3 text-gray-400 text-xs">${actions[c.nivel_riesgo]}</td>
+        </tr>`).join('');
+    }
+
+    function buildSustTable() {
+      // Panel 1: pares
+      const tbody = document.getElementById('sust-table-body');
+      const maxFreq = Math.max(...dashboardData.top_sustituciones.map(s => s.frecuencia), 1);
+      tbody.innerHTML = dashboardData.top_sustituciones.map((s, i) => {
+        const pct = Math.round(s.frecuencia / maxFreq * 100);
+        const col = i === 0 ? '#ef4444' : i < 3 ? '#fb923c' : '#6b7280';
+        return `<tr class="hover:bg-gray-800/30 transition-colors">
+          <td class="px-4 py-3 text-gray-600 font-mono text-xs">${i+1}</td>
+          <td class="px-4 py-3 text-gray-300 text-sm max-w-xs truncate">${s.nombre_sku_solicitado}</td>
+          <td class="px-4 py-3 text-center"><i class="fas fa-arrow-right text-red-500 text-xs"></i></td>
+          <td class="px-4 py-3 text-orange-300 text-sm max-w-xs truncate">${s.nombre_sku_solicitado_cambio}</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-20 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                <div class="h-full rounded-full" style="width:${pct}%;background:${col}"></div>
+              </div>
+              <span class="font-bold text-sm" style="color:${col}">${s.frecuencia}x</span>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+
+      // Panel 2: artículos más sustituidos
+      buildSustSolicitados();
+
+      // Panel 3: sustitutos más usados
+      buildSustSubstitutos();
+    }
+
+    function buildSustSolicitados() {
+      const data = dashboardData.productos_mas_sustituidos;
+      if (!data || !data.length) return;
+
+      const totalSust = dashboardData.summary.total_sustituciones;
+      document.getElementById('sust-total-count').textContent = totalSust.toLocaleString('es-MX');
+
+      // Chart
+      mkChart('chart-sust-solicitados', 'bar', {
+        labels: data.map(p => trunc(p.producto, 28)),
+        datasets: [{ label: 'Veces sustituido', data: data.map(p => p.frecuencia),
+          backgroundColor: data.map((_, i) => i === 0 ? 'rgba(239,68,68,.85)' : i < 3 ? 'rgba(251,146,60,.75)' : 'rgba(107,114,128,.6)'),
+          borderColor: data.map((_, i) => i === 0 ? '#ef4444' : i < 3 ? '#fb923c' : '#6b7280'),
+          borderWidth: 1, borderRadius: 5 }],
+      }, { ...CD, indexAxis: 'y', plugins: { legend: { display: false } } });
+
+      // Concentration KPIs (top 3 cover X% of total)
+      const top3sum = data.slice(0, 3).reduce((a, b) => a + b.frecuencia, 0);
+      const top3pct = totalSust > 0 ? Math.round(top3sum / totalSust * 100) : 0;
+      document.getElementById('sust-concentration').innerHTML = `
+        <div class="flex items-center justify-between py-1 border-b border-gray-800">
+          <span class="text-gray-500 text-xs">Top 3 productos</span>
+          <span class="text-white font-bold">${top3pct}% del total</span>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-gray-800">
+          <span class="text-gray-500 text-xs">Producto #1</span>
+          <span class="text-red-400 font-bold">${data[0]?.frecuencia || 0} veces</span>
+        </div>
+        <div class="flex items-center justify-between py-1">
+          <span class="text-gray-500 text-xs">Artículos distintos</span>
+          <span class="text-orange-400 font-bold">${data.length}</span>
+        </div>`;
+
+      // Table
+      const maxF = Math.max(...data.map(d => d.frecuencia), 1);
+      document.getElementById('sust-sol-table').innerHTML = data.map((p, i) => {
+        const pct = Math.round(p.frecuencia / maxF * 100);
+        const col = i === 0 ? '#ef4444' : i < 3 ? '#fb923c' : '#6b7280';
+        return `<tr class="hover:bg-gray-800/30 transition-colors">
+          <td class="px-4 py-3 text-gray-600 font-mono text-xs">${i+1}</td>
+          <td class="px-4 py-3 text-gray-200 text-sm">${p.producto}</td>
+          <td class="px-4 py-3 font-bold" style="color:${col}">${p.frecuencia.toLocaleString('es-MX')}</td>
+          <td class="px-4 py-3 text-gray-400 text-xs">${p.pct_total ?? '—'}%</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-28 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                <div class="h-full rounded-full" style="width:${pct}%;background:${col}"></div>
+              </div>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    function buildSustSubstitutos() {
+      const data = dashboardData.productos_sustitutos;
+      if (!data || !data.length) return;
+
+      // Chart
+      mkChart('chart-sust-sustitutos', 'bar', {
+        labels: data.map(p => trunc(p.producto_sustituto, 28)),
+        datasets: [{ label: 'Veces usado como sustituto', data: data.map(p => p.frecuencia),
+          backgroundColor: data.map((_, i) => i === 0 ? 'rgba(52,211,153,.85)' : i < 3 ? 'rgba(16,185,129,.7)' : 'rgba(107,114,128,.5)'),
+          borderColor: data.map((_, i) => i === 0 ? '#34d399' : i < 3 ? '#10b981' : '#6b7280'),
+          borderWidth: 1, borderRadius: 5 }],
+      }, { ...CD, indexAxis: 'y', plugins: { legend: { display: false } } });
+
+      // Top 1 highlight
+      if (data[0]) {
+        document.getElementById('sust-top1-name').textContent = data[0].producto_sustituto;
+        document.getElementById('sust-top1-detail').textContent =
+          `${data[0].frecuencia} veces usado · reemplaza ${data[0].productos_distintos} producto(s) distinto(s)`;
+      }
+
+      // Top 3 comodin badges
+      document.getElementById('sust-top3-comodin').innerHTML = data.slice(0, 3).map((p, i) => `
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-gray-400 truncate flex-1 mr-2">${p.producto_sustituto}</span>
+          <span class="text-xs font-bold text-green-400 flex-shrink-0">${p.productos_distintos} distintos</span>
+        </div>`).join('');
+
+      // Table
+      const maxF = Math.max(...data.map(d => d.frecuencia), 1);
+      document.getElementById('sust-sub-table').innerHTML = data.map((p, i) => {
+        const pct = Math.round(p.frecuencia / maxF * 100);
+        const col = i === 0 ? '#34d399' : i < 3 ? '#10b981' : '#6b7280';
+        return `<tr class="hover:bg-gray-800/30 transition-colors">
+          <td class="px-4 py-3 text-gray-600 font-mono text-xs">${i+1}</td>
+          <td class="px-4 py-3 text-gray-200 text-sm">${p.producto_sustituto}</td>
+          <td class="px-4 py-3 font-bold" style="color:${col}">${p.frecuencia.toLocaleString('es-MX')}</td>
+          <td class="px-4 py-3 text-gray-400 text-xs">${p.pct_total ?? '—'}%</td>
+          <td class="px-4 py-3 text-gray-400 text-xs">${p.productos_distintos} producto(s)</td>
+          <td class="px-4 py-3">
+            <div class="w-24 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+              <div class="h-full rounded-full" style="width:${pct}%;background:${col}"></div>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    // ─── SUSTITUCIONES TABS ───────────────────────────────────────────────────
+    function showSustTab(name, btn) {
+      document.querySelectorAll('.sust-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.sust-tab').forEach(b => b.classList.remove('active'));
+      document.getElementById('sust-' + name).classList.add('active');
+      btn.classList.add('active');
+      // Recreate charts after panel becomes visible (Chart.js needs visible canvas)
+      if (name === 'solicitados' && dashboardData) buildSustSolicitados();
+      if (name === 'sustitutos' && dashboardData) buildSustSubstitutos();
+    }
+
+    // ─── REPORTS (quick) ──────────────────────────────────────────────────────
+    async function generateReport(type) {
+      document.getElementById('report-placeholder').classList.add('hidden');
+      document.getElementById('report-container').classList.add('hidden');
+      document.getElementById('report-loading').classList.remove('hidden');
+      document.querySelectorAll('.report-btn').forEach(b => b.disabled = true);
+      try {
+        const res = await fetch(API + '/api/report', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type }),
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error);
+        document.getElementById('report-content').innerHTML = data.report;
+        document.getElementById('report-timestamp').textContent = new Date().toLocaleString('es-MX') + ' · ' + type;
+        document.getElementById('report-container').classList.remove('hidden');
+      } catch (e) {
+        showError('Error generando reporte: ' + e.message);
+        document.getElementById('report-placeholder').classList.remove('hidden');
+      } finally {
+        document.getElementById('report-loading').classList.add('hidden');
+        document.querySelectorAll('.report-btn').forEach(b => b.disabled = false);
+      }
+    }
+
+    // ─── NOTIFICATIONS ────────────────────────────────────────────────────────
+    const SUGGESTIONS = {
+      Crítico: [
+        'Enviar cupón de descuento 15% en próximo pedido',
+        'Llamada inmediata del equipo comercial',
+        'Asignar perfil de entrega prioritaria',
+        'Ofrecer bono de 2x puntos de lealtad',
+      ],
+      cedis: [
+        'Revisar inventario urgente y ajustar stock',
+        'Alertar a supervisor de almacén',
+        'Solicitar reposición de productos frecuentes',
+      ],
+      tasa: [
+        'Alertar al equipo de planificación de demanda',
+        'Revisar pronóstico de inventario semanal',
+      ],
+    };
+
+    function randomSuggestion(type) {
+      const arr = SUGGESTIONS[type] || SUGGESTIONS.tasa;
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function scheduleNotifications() {
+      if (!dashboardData) return;
+      const notifs = [];
+      const critical = (dashboardData.clientes_riesgo || []).filter(c => c.nivel_riesgo === 'Crítico').slice(0, 3);
+      critical.forEach(c => {
+        notifs.push({
+          type: 'critical',
+          icon: 'fa-user-times',
+          title: 'Cliente en Riesgo Crítico',
+          body: `ID <strong>${c.customer_id}</strong> — <strong>${c.sustituciones} sustituciones</strong> · Score: <strong class="text-red-300">${c.riesgo_score}%</strong>`,
+          action: randomSuggestion('Crítico'),
+          duration: 10000,
+        });
+      });
+      const topCedis = (dashboardData.cedis_criticos || [])[0];
+      if (topCedis) {
+        notifs.push({
+          type: 'warning',
+          icon: 'fa-warehouse',
+          title: `CEDIS ${topCedis.cedis} — Punto Crítico`,
+          body: `<strong>${topCedis.total_sustituciones} sustituciones</strong> registradas. El centro con mayor impacto.`,
+          action: randomSuggestion('cedis'),
+          duration: 10000,
+        });
+      }
+      const tasa = dashboardData.summary?.tasa_sustitucion;
+      if (tasa > 4) {
+        notifs.push({
+          type: 'info',
+          icon: 'fa-chart-line',
+          title: 'Tasa de Sustitución Elevada',
+          body: `La tasa global es <strong>${tasa}%</strong>. Supera el umbral operativo recomendado.`,
+          action: randomSuggestion('tasa'),
+          duration: 9000,
+        });
+      }
+      pendingNotifications = notifs;
+      updateBellBadge(notifs.length);
+      notifs.forEach((n, i) => setTimeout(() => showToast(n), i * 700));
+    }
+
+    function replayNotifications() {
+      if (!pendingNotifications.length) return;
+      const btn = document.getElementById('bell-btn');
+      btn.classList.add('bell-pop');
+      setTimeout(() => btn.classList.remove('bell-pop'), 400);
+      pendingNotifications.forEach((n, i) => setTimeout(() => showToast(n), i * 600));
+    }
+
+    function updateBellBadge(count) {
+      const badge = document.getElementById('bell-badge');
+      if (count > 0) {
+        badge.textContent = count > 9 ? '9+' : count;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
+    function showToast(notif) {
+      const COLORS = {
+        critical: { border: '#b91c1c', bg: 'rgba(127,29,29,0.95)', accent: '#ef4444', iconBg: 'rgba(185,28,28,0.5)', pill: 'rgba(185,28,28,0.4)', pillText: '#fca5a5' },
+        warning:  { border: '#d97706', bg: 'rgba(120,53,15,0.95)', accent: '#fb923c', iconBg: 'rgba(217,119,6,0.4)',  pill: 'rgba(161,98,7,0.4)',  pillText: '#fde68a' },
+        info:     { border: '#1d4ed8', bg: 'rgba(30,58,95,0.95)',  accent: '#60a5fa', iconBg: 'rgba(29,78,216,0.4)',  pill: 'rgba(29,78,216,0.4)', pillText: '#bfdbfe' },
+      };
+      const c = COLORS[notif.type] || COLORS.info;
+      const id = 'toast-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+
+      const el = document.createElement('div');
+      el.id = id;
+      el.className = 'toast pointer-events-auto w-full rounded-2xl shadow-2xl overflow-hidden';
+      el.style.cssText = `background:${c.bg};border:1px solid ${c.border};backdrop-filter:blur(12px);`;
+
+      el.innerHTML = `
+        <div style="border-left: 3px solid ${c.accent}" class="p-4">
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:${c.iconBg}">
+              <i class="fas ${notif.icon} text-sm" style="color:${c.accent}"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-white font-bold text-xs leading-tight">${notif.title}</p>
+              <p class="text-gray-300 text-xs mt-1 leading-relaxed">${notif.body}</p>
+              <div class="mt-2.5 flex items-center gap-1.5">
+                <i class="fas fa-lightbulb text-xs" style="color:${c.accent}"></i>
+                <span class="text-xs font-medium rounded-full px-2.5 py-0.5" style="background:${c.pill};color:${c.pillText}">${notif.action}</span>
+              </div>
+            </div>
+            <button onclick="dismissToast('${id}')" class="text-gray-600 hover:text-gray-300 transition-colors flex-shrink-0 -mt-0.5 -mr-0.5 p-1">
+              <i class="fas fa-times text-xs"></i>
+            </button>
+          </div>
+        </div>
+        <div class="h-0.5" style="background:rgba(255,255,255,0.07)">
+          <div class="toast-progress h-full" style="background:${c.accent};animation-duration:${notif.duration}ms"></div>
+        </div>`;
+
+      document.getElementById('toast-container').appendChild(el);
+      requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('show')));
+
+      setTimeout(() => dismissToast(id), notif.duration);
+    }
+
+    function dismissToast(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove('show');
+      setTimeout(() => el.remove(), 350);
+    }
+
+    // ─── UTILS ────────────────────────────────────────────────────────────────
+    function trunc(str, n) { return str.length > n ? str.slice(0, n) + '…' : str; }
+
+    // ─── INIT ─────────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', loadData);
+  </script>
+</body>
+</html>
