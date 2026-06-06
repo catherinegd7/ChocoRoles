@@ -1,9 +1,10 @@
 import json
+import os
 from google import genai
 from google.genai import types
 
 # 1. Configuración del Cliente de Google
-API_KEY = "REDACTED"
+API_KEY = os.environ["GEMINI_API_KEY"]
 client = genai.Client(api_key=API_KEY)
 
 # 2. Base de Datos Local (La misma información que compartes con tu equipo)

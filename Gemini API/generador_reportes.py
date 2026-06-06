@@ -1,10 +1,10 @@
 import json
+import os
 from google import genai
 from google.genai import types
 
 # 1. Configuración del Cliente
-# Reemplaza con tu API Key real
-API_KEY = "REDACTED"
+API_KEY = os.environ["GEMINI_API_KEY"]
 client = genai.Client(api_key=API_KEY)
 
 # 2. DATOS SIMULADOS (MOCK) - Esto es lo que te entregará tu compañero de Datos

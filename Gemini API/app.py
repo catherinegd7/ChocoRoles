@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import time
 import uuid
@@ -12,7 +13,7 @@ from data_processor import get_dashboard_data, load_data
 app = Flask(__name__)
 CORS(app)
 
-API_KEY = "REDACTED"
+API_KEY = os.environ["GEMINI_API_KEY"]
 client = genai.Client(api_key=API_KEY)
 
 # Models tried in order when one is unavailable (503 / overloaded)
