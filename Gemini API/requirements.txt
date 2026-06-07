@@ -3,3 +3,5 @@ flask-cors
 google-genai
 pandas
 python-dotenv
+pymongo
+certifi

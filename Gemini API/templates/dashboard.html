@@ -3,518 +3,515 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ArcaBot Dashboard – Arca Continental</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Swapp – Dashboard CEDI</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
-    * { font-family: 'Inter', sans-serif; }
-    body { background: #0c1220; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    * { font-family: 'Poppins', sans-serif; }
+    body { background: #f7f7f5; color: #333; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-    .sidebar { background: #111827; border-right: 1px solid #1f2937; }
-    .nav-item { transition: all .2s; border-radius: .5rem; }
-    .nav-item:hover, .nav-item.active { background: #1f2937; color: #ef4444; }
-    .nav-item.active { border-left: 3px solid #ef4444; }
-    .card { background: #111827; border: 1px solid #1f2937; border-radius: .75rem; }
-    .kpi-card { transition: transform .2s; }
-    .kpi-card:hover { transform: translateY(-2px); }
-    .badge-critico { background: #7f1d1d; color: #fca5a5; }
-    .badge-alto    { background: #78350f; color: #fcd34d; }
-    .badge-medio   { background: #1e3a5f; color: #93c5fd; }
+    /* ── HEADER ── */
+    .app-header {
+      height: 52px; flex-shrink: 0;
+      background: linear-gradient(to right, #8C085E, #A60842, #F2071B, #F2490C, #F27507);
+      display: flex; align-items: center; padding: 0 20px; gap: 16px;
+    }
+    .logo { font-size: 22px; font-weight: 900; color: #fff; letter-spacing: -0.5px; white-space: nowrap; }
+    .logo span { color: #F27507; }
+    .header-nav { display: flex; gap: 4px; flex: 1; }
+    .nav-tab {
+      padding: 6px 15px; border-radius: 7px; font-size: 13px; font-weight: 600;
+      color: rgba(255,255,255,0.7); background: transparent; border: none; cursor: pointer;
+      text-decoration: none; display: inline-flex; align-items: center; transition: background .15s;
+    }
+    .nav-tab.active { background: rgba(255,255,255,0.22); color: #fff; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .bell-wrap { position: relative; }
+    .bell-btn {
+      background: none; border: none; cursor: pointer;
+      color: rgba(255,255,255,0.85); font-size: 17px; padding: 4px; display: flex;
+    }
+    #bell-badge {
+      display: none; position: absolute; top: -2px; right: -2px;
+      width: 17px; height: 17px; background: #fff; color: #F2071B;
+      border-radius: 50%; font-size: 9px; font-weight: 700;
+      align-items: center; justify-content: center; line-height: 1;
+    }
+    #bell-badge.show { display: flex; }
+    .avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.5);
+      color: #fff; font-size: 11px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
 
-    /* Sustituciones tabs */
-    .sust-tab { padding: .45rem 1rem; border-radius: .6rem; font-size: .78rem; font-weight: 600; color: #6b7280; transition: all .18s; white-space: nowrap; }
-    .sust-tab:hover { color: #d1d5db; background: rgba(255,255,255,.05); }
-    .sust-tab.active { background: #1f2937; color: #fca5a5; }
+    /* ── KPI BAR ── */
+    .kpi-bar {
+      background: #fff; height: 70px; border-bottom: 1px solid #e8e8e8;
+      display: grid; grid-template-columns: repeat(4, 1fr); flex-shrink: 0;
+    }
+    .kpi-cell {
+      display: flex; align-items: center; gap: 14px; padding: 0 22px;
+      border-right: 1px solid #eee;
+    }
+    .kpi-cell:last-child { border-right: none; }
+    .kpi-icon {
+      width: 40px; height: 40px; border-radius: 8px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 16px;
+    }
+    .kpi-info { display: flex; flex-direction: column; }
+    .kpi-number { font-size: 24px; font-weight: 800; line-height: 1.1; }
+    .kpi-label { font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 1px; }
+
+    /* ── LAYOUT (single full-width column) ── */
+    .layout { display: flex; gap: 12px; padding: 12px; flex: 1; overflow: hidden; min-height: 0; }
+    .col-main { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+
+    /* ── SECTION NAV ── */
+    .section-nav {
+      display: flex; gap: 4px; background: #f0eeec; padding: 4px; border-radius: 9px;
+      margin-bottom: 10px; flex-shrink: 0; width: fit-content;
+    }
+    .section-tab {
+      padding: 7px 16px; border-radius: 6px; font-size: 12px; font-weight: 600;
+      color: #888; background: transparent; border: none; cursor: pointer; white-space: nowrap;
+      transition: all .15s;
+    }
+    .section-tab.active { background: #F2071B; color: #fff; }
+
+    /* ── SCROLLABLE CONTENT AREA ── */
+    .col-content { flex: 1; overflow-y: auto; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
+
+    /* ── CARDS ── */
+    .card { background: #fff; border: 1px solid #ebebeb; border-radius: 10px; padding: 16px; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .card-title { font-size: 14px; font-weight: 700; color: #333; }
+
+    /* ── GRID HELPERS ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+    /* ── SECTION VISIBILITY ── */
+    .section-content { display: none; flex-direction: column; gap: 10px; }
+    .section-content.active { display: flex; }
+
+    /* ── TABLES ── */
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      background: #f7f7f5; color: #999; font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 10px; text-align: left;
+    }
+    td { padding: 7px 10px; border-bottom: 1px solid #f5f5f5; font-size: 13px; color: #333; }
+    tr:last-child td { border-bottom: none; }
+
+    /* ── RISK LIST ── */
+    .risk-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f5f5f5; }
+    .risk-row:last-child { border-bottom: none; }
+    .risk-avatar {
+      width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: #fff;
+    }
+    .risk-info { flex: 1; min-width: 0; }
+    .risk-name { font-size: 13px; font-weight: 600; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .risk-sub { font-size: 11px; color: #999; }
+    .pill {
+      font-size: 10px; font-weight: 700; border-radius: 20px; padding: 3px 10px;
+      display: inline-block; white-space: nowrap;
+    }
+    .pill-critico, .pill-alto { background: #fff0f0; color: #c0392b; }
+    .pill-medio { background: #fff8e1; color: #8a6500; }
+    .pill-bajo  { background: #f0faf4; color: #1e7a4a; }
+
+    /* ── BAR TRACKS ── */
+    .bar-track { background: #f0eeec; border-radius: 4px; height: 9px; overflow: hidden; }
+    .bar-fill  { height: 100%; border-radius: 4px; }
+
+    /* ── SUST TABS ── */
+    .sust-tab-bar { display: flex; gap: 3px; background: #f0eeec; padding: 3px; border-radius: 6px; }
+    .sust-tab {
+      padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 600;
+      color: #888; background: transparent; border: none; cursor: pointer;
+    }
+    .sust-tab.active { background: #F2071B; color: #fff; }
     .sust-panel { display: none; }
     .sust-panel.active { display: block; }
 
-    /* Report content */
-    #report-content h2 { font-size: 1.15rem; font-weight: 700; color: #f87171; margin: 1.2rem 0 .5rem; }
-    #report-content h3 { font-size: 1rem; font-weight: 600; color: #fca5a5; margin: .9rem 0 .4rem; }
-    #report-content p  { color: #d1d5db; line-height: 1.6; margin: .3rem 0; }
-    #report-content ul { list-style: disc; margin-left: 1.5rem; color: #d1d5db; }
-    #report-content li { margin: .25rem 0; }
-    #report-content table { width: 100%; border-collapse: collapse; margin: .75rem 0; }
-    #report-content th { background: #1f2937; color: #9ca3af; font-size: .78rem; text-transform: uppercase; padding: .5rem .75rem; text-align: left; }
-    #report-content td { padding: .5rem .75rem; border-bottom: 1px solid #1f2937; color: #e5e7eb; font-size: .88rem; }
+    /* ── DARK CHAT PANEL (Reportes IA section) ── */
+    .dark-chat-wrap {
+      background: #1e0a30; border-radius: 10px;
+      display: flex; flex-direction: column;
+      min-height: 520px; flex: 1;
+    }
+    .dark-chat-header {
+      background: #2d1045; padding: 12px 14px; border-radius: 10px 10px 0 0;
+      display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+    }
+    .dark-chat-icon { color: #F27507; font-size: 16px; }
+    .dark-chat-title { font-size: 14px; font-weight: 700; color: #fff; flex: 1; }
+    .dark-chat-badge {
+      background: #F27507; color: #3a1a00; font-size: 10px; font-weight: 700;
+      padding: 3px 9px; border-radius: 20px; white-space: nowrap;
+    }
+    .dark-chat-link {
+      font-size: 10px; font-weight: 600; color: rgba(255,255,255,.55);
+      text-decoration: none; margin-left: 4px;
+    }
+    .dark-chat-link:hover { color: #fff; }
+    .dark-chat-messages {
+      flex: 1; overflow-y: auto; padding: 12px;
+      display: flex; flex-direction: column; gap: 8px; min-height: 0;
+    }
+    .bubble-ai {
+      background: rgba(255,255,255,0.10); border-radius: 0 8px 8px 8px;
+      padding: 10px 12px; max-width: 85%; align-self: flex-start;
+    }
+    .bubble-tag { font-size: 9px; font-weight: 700; color: #F27507; margin-bottom: 3px; }
+    .bubble-text { font-size: 14px; color: #d0b8e8; line-height: 1.6; }
+    .bubble-text strong { color: #ffd0a0; }
+    .bubble-text .report-out { margin-top: 8px; }
+    .bubble-text .report-out p  { color: #c0a8d8; font-size: 13px; line-height: 1.7; margin: .3rem 0; }
+    .bubble-text .report-out ul { list-style: disc; margin-left: 1.4rem; }
+    .bubble-text .report-out li { color: #c0a8d8; font-size: 13px; margin: .25rem 0; }
+    .bubble-text .report-out h2 { font-size: 15px; font-weight: 700; color: #F2490C; margin: .7rem 0 .25rem; }
+    .bubble-text .report-out h3 { font-size: 13px; font-weight: 600; color: #F27507; margin: .5rem 0 .2rem; }
+    .bubble-text .report-out table { width: 100%; border-collapse: collapse; margin: .4rem 0; }
+    .bubble-text .report-out th { background: rgba(255,255,255,.08); color: #aaa; font-size: 11px; padding: 5px 8px; }
+    .bubble-text .report-out td { padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,.06); font-size: 12px; color: #d0b8e8; }
+    .bubble-user {
+      background: #F2071B; border-radius: 8px 0 8px 8px;
+      padding: 10px 12px; max-width: 85%; align-self: flex-end;
+    }
+    .bubble-user .bubble-text { color: #fff; }
+    .dark-report-strip {
+      display: flex; align-items: center; gap: 6px; padding: 8px 14px;
+      border-top: 1px solid rgba(255,255,255,0.07); flex-shrink: 0; flex-wrap: wrap;
+    }
+    .dark-strip-label { font-size: 13px; color: rgba(255,255,255,.45); white-space: nowrap; }
+    .dark-quick-btn {
+      background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+      border-radius: 20px; padding: 6px 15px; font-size: 13px; font-weight: 600;
+      color: rgba(255,255,255,.8); cursor: pointer; font-family: 'Poppins', sans-serif;
+      transition: all .15s;
+    }
+    .dark-quick-btn:hover:not(:disabled) { background: rgba(255,255,255,.18); color: #fff; }
+    .dark-quick-btn:disabled { opacity: .45; cursor: not-allowed; }
+    .dark-chat-input-area {
+      padding: 10px 12px; border-top: 1px solid rgba(255,255,255,0.07);
+      display: flex; gap: 7px; flex-shrink: 0;
+    }
+    .dark-chat-input {
+      flex: 1; background: rgba(255,255,255,0.08); border: none; border-radius: 7px;
+      color: #fff; font-size: 14px; font-family: 'Poppins', sans-serif;
+      padding: 10px 14px; outline: none;
+    }
+    .dark-chat-input::placeholder { color: rgba(255,255,255,0.3); }
+    .dark-chat-send {
+      background: #F27507; border: none; border-radius: 7px;
+      color: #fff; width: 38px; height: 38px; cursor: pointer;
+      font-size: 13px; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .dark-chat-send:hover { background: #d96a05; }
 
-    ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-track { background: #111827; }
-    ::-webkit-scrollbar-thumb { background: #374151; border-radius: 99px; }
-    .loader { border: 3px solid #1f2937; border-top-color: #ef4444; border-radius: 50%; width: 28px; height: 28px; animation: spin .7s linear infinite; }
+    /* ── LOADER ── */
+    .loader { border: 3px solid #f0eeec; border-top-color: #F2071B; border-radius: 50%; width: 26px; height: 26px; animation: spin .7s linear infinite; display: inline-block; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Toast notifications ── */
-    .toast { transform: translateX(110%); opacity: 0; transition: transform .35s cubic-bezier(.34,1.56,.64,1), opacity .3s ease; }
+    /* ── TOASTS ── */
+    #toast-container {
+      position: fixed; bottom: 16px; right: 16px; z-index: 999;
+      display: flex; flex-direction: column; gap: 8px; align-items: flex-end;
+      max-width: 320px; pointer-events: none;
+    }
+    .toast { transform: translateX(110%); opacity: 0; transition: transform .35s cubic-bezier(.34,1.56,.64,1), opacity .3s ease; pointer-events: auto; }
     .toast.show { transform: translateX(0); opacity: 1; }
     .toast-progress { height: 3px; border-radius: 99px; animation: drain linear forwards; }
     @keyframes drain { from { width: 100%; } to { width: 0%; } }
-
-    /* Bell badge pulse */
     @keyframes bellPop { 0%,100% { transform: scale(1); } 50% { transform: scale(1.2); } }
     .bell-pop { animation: bellPop .4s ease; }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,.12); border-radius: 99px; }
   </style>
 </head>
-<body class="text-gray-100 flex h-screen overflow-hidden">
+<body>
 
-  <!-- ═══ TOAST CONTAINER ═══ -->
-  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-3 items-end pointer-events-none" style="max-width:360px"></div>
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container"></div>
 
-  <!-- ═══════════════════════════════ SIDEBAR ═══════════════════════════════ -->
-  <aside class="sidebar w-64 flex-shrink-0 flex flex-col h-full overflow-y-auto">
-    <div class="p-5 border-b border-gray-800">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 bg-red-600 rounded-lg flex items-center justify-center">
-          <i class="fas fa-robot text-white text-sm"></i>
-        </div>
-        <div>
-          <p class="font-bold text-white text-sm leading-tight">ArcaBot</p>
-          <p class="text-gray-500 text-xs">Arca Continental</p>
-        </div>
-      </div>
-    </div>
-
-    <nav class="flex-1 p-4 space-y-1">
-      <p class="text-gray-600 text-xs uppercase font-semibold px-3 pt-2 pb-1">Principal</p>
-      <a href="#" class="nav-item active flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300" onclick="return showSection('dashboard', this)">
-        <i class="fas fa-chart-line w-4 text-center"></i> Dashboard
-      </a>
-      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300" onclick="return showSection('reportes', this)">
-        <i class="fas fa-file-alt w-4 text-center"></i> Reportes IA
-      </a>
-      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300" onclick="return showSection('clientes', this)">
-        <i class="fas fa-exclamation-triangle w-4 text-center"></i> Clientes en Riesgo
-      </a>
-      <p class="text-gray-600 text-xs uppercase font-semibold px-3 pt-4 pb-1">Análisis</p>
-      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300" onclick="return showSection('sustituciones', this)">
-        <i class="fas fa-exchange-alt w-4 text-center"></i> Sustituciones
-      </a>
-      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300" onclick="return showSection('cedis', this)">
-        <i class="fas fa-warehouse w-4 text-center"></i> CEDIS
-      </a>
+  <!-- ═══ HEADER ═══ -->
+  <header class="app-header">
+    <div class="logo">sw<span>a</span>pp</div>
+    <nav class="header-nav">
+      <a href="/" class="nav-tab active">Dashboard CEDI</a>
+      <a href="/report-builder" class="nav-tab">Reportes IA</a>
+      <a href="#" class="nav-tab">Análisis</a>
     </nav>
-
-    <div class="p-4 border-t border-gray-800">
-      <!-- Opens report builder in same tab -->
-      <a href="/report-builder"
-        class="w-full bg-red-600 hover:bg-red-700 text-white rounded-lg py-2.5 text-sm font-medium flex items-center justify-center gap-2 transition-colors">
-        <i class="fas fa-robot"></i> Abrir ArcaBot Chat
-      </a>
-      <p class="text-gray-600 text-xs text-center mt-2" id="last-update">Cargando datos...</p>
-    </div>
-  </aside>
-
-  <!-- ═══════════════════════════════ MAIN ═══════════════════════════════ -->
-  <main class="flex-1 flex flex-col overflow-hidden">
-    <!-- Top bar -->
-    <header class="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center justify-between flex-shrink-0">
-      <div>
-        <h1 class="text-white font-semibold text-base" id="section-title">Dashboard de Operaciones</h1>
-        <p class="text-gray-500 text-xs" id="section-subtitle">Vista general de sustituciones y riesgos</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <div id="header-loader" class="loader hidden"></div>
-        <span class="text-gray-500 text-xs" id="data-date"></span>
-
-        <!-- Notification bell -->
-        <button id="bell-btn" onclick="replayNotifications()" title="Ver alertas" class="relative p-2 text-gray-500 hover:text-white transition-colors">
-          <i class="fas fa-bell text-lg"></i>
-          <span id="bell-badge" class="hidden absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center font-bold"></span>
+    <div class="header-right">
+      <div class="bell-wrap">
+        <button class="bell-btn" id="bell-btn" onclick="replayNotifications()" title="Ver alertas">
+          <i class="fas fa-bell"></i>
         </button>
-
-        <div class="flex items-center gap-2 bg-gray-800 rounded-full px-3 py-1.5">
-          <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-          <span class="text-xs text-gray-300">Sistema activo</span>
-        </div>
+        <span id="bell-badge"></span>
       </div>
-    </header>
-
-    <!-- Content -->
-    <div class="flex-1 overflow-y-auto p-6">
-
-      <!-- ─── SECTION: DASHBOARD ─── -->
-      <section id="sec-dashboard" class="section-content">
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div class="card kpi-card p-4">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-gray-500 text-xs font-medium uppercase">Total Pedidos</span>
-              <div class="w-8 h-8 bg-blue-900/50 rounded-lg flex items-center justify-center">
-                <i class="fas fa-shopping-cart text-blue-400 text-xs"></i>
-              </div>
-            </div>
-            <p class="text-2xl font-bold text-white" id="kpi-pedidos">–</p>
-            <p class="text-xs text-gray-500 mt-1">pedidos registrados</p>
-          </div>
-          <div class="card kpi-card p-4">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-gray-500 text-xs font-medium uppercase">Sustituciones</span>
-              <div class="w-8 h-8 bg-orange-900/50 rounded-lg flex items-center justify-center">
-                <i class="fas fa-exchange-alt text-orange-400 text-xs"></i>
-              </div>
-            </div>
-            <p class="text-2xl font-bold text-white" id="kpi-sust">–</p>
-            <p class="text-xs text-gray-500 mt-1">productos cambiados</p>
-          </div>
-          <div class="card kpi-card p-4">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-gray-500 text-xs font-medium uppercase">Tasa Global</span>
-              <div class="w-8 h-8 bg-yellow-900/50 rounded-lg flex items-center justify-center">
-                <i class="fas fa-percent text-yellow-400 text-xs"></i>
-              </div>
-            </div>
-            <p class="text-2xl font-bold text-white" id="kpi-tasa">–</p>
-            <p class="text-xs text-gray-500 mt-1">de pedidos sustituidos</p>
-          </div>
-          <div class="card kpi-card p-4">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-gray-500 text-xs font-medium uppercase">Clientes Críticos</span>
-              <div class="w-8 h-8 bg-red-900/50 rounded-lg flex items-center justify-center">
-                <i class="fas fa-user-times text-red-400 text-xs"></i>
-              </div>
-            </div>
-            <p class="text-2xl font-bold text-red-400" id="kpi-criticos">–</p>
-            <p class="text-xs text-gray-500 mt-1">en riesgo de abandono</p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-          <div class="card p-5">
-            <h3 class="text-sm font-semibold text-gray-300 mb-4">
-              <i class="fas fa-arrow-down-short-wide text-red-400 mr-2"></i>Productos Más Sustituidos
-            </h3>
-            <div class="h-64"><canvas id="chart-products"></canvas></div>
-          </div>
-          <div class="card p-5">
-            <h3 class="text-sm font-semibold text-gray-300 mb-4">
-              <i class="fas fa-warehouse text-orange-400 mr-2"></i>CEDIS con Más Sustituciones
-            </h3>
-            <div class="h-64"><canvas id="chart-cedis"></canvas></div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div class="card p-5 lg:col-span-2">
-            <h3 class="text-sm font-semibold text-gray-300 mb-4">
-              <i class="fas fa-shield-alt text-yellow-400 mr-2"></i>Score de Riesgo (Top Clientes)
-            </h3>
-            <div class="h-52"><canvas id="chart-risk"></canvas></div>
-          </div>
-          <div class="card p-5">
-            <h3 class="text-sm font-semibold text-gray-300 mb-4">
-              <i class="fas fa-building text-blue-400 mr-2"></i>Por Unidad de Negocio
-            </h3>
-            <div class="h-52"><canvas id="chart-bu"></canvas></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ─── SECTION: REPORTES ─── -->
-      <section id="sec-reportes" class="section-content hidden">
-        <!-- Redirect prompt -->
-        <div class="card p-8 mb-6 flex flex-col items-center text-center gap-4">
-          <div class="w-16 h-16 bg-red-900/40 rounded-full flex items-center justify-center">
-            <i class="fas fa-robot text-red-400 text-2xl"></i>
-          </div>
-          <div>
-            <h3 class="text-white font-bold text-lg">Reportes con ArcaBot</h3>
-            <p class="text-gray-400 text-sm mt-1 max-w-md">
-              Usa el generador conversacional para construir reportes personalizados con gráficas y análisis de Gemini AI.
-              Puedes filtrar por país, CEDIS, producto y más.
-            </p>
-          </div>
-          <a href="/report-builder" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-semibold text-sm flex items-center gap-2 transition-colors">
-            <i class="fas fa-chart-bar"></i> Abrir Generador de Reportes
-          </a>
-        </div>
-
-        <!-- Legacy quick reports -->
-        <div class="mb-4">
-          <p class="text-gray-500 text-xs uppercase font-semibold mb-3">O genera un reporte rápido:</p>
-          <div class="flex flex-wrap gap-3">
-            <button onclick="generateReport('diario')"   class="report-btn bg-gray-800 hover:bg-red-700 border border-gray-700 hover:border-red-600 text-gray-300 hover:text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2">
-              <i class="fas fa-calendar-day"></i> Diario
-            </button>
-            <button onclick="generateReport('semanal')"  class="report-btn bg-gray-800 hover:bg-red-700 border border-gray-700 hover:border-red-600 text-gray-300 hover:text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2">
-              <i class="fas fa-calendar-week"></i> Semanal
-            </button>
-            <button onclick="generateReport('mensual')"  class="report-btn bg-gray-800 hover:bg-red-700 border border-gray-700 hover:border-red-600 text-gray-300 hover:text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2">
-              <i class="fas fa-calendar-alt"></i> Mensual
-            </button>
-            <button onclick="generateReport('anual')"    class="report-btn bg-gray-800 hover:bg-red-700 border border-gray-700 hover:border-red-600 text-gray-300 hover:text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2">
-              <i class="fas fa-calendar"></i> Anual
-            </button>
-          </div>
-        </div>
-        <div id="report-loading" class="hidden flex flex-col items-center justify-center py-16 gap-3">
-          <div class="loader"></div>
-          <p class="text-gray-500 text-sm">Generando reporte con Gemini AI...</p>
-        </div>
-        <div id="report-placeholder" class="card p-10 flex flex-col items-center justify-center text-center">
-          <i class="fas fa-file-chart-column text-gray-700 text-5xl mb-4"></i>
-          <p class="text-gray-500 text-sm">Selecciona un periodo para el reporte rápido</p>
-        </div>
-        <div id="report-container" class="card p-6 hidden">
-          <div class="flex items-center justify-between mb-4 pb-4 border-b border-gray-800">
-            <div class="flex items-center gap-2">
-              <i class="fas fa-robot text-red-400"></i>
-              <span class="text-sm font-semibold text-white">Reporte generado por Gemini AI</span>
-            </div>
-            <span class="text-gray-600 text-xs" id="report-timestamp"></span>
-          </div>
-          <div id="report-content"></div>
-        </div>
-      </section>
-
-      <!-- ─── SECTION: CLIENTES EN RIESGO ─── -->
-      <section id="sec-clientes" class="section-content hidden">
-        <div class="card overflow-hidden">
-          <div class="px-5 py-4 border-b border-gray-800 flex items-center justify-between">
-            <h3 class="text-sm font-semibold text-gray-300">
-              <i class="fas fa-exclamation-triangle text-red-400 mr-2"></i>Clientes en Riesgo de Abandono
-            </h3>
-            <span class="text-xs text-gray-600">Ordenados por score de riesgo</span>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead>
-                <tr class="bg-gray-900/50">
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cliente ID</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sustituciones</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Pedidos</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tasa Sust.</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Score Riesgo</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nivel</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acción Sugerida</th>
-                </tr>
-              </thead>
-              <tbody id="risk-table-body" class="divide-y divide-gray-800">
-                <tr><td colspan="7" class="px-4 py-8 text-center text-gray-600 text-sm">Cargando...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- ─── SECTION: SUSTITUCIONES ─── -->
-      <section id="sec-sustituciones" class="section-content hidden">
-
-        <!-- Tab bar -->
-        <div class="flex gap-1 bg-gray-800/40 p-1 rounded-xl mb-5 w-fit">
-          <button class="sust-tab active" onclick="showSustTab('pares', this)">
-            <i class="fas fa-exchange-alt mr-1.5"></i>Pares Frecuentes
-          </button>
-          <button class="sust-tab" onclick="showSustTab('solicitados', this)">
-            <i class="fas fa-box-open mr-1.5"></i>Más Sustituidos
-          </button>
-          <button class="sust-tab" onclick="showSustTab('sustitutos', this)">
-            <i class="fas fa-random mr-1.5"></i>Sustitutos Usados
-          </button>
-        </div>
-
-        <!-- Panel 1: pares -->
-        <div id="sust-pares" class="sust-panel active">
-          <div class="card overflow-hidden">
-            <div class="px-5 py-4 border-b border-gray-800 flex items-center justify-between">
-              <h3 class="text-sm font-semibold text-gray-300">
-                <i class="fas fa-exchange-alt text-red-400 mr-2"></i>Pares de Sustitución Más Frecuentes
-              </h3>
-              <span class="text-xs text-gray-600">Producto pedido → sustituto entregado</span>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="bg-gray-900/50">
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Producto Solicitado</th>
-                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase"></th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Producto Sustituto</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Frecuencia</th>
-                  </tr>
-                </thead>
-                <tbody id="sust-table-body" class="divide-y divide-gray-800">
-                  <tr><td colspan="5" class="px-4 py-8 text-center text-gray-600">Cargando...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- Panel 2: artículos más sustituidos -->
-        <div id="sust-solicitados" class="sust-panel">
-          <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
-            <!-- Chart -->
-            <div class="card p-5 lg:col-span-3">
-              <h3 class="text-sm font-semibold text-gray-300 mb-4">
-                <i class="fas fa-chart-bar text-red-400 mr-2"></i>Top 10 — Productos con Más Sustituciones
-              </h3>
-              <div class="h-72"><canvas id="chart-sust-solicitados"></canvas></div>
-            </div>
-            <!-- KPI column -->
-            <div class="lg:col-span-2 flex flex-col gap-3">
-              <div class="card p-4 flex-1">
-                <p class="text-xs text-gray-500 font-semibold uppercase mb-3">Concentración del Problema</p>
-                <div id="sust-concentration" class="space-y-2.5 text-sm"></div>
-              </div>
-              <div class="card p-4">
-                <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Total de sustituciones</p>
-                <p class="text-3xl font-black text-orange-400" id="sust-total-count">—</p>
-                <p class="text-xs text-gray-600 mt-1">eventos registrados en el periodo</p>
-              </div>
-            </div>
-          </div>
-          <!-- Table -->
-          <div class="card overflow-hidden">
-            <div class="px-5 py-4 border-b border-gray-800">
-              <h3 class="text-sm font-semibold text-gray-300">
-                <i class="fas fa-sort-amount-down text-red-400 mr-2"></i>Detalle por Artículo
-              </h3>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="bg-gray-900/50">
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Producto</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Veces Sustituido</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">% del Total</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Volumen</th>
-                  </tr>
-                </thead>
-                <tbody id="sust-sol-table" class="divide-y divide-gray-800">
-                  <tr><td colspan="5" class="px-4 py-8 text-center text-gray-600">Cargando...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- Panel 3: sustitutos más usados -->
-        <div id="sust-sustitutos" class="sust-panel">
-          <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
-            <!-- Chart -->
-            <div class="card p-5 lg:col-span-3">
-              <h3 class="text-sm font-semibold text-gray-300 mb-4">
-                <i class="fas fa-chart-bar text-green-400 mr-2"></i>Top 10 — Productos Más Usados Como Sustituto
-              </h3>
-              <div class="h-72"><canvas id="chart-sust-sustitutos"></canvas></div>
-            </div>
-            <!-- Info column -->
-            <div class="lg:col-span-2 flex flex-col gap-3">
-              <div class="card p-4 flex-1">
-                <p class="text-xs text-gray-500 font-semibold uppercase mb-1">¿Qué es esto?</p>
-                <p class="text-gray-400 text-xs leading-relaxed mt-2">
-                  Estos son los productos que el almacén <strong class="text-gray-200">entrega en reemplazo</strong> cuando el artículo solicitado no está disponible.
-                  Un sustituto con muchos <strong class="text-green-400">productos distintos</strong> que reemplaza indica un ítem comodín de alta disponibilidad.
-                </p>
-                <div class="mt-4 space-y-2" id="sust-top3-comodin"></div>
-              </div>
-              <div class="card p-4">
-                <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Sustituto #1</p>
-                <p class="text-sm font-bold text-green-400 leading-tight" id="sust-top1-name">—</p>
-                <p class="text-xs text-gray-600 mt-1" id="sust-top1-detail">—</p>
-              </div>
-            </div>
-          </div>
-          <!-- Table -->
-          <div class="card overflow-hidden">
-            <div class="px-5 py-4 border-b border-gray-800">
-              <h3 class="text-sm font-semibold text-gray-300">
-                <i class="fas fa-random text-green-400 mr-2"></i>Detalle de Sustitutos
-              </h3>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="bg-gray-900/50">
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Producto Sustituto</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Veces Usado</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">% del Total</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reemplaza a</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Volumen</th>
-                  </tr>
-                </thead>
-                <tbody id="sust-sub-table" class="divide-y divide-gray-800">
-                  <tr><td colspan="6" class="px-4 py-8 text-center text-gray-600">Cargando...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-      </section>
-
-      <!-- ─── SECTION: CEDIS ─── -->
-      <section id="sec-cedis" class="section-content hidden">
-        <div class="card p-5">
-          <h3 class="text-sm font-semibold text-gray-300 mb-4">
-            <i class="fas fa-warehouse text-orange-400 mr-2"></i>CEDIS – Detalle de Sustituciones
-          </h3>
-          <div class="h-96"><canvas id="chart-cedis-detail"></canvas></div>
-        </div>
-      </section>
-
+      <div class="avatar">AC</div>
     </div>
-  </main>
+  </header>
 
-  <!-- ═══════════════════════════════ SCRIPTS ═══════════════════════════════ -->
+  <!-- ═══ KPI BAR ═══ -->
+  <div class="kpi-bar">
+    <div class="kpi-cell">
+      <div class="kpi-icon" style="background:#fff0f0">
+        <i class="fas fa-shopping-cart" style="color:#F2071B"></i>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-number" id="kpi-pedidos" style="color:#F2071B">–</span>
+        <span class="kpi-label">Pedidos</span>
+      </div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kpi-icon" style="background:#fff4ee">
+        <i class="fas fa-exchange-alt" style="color:#F2490C"></i>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-number" id="kpi-sust" style="color:#F2490C">–</span>
+        <span class="kpi-label">Sustituciones</span>
+      </div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kpi-icon" style="background:#fdf0f5">
+        <i class="fas fa-user-times" style="color:#A60842"></i>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-number" id="kpi-criticos" style="color:#A60842">–</span>
+        <span class="kpi-label">Clientes Críticos</span>
+      </div>
+    </div>
+    <div class="kpi-cell">
+      <div class="kpi-icon" style="background:#f0faf4">
+        <i class="fas fa-percent" style="color:#2e9e5a"></i>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-number" id="kpi-tasa" style="color:#2e9e5a">–</span>
+        <span class="kpi-label">Tasa Global</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ MAIN LAYOUT ═══ -->
+  <div class="layout">
+    <div class="col-main">
+
+      <!-- Section nav -->
+      <div class="section-nav">
+        <button class="section-tab active" onclick="showSection('dashboard', this)">Dashboard</button>
+        <button class="section-tab" onclick="showSection('reportes', this)">Reportes IA</button>
+        <button class="section-tab" onclick="showSection('clientes', this)">Clientes Riesgo</button>
+        <button class="section-tab" onclick="showSection('sustituciones', this)">Sustituciones</button>
+        <button class="section-tab" onclick="showSection('cedis', this)">CEDIS</button>
+      </div>
+
+      <div class="col-content">
+
+        <!-- ─── DASHBOARD ─── -->
+        <div id="sec-dashboard" class="section-content active">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title"><i class="fas fa-arrow-down-short-wide" style="color:#F2071B;margin-right:6px"></i>Productos Más Sustituidos</span>
+              </div>
+              <div style="height:230px"><canvas id="chart-products"></canvas></div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title"><i class="fas fa-warehouse" style="color:#F2490C;margin-right:6px"></i>CEDIS con Más Sustituciones</span>
+              </div>
+              <div style="height:230px"><canvas id="chart-cedis"></canvas></div>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title"><i class="fas fa-shield-alt" style="color:#F27507;margin-right:6px"></i>Score de Riesgo (Top Clientes)</span>
+              </div>
+              <div style="height:200px"><canvas id="chart-risk"></canvas></div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title"><i class="fas fa-building" style="color:#A60842;margin-right:6px"></i>Por Unidad de Negocio</span>
+              </div>
+              <div style="height:200px"><canvas id="chart-bu"></canvas></div>
+            </div>
+          </div>
+          <div style="font-size:10px;color:#bbb;text-align:right" id="last-update"></div>
+        </div>
+
+        <!-- ─── REPORTES IA (dark chat) ─── -->
+        <div id="sec-reportes" class="section-content">
+          <div class="dark-chat-wrap">
+            <div class="dark-chat-header">
+              <i class="fas fa-robot dark-chat-icon"></i>
+              <span class="dark-chat-title">Copiloto IA — Reportes</span>
+              <span class="dark-chat-badge">Gemini API</span>
+              <a href="/report-builder" class="dark-chat-link">Generador completo →</a>
+            </div>
+            <div class="dark-chat-messages" id="chat-messages">
+              <div class="bubble-ai">
+                <div class="bubble-tag">SWAPP</div>
+                <div class="bubble-text">¡Hola! Puedo generar reportes rápidos o responder preguntas sobre los datos del CEDI. Usa los botones de abajo o escríbeme.</div>
+              </div>
+            </div>
+            <div class="dark-report-strip">
+              <span class="dark-strip-label">Reporte rápido:</span>
+              <button onclick="generateReport('diario')"  class="report-btn dark-quick-btn"><i class="fas fa-calendar-day" style="margin-right:4px"></i>Diario</button>
+              <button onclick="generateReport('semanal')" class="report-btn dark-quick-btn"><i class="fas fa-calendar-week" style="margin-right:4px"></i>Semanal</button>
+              <button onclick="generateReport('mensual')" class="report-btn dark-quick-btn"><i class="fas fa-calendar-alt" style="margin-right:4px"></i>Mensual</button>
+              <button onclick="generateReport('anual')"   class="report-btn dark-quick-btn"><i class="fas fa-calendar" style="margin-right:4px"></i>Anual</button>
+            </div>
+            <div class="dark-chat-input-area">
+              <input class="dark-chat-input" id="chat-input"
+                placeholder="Pregunta sobre los datos: ¿cuál CEDIS tiene más problemas?…"
+                onkeydown="if(event.key==='Enter')sendChat()" />
+              <button class="dark-chat-send" onclick="sendChat()">
+                <i class="fas fa-paper-plane"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── CLIENTES EN RIESGO ─── -->
+        <div id="sec-clientes" class="section-content">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title"><i class="fas fa-exclamation-triangle" style="color:#F2071B;margin-right:6px"></i>Clientes en Riesgo de Abandono</span>
+              <span style="font-size:11px;color:#bbb">Ordenados por score de riesgo</span>
+            </div>
+            <div id="risk-list"></div>
+          </div>
+        </div>
+
+        <!-- ─── SUSTITUCIONES ─── -->
+        <div id="sec-sustituciones" class="section-content">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title"><i class="fas fa-exchange-alt" style="color:#F2490C;margin-right:6px"></i>Análisis de Sustituciones</span>
+              <div class="sust-tab-bar">
+                <button class="sust-tab active" onclick="showSustTab('pares', this)">Pares Frecuentes</button>
+                <button class="sust-tab" onclick="showSustTab('solicitados', this)">Más Sustituidos</button>
+                <button class="sust-tab" onclick="showSustTab('sustitutos', this)">Sustitutos</button>
+              </div>
+            </div>
+
+            <div id="sust-pares" class="sust-panel active">
+              <table>
+                <thead><tr><th>#</th><th>Producto Solicitado</th><th></th><th>Sustituto</th><th>Frecuencia</th></tr></thead>
+                <tbody id="sust-table-body">
+                  <tr><td colspan="5" style="text-align:center;color:#bbb;padding:20px">Cargando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div id="sust-solicitados" class="sust-panel">
+              <div style="height:240px;margin-bottom:10px"><canvas id="chart-sust-solicitados"></canvas></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <div>
+                  <div style="font-size:10px;color:#aaa;text-transform:uppercase;font-weight:600;margin-bottom:2px">Total sustituciones</div>
+                  <div style="font-size:22px;font-weight:800;color:#F2490C" id="sust-total-count">—</div>
+                </div>
+                <div id="sust-concentration" style="text-align:right"></div>
+              </div>
+              <table>
+                <thead><tr><th>#</th><th>Producto</th><th>Veces Sustituido</th><th>% Total</th><th>Volumen</th></tr></thead>
+                <tbody id="sust-sol-table"><tr><td colspan="5" style="text-align:center;color:#bbb;padding:20px">Cargando...</td></tr></tbody>
+              </table>
+            </div>
+
+            <div id="sust-sustitutos" class="sust-panel">
+              <div style="height:240px;margin-bottom:10px"><canvas id="chart-sust-sustitutos"></canvas></div>
+              <div style="display:flex;gap:10px;margin-bottom:10px">
+                <div style="flex:1;background:#f7f7f5;border-radius:8px;padding:12px">
+                  <div style="font-size:10px;color:#aaa;text-transform:uppercase;font-weight:600;margin-bottom:4px">Sustituto #1</div>
+                  <div style="font-size:13px;font-weight:700;color:#2e9e5a" id="sust-top1-name">—</div>
+                  <div style="font-size:11px;color:#aaa;margin-top:3px" id="sust-top1-detail">—</div>
+                </div>
+                <div style="flex:1;background:#f7f7f5;border-radius:8px;padding:12px" id="sust-top3-comodin"></div>
+              </div>
+              <table>
+                <thead><tr><th>#</th><th>Sustituto</th><th>Veces Usado</th><th>% Total</th><th>Reemplaza a</th><th>Volumen</th></tr></thead>
+                <tbody id="sust-sub-table"><tr><td colspan="6" style="text-align:center;color:#bbb;padding:20px">Cargando...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── CEDIS ─── -->
+        <div id="sec-cedis" class="section-content">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title"><i class="fas fa-warehouse" style="color:#F2490C;margin-right:6px"></i>CEDIS – Detalle de Sustituciones</span>
+            </div>
+            <div style="height:420px"><canvas id="chart-cedis-detail"></canvas></div>
+          </div>
+        </div>
+
+      </div><!-- col-content -->
+    </div><!-- col-main -->
+  </div><!-- layout -->
+
+  <!-- ═══════ SCRIPTS ═══════ -->
   <script>
     const API = 'http://localhost:5000';
+    const chatSessionId = 'dash-' + Math.random().toString(36).slice(2);
     let dashboardData = null;
     let chartsCreated = {};
     let pendingNotifications = [];
 
-    // ─── NAVIGATION ───────────────────────────────────────────────────────────
-    const SECTIONS = {
-      dashboard:    { title: 'Dashboard de Operaciones',  sub: 'Vista general de sustituciones y riesgos' },
-      reportes:     { title: 'Reportes Ejecutivos IA',    sub: 'Generados con Gemini AI a partir de datos reales' },
-      clientes:     { title: 'Clientes en Riesgo',        sub: 'Clientes con mayor probabilidad de abandono' },
-      sustituciones:{ title: 'Análisis de Sustituciones', sub: 'Pares de productos sustituidos con mayor frecuencia' },
-      cedis:        { title: 'Análisis por CEDIS',        sub: 'Centros de distribución con más sustituciones' },
-    };
-
+    // ─── SECTION NAV ────────────────────────────────────────────────
     function showSection(name, el) {
-      document.querySelectorAll('.section-content').forEach(s => s.classList.add('hidden'));
-      document.getElementById('sec-' + name).classList.remove('hidden');
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.section-tab').forEach(b => b.classList.remove('active'));
+      document.getElementById('sec-' + name).classList.add('active');
       el.classList.add('active');
-      const info = SECTIONS[name];
-      document.getElementById('section-title').textContent = info.title;
-      document.getElementById('section-subtitle').textContent = info.sub;
       if (name === 'cedis' && dashboardData && !chartsCreated['cedis-detail']) buildCedisDetailChart();
       return false;
     }
 
-    // ─── DATA LOADING ─────────────────────────────────────────────────────────
+    // ─── CHART CONFIG ────────────────────────────────────────────────
+    const CD = {
+      plugins: { legend: { labels: { color: '#999', font: { size: 11, family: 'Poppins' } } } },
+      scales: {
+        x: { ticks: { color: '#aaa', font: { size: 10, family: 'Poppins' } }, grid: { color: '#f0eeec' } },
+        y: { ticks: { color: '#aaa', font: { size: 10, family: 'Poppins' } }, grid: { color: '#f0eeec' } },
+      },
+    };
+
+    // ─── DATA LOADING ────────────────────────────────────────────────
     async function loadData() {
-      document.getElementById('header-loader').classList.remove('hidden');
       try {
         const res = await fetch(API + '/api/stats');
         dashboardData = await res.json();
         updateKPIs();
         buildCharts();
-        buildRiskTable();
+        buildRiskList();
         buildSustTable();
         const now = new Date().toLocaleString('es-MX');
         document.getElementById('last-update').textContent = 'Actualizado: ' + now;
-        document.getElementById('data-date').textContent = now;
-        // Fire alerts after short delay
         setTimeout(() => scheduleNotifications(), 1200);
       } catch (e) {
         showError('No se pudo conectar al servidor (puerto 5000).');
-      } finally {
-        document.getElementById('header-loader').classList.add('hidden');
       }
     }
 
     function showError(msg) {
-      const banner = document.createElement('div');
-      banner.className = 'fixed top-4 right-4 bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded-lg text-sm z-50 max-w-sm';
-      banner.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i>' + msg;
-      document.body.appendChild(banner);
-      setTimeout(() => banner.remove(), 6000);
+      const el = document.createElement('div');
+      el.style.cssText = 'position:fixed;top:16px;right:16px;background:#fff0f0;border:1px solid #F2071B;color:#c0392b;padding:12px 16px;border-radius:8px;font-size:12px;z-index:999;font-family:Poppins,sans-serif';
+      el.innerHTML = '<i class="fas fa-exclamation-circle" style="margin-right:7px"></i>' + msg;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 6000);
     }
 
     function updateKPIs() {
@@ -525,35 +522,27 @@
       document.getElementById('kpi-criticos').textContent = s.clientes_criticos;
     }
 
-    // ─── CHARTS ───────────────────────────────────────────────────────────────
-    const CD = {
-      plugins: { legend: { labels: { color: '#9ca3af', font: { size: 11 } } } },
-      scales: {
-        x: { ticks: { color: '#6b7280', font: { size: 10 } }, grid: { color: '#1f2937' } },
-        y: { ticks: { color: '#6b7280', font: { size: 10 } }, grid: { color: '#1f2937' } },
-      },
-    };
-
+    // ─── CHARTS ─────────────────────────────────────────────────────
     function buildCharts() {
       const prods = dashboardData.productos_mas_sustituidos.slice(0, 8);
       mkChart('chart-products', 'bar', {
-        labels: prods.map(p => trunc(p.producto, 25)),
+        labels: prods.map(p => trunc(p.producto, 28)),
         datasets: [{ label: 'Sustituciones', data: prods.map(p => p.frecuencia),
-          backgroundColor: 'rgba(239,68,68,.7)', borderColor: '#ef4444', borderWidth: 1, borderRadius: 4 }],
+          backgroundColor: 'rgba(242,7,27,.7)', borderColor: '#F2071B', borderWidth: 1, borderRadius: 4 }],
       }, { ...CD, indexAxis: 'y', plugins: { legend: { display: false } } });
 
       const cedis = dashboardData.cedis_criticos.slice(0, 8);
       mkChart('chart-cedis', 'bar', {
         labels: cedis.map(c => 'CEDIS ' + c.cedis),
         datasets: [{ label: 'Sustituciones', data: cedis.map(c => c.total_sustituciones),
-          backgroundColor: 'rgba(251,146,60,.7)', borderColor: '#fb923c', borderWidth: 1, borderRadius: 4 }],
+          backgroundColor: 'rgba(242,73,12,.7)', borderColor: '#F2490C', borderWidth: 1, borderRadius: 4 }],
       }, { ...CD, plugins: { legend: { display: false } } });
 
       mkChart('chart-risk', 'bar', {
         labels: dashboardData.clientes_riesgo.slice(0, 10).map((_, i) => 'C' + (i+1)),
         datasets: [{ label: 'Score de Riesgo', data: dashboardData.clientes_riesgo.slice(0, 10).map(c => c.riesgo_score),
           backgroundColor: dashboardData.clientes_riesgo.slice(0, 10).map(c =>
-            c.nivel_riesgo === 'Crítico' ? 'rgba(239,68,68,.8)' : c.nivel_riesgo === 'Alto' ? 'rgba(251,146,60,.8)' : 'rgba(96,165,250,.8)'
+            c.nivel_riesgo === 'Crítico' ? 'rgba(242,7,27,.8)' : c.nivel_riesgo === 'Alto' ? 'rgba(242,73,12,.8)' : 'rgba(46,158,90,.8)'
           ), borderRadius: 4 }],
       }, { ...CD, plugins: { legend: { display: false } },
         scales: { ...CD.scales, y: { ...CD.scales.y, max: 100, ticks: { ...CD.scales.y.ticks, callback: v => v + '%' } } } });
@@ -562,9 +551,9 @@
       mkChart('chart-bu', 'doughnut', {
         labels: bu.map(b => b.business_unit),
         datasets: [{ data: bu.map(b => b.total),
-          backgroundColor: ['rgba(239,68,68,.8)','rgba(251,146,60,.8)','rgba(96,165,250,.8)','rgba(167,139,250,.8)'],
-          borderColor: '#0c1220', borderWidth: 2 }],
-      }, { plugins: { legend: { labels: { color: '#9ca3af', font: { size: 10 }, boxWidth: 12 } } } });
+          backgroundColor: ['rgba(242,7,27,.8)','rgba(242,73,12,.8)','rgba(242,117,7,.8)','rgba(140,8,94,.8)'],
+          borderColor: '#f7f7f5', borderWidth: 2 }],
+      }, { plugins: { legend: { labels: { color: '#777', font: { size: 11, family: 'Poppins' }, boxWidth: 12 } } } });
     }
 
     function buildCedisDetailChart() {
@@ -572,7 +561,7 @@
       mkChart('chart-cedis-detail', 'bar', {
         labels: cedis.map(c => 'CEDIS ' + c.cedis),
         datasets: [{ label: 'Sustituciones', data: cedis.map(c => c.total_sustituciones),
-          backgroundColor: 'rgba(251,146,60,.7)', borderColor: '#fb923c', borderWidth: 1, borderRadius: 6 }],
+          backgroundColor: 'rgba(242,73,12,.7)', borderColor: '#F2490C', borderWidth: 1, borderRadius: 6 }],
       }, { ...CD, plugins: { legend: { display: false } } });
       chartsCreated['cedis-detail'] = true;
     }
@@ -584,115 +573,80 @@
       chartsCreated[id] = new Chart(ctx, { type, data, options: { responsive: true, maintainAspectRatio: false, ...options } });
     }
 
-    // ─── TABLES ───────────────────────────────────────────────────────────────
-    function buildRiskTable() {
-      const tbody = document.getElementById('risk-table-body');
-      const actions = {
-        Crítico: '🚨 Llamada inmediata + bono 2x puntos + prioridad máxima',
-        Alto:    '⚠️ Compensación + revisión de próximo pedido',
-        Medio:   '📋 Monitorear y ofrecer beneficios preventivos',
-      };
-      tbody.innerHTML = dashboardData.clientes_riesgo.map(c => `
-        <tr class="hover:bg-gray-800/30 transition-colors">
-          <td class="px-4 py-3 text-gray-400 text-xs font-mono">${c.customer_id}</td>
-          <td class="px-4 py-3 text-white font-semibold">${c.sustituciones}</td>
-          <td class="px-4 py-3 text-gray-400">${c.total_pedidos}</td>
-          <td class="px-4 py-3 text-gray-300">${c.tasa_sustitucion}%</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="h-1.5 w-24 bg-gray-700 rounded-full overflow-hidden">
-                <div class="h-full rounded-full" style="width:${c.riesgo_score}%;background:${c.riesgo_score>=70?'#ef4444':c.riesgo_score>=40?'#fb923c':'#60a5fa'}"></div>
-              </div>
-              <span class="text-sm font-bold" style="color:${c.riesgo_score>=70?'#f87171':c.riesgo_score>=40?'#fb923c':'#93c5fd'}">${c.riesgo_score}%</span>
+    // ─── RISK LIST ───────────────────────────────────────────────────
+    function buildRiskList() {
+      const container = document.getElementById('risk-list');
+      const COLOR = { Crítico: '#F2071B', Alto: '#F2490C', Medio: '#A60842', Bajo: '#2e9e5a' };
+      const PILL  = { Crítico: 'pill-critico', Alto: 'pill-alto', Medio: 'pill-medio', Bajo: 'pill-bajo' };
+      container.innerHTML = dashboardData.clientes_riesgo.map(c => {
+        const col = COLOR[c.nivel_riesgo] || '#999';
+        const pct = c.riesgo_score;
+        const fillCol = pct >= 70 ? '#F2071B' : pct >= 40 ? '#F2490C' : '#2e9e5a';
+        return `<div class="risk-row">
+          <div class="risk-avatar" style="background:${col}">${c.customer_id.toString().slice(-2)}</div>
+          <div class="risk-info">
+            <div class="risk-name">Cliente ${c.customer_id}</div>
+            <div class="risk-sub">${c.sustituciones} sustituciones · ${c.tasa_sustitucion}%</div>
+            <div style="display:flex;align-items:center;gap:7px;margin-top:4px">
+              <div class="bar-track" style="width:80px"><div class="bar-fill" style="width:${pct}%;background:${fillCol}"></div></div>
+              <span style="font-size:11px;font-weight:700;color:${fillCol}">${pct}%</span>
             </div>
-          </td>
-          <td class="px-4 py-3">
-            <span class="px-2 py-0.5 rounded-full text-xs font-medium badge-${c.nivel_riesgo.toLowerCase()}">${c.nivel_riesgo}</span>
-          </td>
-          <td class="px-4 py-3 text-gray-400 text-xs">${actions[c.nivel_riesgo]}</td>
-        </tr>`).join('');
+          </div>
+          <span class="pill ${PILL[c.nivel_riesgo]||''}">${c.nivel_riesgo}</span>
+        </div>`;
+      }).join('');
     }
 
+    // ─── SUSTITUCIONES TABLE ─────────────────────────────────────────
     function buildSustTable() {
-      // Panel 1: pares
       const tbody = document.getElementById('sust-table-body');
       const maxFreq = Math.max(...dashboardData.top_sustituciones.map(s => s.frecuencia), 1);
       tbody.innerHTML = dashboardData.top_sustituciones.map((s, i) => {
-        const pct = Math.round(s.frecuencia / maxFreq * 100);
-        const col = i === 0 ? '#ef4444' : i < 3 ? '#fb923c' : '#6b7280';
-        return `<tr class="hover:bg-gray-800/30 transition-colors">
-          <td class="px-4 py-3 text-gray-600 font-mono text-xs">${i+1}</td>
-          <td class="px-4 py-3 text-gray-300 text-sm max-w-xs truncate">${s.nombre_sku_solicitado}</td>
-          <td class="px-4 py-3 text-center"><i class="fas fa-arrow-right text-red-500 text-xs"></i></td>
-          <td class="px-4 py-3 text-orange-300 text-sm max-w-xs truncate">${s.nombre_sku_solicitado_cambio}</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-20 h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                <div class="h-full rounded-full" style="width:${pct}%;background:${col}"></div>
-              </div>
-              <span class="font-bold text-sm" style="color:${col}">${s.frecuencia}x</span>
+        const col = i === 0 ? '#F2071B' : i < 3 ? '#F2490C' : '#aaa';
+        return `<tr>
+          <td style="color:#bbb">${i+1}</td>
+          <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.nombre_sku_solicitado}</td>
+          <td style="text-align:center"><i class="fas fa-arrow-right" style="color:#F2071B"></i></td>
+          <td style="color:#F2490C;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.nombre_sku_solicitado_cambio}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:7px">
+              <div class="bar-track" style="width:70px"><div class="bar-fill" style="width:${Math.round(s.frecuencia/maxFreq*100)}%;background:${col}"></div></div>
+              <span style="font-size:12px;font-weight:700;color:${col}">${s.frecuencia}x</span>
             </div>
           </td>
         </tr>`;
       }).join('');
-
-      // Panel 2: artículos más sustituidos
       buildSustSolicitados();
-
-      // Panel 3: sustitutos más usados
       buildSustSubstitutos();
     }
 
     function buildSustSolicitados() {
       const data = dashboardData.productos_mas_sustituidos;
       if (!data || !data.length) return;
-
       const totalSust = dashboardData.summary.total_sustituciones;
       document.getElementById('sust-total-count').textContent = totalSust.toLocaleString('es-MX');
-
-      // Chart
       mkChart('chart-sust-solicitados', 'bar', {
         labels: data.map(p => trunc(p.producto, 28)),
         datasets: [{ label: 'Veces sustituido', data: data.map(p => p.frecuencia),
-          backgroundColor: data.map((_, i) => i === 0 ? 'rgba(239,68,68,.85)' : i < 3 ? 'rgba(251,146,60,.75)' : 'rgba(107,114,128,.6)'),
-          borderColor: data.map((_, i) => i === 0 ? '#ef4444' : i < 3 ? '#fb923c' : '#6b7280'),
-          borderWidth: 1, borderRadius: 5 }],
+          backgroundColor: data.map((_, i) => i===0?'rgba(242,7,27,.85)':i<3?'rgba(242,73,12,.75)':'rgba(200,200,200,.6)'),
+          borderColor: data.map((_, i) => i===0?'#F2071B':i<3?'#F2490C':'#ccc'),
+          borderWidth: 1, borderRadius: 4 }],
       }, { ...CD, indexAxis: 'y', plugins: { legend: { display: false } } });
 
-      // Concentration KPIs (top 3 cover X% of total)
       const top3sum = data.slice(0, 3).reduce((a, b) => a + b.frecuencia, 0);
       const top3pct = totalSust > 0 ? Math.round(top3sum / totalSust * 100) : 0;
-      document.getElementById('sust-concentration').innerHTML = `
-        <div class="flex items-center justify-between py-1 border-b border-gray-800">
-          <span class="text-gray-500 text-xs">Top 3 productos</span>
-          <span class="text-white font-bold">${top3pct}% del total</span>
-        </div>
-        <div class="flex items-center justify-between py-1 border-b border-gray-800">
-          <span class="text-gray-500 text-xs">Producto #1</span>
-          <span class="text-red-400 font-bold">${data[0]?.frecuencia || 0} veces</span>
-        </div>
-        <div class="flex items-center justify-between py-1">
-          <span class="text-gray-500 text-xs">Artículos distintos</span>
-          <span class="text-orange-400 font-bold">${data.length}</span>
-        </div>`;
+      document.getElementById('sust-concentration').innerHTML =
+        `<div style="font-size:18px;font-weight:800;color:#F2071B">${top3pct}%</div><div style="font-size:10px;color:#aaa">Top 3 del total</div>`;
 
-      // Table
       const maxF = Math.max(...data.map(d => d.frecuencia), 1);
       document.getElementById('sust-sol-table').innerHTML = data.map((p, i) => {
-        const pct = Math.round(p.frecuencia / maxF * 100);
-        const col = i === 0 ? '#ef4444' : i < 3 ? '#fb923c' : '#6b7280';
-        return `<tr class="hover:bg-gray-800/30 transition-colors">
-          <td class="px-4 py-3 text-gray-600 font-mono text-xs">${i+1}</td>
-          <td class="px-4 py-3 text-gray-200 text-sm">${p.producto}</td>
-          <td class="px-4 py-3 font-bold" style="color:${col}">${p.frecuencia.toLocaleString('es-MX')}</td>
-          <td class="px-4 py-3 text-gray-400 text-xs">${p.pct_total ?? '—'}%</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
-              <div class="w-28 h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                <div class="h-full rounded-full" style="width:${pct}%;background:${col}"></div>
-              </div>
-            </div>
-          </td>
+        const col = i===0?'#F2071B':i<3?'#F2490C':'#aaa';
+        return `<tr>
+          <td style="color:#bbb">${i+1}</td>
+          <td>${p.producto}</td>
+          <td style="font-weight:700;color:${col}">${p.frecuencia.toLocaleString('es-MX')}</td>
+          <td style="color:#aaa">${p.pct_total??'—'}%</td>
+          <td><div class="bar-track" style="width:80px"><div class="bar-fill" style="width:${Math.round(p.frecuencia/maxF*100)}%;background:${col}"></div></div></td>
         </tr>`;
       }).join('');
     }
@@ -700,66 +654,74 @@
     function buildSustSubstitutos() {
       const data = dashboardData.productos_sustitutos;
       if (!data || !data.length) return;
-
-      // Chart
       mkChart('chart-sust-sustitutos', 'bar', {
         labels: data.map(p => trunc(p.producto_sustituto, 28)),
         datasets: [{ label: 'Veces usado como sustituto', data: data.map(p => p.frecuencia),
-          backgroundColor: data.map((_, i) => i === 0 ? 'rgba(52,211,153,.85)' : i < 3 ? 'rgba(16,185,129,.7)' : 'rgba(107,114,128,.5)'),
-          borderColor: data.map((_, i) => i === 0 ? '#34d399' : i < 3 ? '#10b981' : '#6b7280'),
-          borderWidth: 1, borderRadius: 5 }],
+          backgroundColor: data.map((_, i) => i===0?'rgba(46,158,90,.85)':i<3?'rgba(46,158,90,.65)':'rgba(200,200,200,.5)'),
+          borderColor: data.map((_, i) => i===0?'#2e9e5a':i<3?'#2e9e5a':'#ccc'),
+          borderWidth: 1, borderRadius: 4 }],
       }, { ...CD, indexAxis: 'y', plugins: { legend: { display: false } } });
 
-      // Top 1 highlight
       if (data[0]) {
         document.getElementById('sust-top1-name').textContent = data[0].producto_sustituto;
-        document.getElementById('sust-top1-detail').textContent =
-          `${data[0].frecuencia} veces usado · reemplaza ${data[0].productos_distintos} producto(s) distinto(s)`;
+        document.getElementById('sust-top1-detail').textContent = `${data[0].frecuencia} veces · reemplaza ${data[0].productos_distintos} producto(s)`;
       }
+      document.getElementById('sust-top3-comodin').innerHTML =
+        `<div style="font-size:10px;color:#aaa;text-transform:uppercase;font-weight:600;margin-bottom:4px">Top comodines</div>` +
+        data.slice(0, 3).map(p => `
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+            <span style="font-size:11px;color:#555;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.producto_sustituto}</span>
+            <span style="font-size:11px;font-weight:700;color:#2e9e5a;margin-left:6px">${p.productos_distintos}</span>
+          </div>`).join('');
 
-      // Top 3 comodin badges
-      document.getElementById('sust-top3-comodin').innerHTML = data.slice(0, 3).map((p, i) => `
-        <div class="flex items-center justify-between">
-          <span class="text-xs text-gray-400 truncate flex-1 mr-2">${p.producto_sustituto}</span>
-          <span class="text-xs font-bold text-green-400 flex-shrink-0">${p.productos_distintos} distintos</span>
-        </div>`).join('');
-
-      // Table
       const maxF = Math.max(...data.map(d => d.frecuencia), 1);
       document.getElementById('sust-sub-table').innerHTML = data.map((p, i) => {
-        const pct = Math.round(p.frecuencia / maxF * 100);
-        const col = i === 0 ? '#34d399' : i < 3 ? '#10b981' : '#6b7280';
-        return `<tr class="hover:bg-gray-800/30 transition-colors">
-          <td class="px-4 py-3 text-gray-600 font-mono text-xs">${i+1}</td>
-          <td class="px-4 py-3 text-gray-200 text-sm">${p.producto_sustituto}</td>
-          <td class="px-4 py-3 font-bold" style="color:${col}">${p.frecuencia.toLocaleString('es-MX')}</td>
-          <td class="px-4 py-3 text-gray-400 text-xs">${p.pct_total ?? '—'}%</td>
-          <td class="px-4 py-3 text-gray-400 text-xs">${p.productos_distintos} producto(s)</td>
-          <td class="px-4 py-3">
-            <div class="w-24 h-1.5 bg-gray-800 rounded-full overflow-hidden">
-              <div class="h-full rounded-full" style="width:${pct}%;background:${col}"></div>
-            </div>
-          </td>
+        const col = i===0?'#2e9e5a':i<3?'#2e9e5a':'#aaa';
+        return `<tr>
+          <td style="color:#bbb">${i+1}</td>
+          <td>${p.producto_sustituto}</td>
+          <td style="font-weight:700;color:${col}">${p.frecuencia.toLocaleString('es-MX')}</td>
+          <td style="color:#aaa">${p.pct_total??'—'}%</td>
+          <td style="color:#aaa">${p.productos_distintos} prod.</td>
+          <td><div class="bar-track" style="width:70px"><div class="bar-fill" style="width:${Math.round(p.frecuencia/maxF*100)}%;background:${col}"></div></div></td>
         </tr>`;
       }).join('');
     }
 
-    // ─── SUSTITUCIONES TABS ───────────────────────────────────────────────────
+    // ─── SUSTITUCIONES TABS ──────────────────────────────────────────
     function showSustTab(name, btn) {
       document.querySelectorAll('.sust-panel').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.sust-tab').forEach(b => b.classList.remove('active'));
       document.getElementById('sust-' + name).classList.add('active');
       btn.classList.add('active');
-      // Recreate charts after panel becomes visible (Chart.js needs visible canvas)
       if (name === 'solicitados' && dashboardData) buildSustSolicitados();
       if (name === 'sustitutos' && dashboardData) buildSustSubstitutos();
     }
 
-    // ─── REPORTS (quick) ──────────────────────────────────────────────────────
+    // ─── DARK CHAT (Reportes IA) ──────────────────────────────────────
+    async function sendChat() {
+      const input = document.getElementById('chat-input');
+      const msg = input.value.trim();
+      if (!msg) return;
+      input.value = '';
+      addBubble(msg, 'user');
+      const typing = addBubble('…', 'ai');
+      try {
+        const res = await fetch(API + '/api/rb/chat', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: msg, session_id: chatSessionId }),
+        });
+        const data = await res.json();
+        typing.querySelector('.bubble-text').textContent = data.response || 'Sin respuesta.';
+      } catch (e) {
+        typing.querySelector('.bubble-text').textContent = 'Error al conectar con el servidor.';
+      }
+    }
+
     async function generateReport(type) {
-      document.getElementById('report-placeholder').classList.add('hidden');
-      document.getElementById('report-container').classList.add('hidden');
-      document.getElementById('report-loading').classList.remove('hidden');
+      const typeName = { diario: 'Diario', semanal: 'Semanal', mensual: 'Mensual', anual: 'Anual' }[type] || type;
+      addBubble(`Generar reporte ${typeName}`, 'user');
+      const typing = addBubble('Generando reporte con Gemini AI…', 'ai');
       document.querySelectorAll('.report-btn').forEach(b => b.disabled = true);
       try {
         const res = await fetch(API + '/api/report', {
@@ -768,83 +730,64 @@
         });
         const data = await res.json();
         if (!data.ok) throw new Error(data.error);
-        document.getElementById('report-content').innerHTML = data.report;
-        document.getElementById('report-timestamp').textContent = new Date().toLocaleString('es-MX') + ' · ' + type;
-        document.getElementById('report-container').classList.remove('hidden');
+        const ts = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+        typing.querySelector('.bubble-text').innerHTML =
+          `<strong>Reporte ${typeName}</strong> · ${ts}<div class="report-out" style="margin-top:8px">${data.report}</div>`;
       } catch (e) {
-        showError('Error generando reporte: ' + e.message);
-        document.getElementById('report-placeholder').classList.remove('hidden');
+        typing.querySelector('.bubble-text').textContent = 'Error generando reporte: ' + e.message;
       } finally {
-        document.getElementById('report-loading').classList.add('hidden');
         document.querySelectorAll('.report-btn').forEach(b => b.disabled = false);
       }
     }
 
-    // ─── NOTIFICATIONS ────────────────────────────────────────────────────────
-    const SUGGESTIONS = {
-      Crítico: [
-        'Enviar cupón de descuento 15% en próximo pedido',
-        'Llamada inmediata del equipo comercial',
-        'Asignar perfil de entrega prioritaria',
-        'Ofrecer bono de 2x puntos de lealtad',
-      ],
-      cedis: [
-        'Revisar inventario urgente y ajustar stock',
-        'Alertar a supervisor de almacén',
-        'Solicitar reposición de productos frecuentes',
-      ],
-      tasa: [
-        'Alertar al equipo de planificación de demanda',
-        'Revisar pronóstico de inventario semanal',
-      ],
-    };
+    function addBubble(text, type) {
+      const msgs = document.getElementById('chat-messages');
+      const div = document.createElement('div');
+      if (type === 'user') {
+        div.className = 'bubble-user';
+        div.innerHTML = `<div class="bubble-text">${text}</div>`;
+      } else {
+        div.className = 'bubble-ai';
+        div.innerHTML = `<div class="bubble-tag">SWAPP</div><div class="bubble-text">${text}</div>`;
+      }
+      msgs.appendChild(div);
+      msgs.scrollTop = msgs.scrollHeight;
+      return div;
+    }
 
+    // ─── NOTIFICATIONS ────────────────────────────────────────────────
+    const SUGGESTIONS = {
+      Crítico: ['Enviar cupón 15% descuento', 'Llamada inmediata del equipo comercial', 'Asignar entrega prioritaria'],
+      cedis:   ['Revisar inventario urgente', 'Alertar a supervisor de almacén'],
+      tasa:    ['Alertar al equipo de planificación', 'Revisar pronóstico semanal'],
+    };
     function randomSuggestion(type) {
       const arr = SUGGESTIONS[type] || SUGGESTIONS.tasa;
       return arr[Math.floor(Math.random() * arr.length)];
     }
-
     function scheduleNotifications() {
       if (!dashboardData) return;
       const notifs = [];
-      const critical = (dashboardData.clientes_riesgo || []).filter(c => c.nivel_riesgo === 'Crítico').slice(0, 3);
-      critical.forEach(c => {
-        notifs.push({
-          type: 'critical',
-          icon: 'fa-user-times',
+      (dashboardData.clientes_riesgo || []).filter(c => c.nivel_riesgo === 'Crítico').slice(0, 3).forEach(c => {
+        notifs.push({ type: 'critical', icon: 'fa-user-times',
           title: 'Cliente en Riesgo Crítico',
-          body: `ID <strong>${c.customer_id}</strong> — <strong>${c.sustituciones} sustituciones</strong> · Score: <strong class="text-red-300">${c.riesgo_score}%</strong>`,
-          action: randomSuggestion('Crítico'),
-          duration: 10000,
-        });
+          body: `ID <strong>${c.customer_id}</strong> — <strong>${c.sustituciones} sustituciones</strong> · Score: <strong style="color:#F2071B">${c.riesgo_score}%</strong>`,
+          action: randomSuggestion('Crítico'), duration: 10000 });
       });
       const topCedis = (dashboardData.cedis_criticos || [])[0];
-      if (topCedis) {
-        notifs.push({
-          type: 'warning',
-          icon: 'fa-warehouse',
-          title: `CEDIS ${topCedis.cedis} — Punto Crítico`,
-          body: `<strong>${topCedis.total_sustituciones} sustituciones</strong> registradas. El centro con mayor impacto.`,
-          action: randomSuggestion('cedis'),
-          duration: 10000,
-        });
-      }
+      if (topCedis) notifs.push({ type: 'warning', icon: 'fa-warehouse',
+        title: `CEDIS ${topCedis.cedis} — Punto Crítico`,
+        body: `<strong>${topCedis.total_sustituciones} sustituciones</strong> registradas.`,
+        action: randomSuggestion('cedis'), duration: 10000 });
       const tasa = dashboardData.summary?.tasa_sustitucion;
-      if (tasa > 4) {
-        notifs.push({
-          type: 'info',
-          icon: 'fa-chart-line',
-          title: 'Tasa de Sustitución Elevada',
-          body: `La tasa global es <strong>${tasa}%</strong>. Supera el umbral operativo recomendado.`,
-          action: randomSuggestion('tasa'),
-          duration: 9000,
-        });
-      }
+      if (tasa > 4) notifs.push({ type: 'info', icon: 'fa-chart-line',
+        title: 'Tasa de Sustitución Elevada',
+        body: `La tasa global es <strong>${tasa}%</strong>. Supera el umbral recomendado.`,
+        action: randomSuggestion('tasa'), duration: 9000 });
       pendingNotifications = notifs;
       updateBellBadge(notifs.length);
       notifs.forEach((n, i) => setTimeout(() => showToast(n), i * 700));
     }
-
     function replayNotifications() {
       if (!pendingNotifications.length) return;
       const btn = document.getElementById('bell-btn');
@@ -852,60 +795,45 @@
       setTimeout(() => btn.classList.remove('bell-pop'), 400);
       pendingNotifications.forEach((n, i) => setTimeout(() => showToast(n), i * 600));
     }
-
     function updateBellBadge(count) {
       const badge = document.getElementById('bell-badge');
-      if (count > 0) {
-        badge.textContent = count > 9 ? '9+' : count;
-        badge.classList.remove('hidden');
-      } else {
-        badge.classList.add('hidden');
-      }
+      if (count > 0) { badge.textContent = count > 9 ? '9+' : count; badge.classList.add('show'); }
+      else { badge.classList.remove('show'); }
     }
-
     function showToast(notif) {
       const COLORS = {
-        critical: { border: '#b91c1c', bg: 'rgba(127,29,29,0.95)', accent: '#ef4444', iconBg: 'rgba(185,28,28,0.5)', pill: 'rgba(185,28,28,0.4)', pillText: '#fca5a5' },
-        warning:  { border: '#d97706', bg: 'rgba(120,53,15,0.95)', accent: '#fb923c', iconBg: 'rgba(217,119,6,0.4)',  pill: 'rgba(161,98,7,0.4)',  pillText: '#fde68a' },
-        info:     { border: '#1d4ed8', bg: 'rgba(30,58,95,0.95)',  accent: '#60a5fa', iconBg: 'rgba(29,78,216,0.4)',  pill: 'rgba(29,78,216,0.4)', pillText: '#bfdbfe' },
+        critical: { border: '#F2071B', bg: '#fff0f0', accent: '#F2071B', pill: '#fde8e8', pillText: '#c0392b' },
+        warning:  { border: '#F2490C', bg: '#fff4ee', accent: '#F2490C', pill: '#fde8d8', pillText: '#a04010' },
+        info:     { border: '#A60842', bg: '#fdf0f5', accent: '#A60842', pill: '#f8d8e8', pillText: '#7a063a' },
       };
       const c = COLORS[notif.type] || COLORS.info;
-      const id = 'toast-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
-
+      const id = 'toast-' + Date.now() + '-' + Math.random().toString(36).slice(2,6);
       const el = document.createElement('div');
       el.id = id;
-      el.className = 'toast pointer-events-auto w-full rounded-2xl shadow-2xl overflow-hidden';
-      el.style.cssText = `background:${c.bg};border:1px solid ${c.border};backdrop-filter:blur(12px);`;
-
+      el.className = 'toast';
+      el.style.cssText = `background:${c.bg};border:1px solid ${c.border};border-radius:9px;overflow:hidden;min-width:260px;max-width:310px`;
       el.innerHTML = `
-        <div style="border-left: 3px solid ${c.accent}" class="p-4">
-          <div class="flex items-start gap-3">
-            <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:${c.iconBg}">
-              <i class="fas ${notif.icon} text-sm" style="color:${c.accent}"></i>
+        <div style="border-left:3px solid ${c.accent};padding:12px 14px">
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <div style="width:30px;height:30px;border-radius:7px;background:rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <i class="fas ${notif.icon}" style="font-size:12px;color:${c.accent}"></i>
             </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-white font-bold text-xs leading-tight">${notif.title}</p>
-              <p class="text-gray-300 text-xs mt-1 leading-relaxed">${notif.body}</p>
-              <div class="mt-2.5 flex items-center gap-1.5">
-                <i class="fas fa-lightbulb text-xs" style="color:${c.accent}"></i>
-                <span class="text-xs font-medium rounded-full px-2.5 py-0.5" style="background:${c.pill};color:${c.pillText}">${notif.action}</span>
+            <div style="flex:1;min-width:0">
+              <p style="font-weight:700;font-size:11px;color:#333;margin-bottom:3px">${notif.title}</p>
+              <p style="font-size:10px;color:#555;line-height:1.4">${notif.body}</p>
+              <div style="margin-top:6px;display:flex;align-items:center;gap:5px">
+                <i class="fas fa-lightbulb" style="font-size:9px;color:${c.accent}"></i>
+                <span style="font-size:9px;font-weight:600;background:${c.pill};color:${c.pillText};padding:2px 8px;border-radius:20px">${notif.action}</span>
               </div>
             </div>
-            <button onclick="dismissToast('${id}')" class="text-gray-600 hover:text-gray-300 transition-colors flex-shrink-0 -mt-0.5 -mr-0.5 p-1">
-              <i class="fas fa-times text-xs"></i>
-            </button>
+            <button onclick="dismissToast('${id}')" style="background:none;border:none;cursor:pointer;color:#aaa;padding:0;font-size:12px;line-height:1;flex-shrink:0">✕</button>
           </div>
         </div>
-        <div class="h-0.5" style="background:rgba(255,255,255,0.07)">
-          <div class="toast-progress h-full" style="background:${c.accent};animation-duration:${notif.duration}ms"></div>
-        </div>`;
-
+        <div style="height:3px;background:#f0eeec"><div class="toast-progress" style="background:${c.accent};animation-duration:${notif.duration}ms"></div></div>`;
       document.getElementById('toast-container').appendChild(el);
       requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('show')));
-
       setTimeout(() => dismissToast(id), notif.duration);
     }
-
     function dismissToast(id) {
       const el = document.getElementById(id);
       if (!el) return;
@@ -913,10 +841,10 @@
       setTimeout(() => el.remove(), 350);
     }
 
-    // ─── UTILS ────────────────────────────────────────────────────────────────
+    // ─── UTILS ───────────────────────────────────────────────────────
     function trunc(str, n) { return str.length > n ? str.slice(0, n) + '…' : str; }
 
-    // ─── INIT ─────────────────────────────────────────────────────────────────
+    // ─── INIT ────────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', loadData);
   </script>
 </body>

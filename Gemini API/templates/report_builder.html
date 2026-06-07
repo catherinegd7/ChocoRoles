@@ -3,230 +3,338 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ArcaBot – Generador de Reportes | Arca Continental</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Swapp – Generador de Reportes IA</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
-
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
-    * { font-family: 'Inter', sans-serif; }
-    body { background: #0c1220; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    * { font-family: 'Poppins', sans-serif; }
+    body { background: #f7f7f5; color: #333; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-    .opt-section { border-bottom: 1px solid #1f2937; }
+    /* ── HEADER ── */
+    .app-header {
+      height: 46px; flex-shrink: 0;
+      background: linear-gradient(to right, #8C085E, #A60842, #F2071B, #F2490C, #F27507);
+      display: flex; align-items: center; padding: 0 16px; gap: 14px;
+    }
+    .logo { font-size: 20px; font-weight: 900; color: #fff; letter-spacing: -0.5px; white-space: nowrap; }
+    .logo span { color: #F27507; }
+    .header-nav { display: flex; gap: 4px; flex: 1; }
+    .nav-tab {
+      padding: 5px 13px; border-radius: 7px; font-size: 12px; font-weight: 600;
+      color: rgba(255,255,255,0.7); background: transparent; border: none; cursor: pointer;
+      text-decoration: none; display: inline-flex; align-items: center; transition: background .15s;
+    }
+    .nav-tab.active { background: rgba(255,255,255,0.22); color: #fff; }
+    .header-right { display: flex; align-items: center; gap: 8px; }
+    .avatar {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.5);
+      color: #fff; font-size: 9px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .back-link {
+      font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.75);
+      text-decoration: none; display: flex; align-items: center; gap: 5px;
+    }
+    .back-link:hover { color: #fff; }
+
+    /* ── BODY ── */
+    .body-wrap { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── LEFT SIDEBAR ── */
+    .sidebar {
+      width: 220px; flex-shrink: 0;
+      background: #fff; border-right: 1px solid #ebebeb;
+      display: flex; flex-direction: column; overflow-y: auto;
+    }
+    .opt-section { border-bottom: 1px solid #ebebeb; padding: 10px 12px; }
+    .opt-label {
+      font-size: 10px; font-weight: 700; color: #aaa;
+      text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .chips-wrap { display: flex; flex-wrap: wrap; gap: 4px; }
     .chip {
-      display: inline-flex; align-items: center; gap: 6px;
-      background: #1f2937; color: #9ca3af;
-      border: 1px solid #374151; border-radius: 99px;
-      padding: 4px 12px; font-size: .75rem; cursor: pointer;
-      transition: all .18s; white-space: nowrap;
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #f0eeec; color: #888; border: 1px solid #e0dedd;
+      border-radius: 20px; padding: 4px 11px; font-size: 11px;
+      font-weight: 600; cursor: pointer; transition: all .15s; white-space: nowrap;
+      font-family: 'Poppins', sans-serif;
     }
-    .chip:hover { background: #374151; color: #e5e7eb; border-color: #4b5563; }
-    .chip.active { background: #7f1d1d; color: #fca5a5; border-color: #ef4444; }
-    .chip.active-green { background: #14532d; color: #86efac; border-color: #22c55e; }
+    .chip:hover { background: #e8e5e2; color: #555; }
+    .chip.active { background: #fff0f0; color: #c0392b; border-color: #F2071B; }
+    .chip.active-green { background: #f0faf4; color: #1e7a4a; border-color: #2e9e5a; }
 
-    .msg-bot  { background: #1e2d3d; border-radius: 0 .75rem .75rem .75rem; }
-    .msg-user { background: #7f1d1d; border-radius: .75rem 0 .75rem .75rem; }
-
+    /* ── STATUS / GENERATE ── */
+    .sidebar-footer { margin-top: auto; padding: 10px 12px; border-top: 1px solid #ebebeb; }
+    .param-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
+    .param-key { font-size: 10px; color: #aaa; }
     .param-pill {
-      display: inline-flex; align-items: center; gap: 5px;
-      background: #14532d; color: #86efac;
-      border: 1px solid #22c55e; border-radius: 99px;
-      padding: 2px 10px; font-size: .7rem;
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #f0faf4; color: #1e7a4a; border: 1px solid #2e9e5a;
+      border-radius: 99px; padding: 2px 8px; font-size: 10px; font-weight: 600;
     }
-    .param-pill.pending { background: #1f2937; color: #6b7280; border-color: #374151; }
+    .param-pill.pending { background: #f0eeec; color: #aaa; border-color: #ddd; }
+    .btn-generate {
+      width: 100%; background: #F2071B; color: #fff; border: none; border-radius: 7px;
+      padding: 10px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: 'Poppins', sans-serif;
+      display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px;
+      transition: background .15s;
+    }
+    .btn-generate:hover:not(:disabled) { background: #d0060f; }
+    .btn-generate:disabled { opacity: 0.4; cursor: not-allowed; }
+    .generate-hint { font-size: 10px; color: #aaa; text-align: center; margin-top: 5px; }
+    .generate-hint.ready { color: #2e9e5a; font-weight: 600; }
 
-    /* ── Chart card ── */
-    .chart-card { background: #111827; border: 1px solid #1f2937; border-radius: .875rem; padding: 1.4rem; }
+    /* ── MAIN (CHAT) AREA ── */
+    .main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* ── CHAT BUBBLES ── */
+    .msg-bot {
+      background: #fff; border: 1px solid #ebebeb; border-radius: 0 10px 10px 10px;
+      padding: 10px 12px; max-width: 75%;
+    }
+    .msg-user {
+      background: #F2071B; border-radius: 10px 0 10px 10px;
+      padding: 10px 12px; max-width: 75%; margin-left: auto;
+    }
+    .msg-user p { color: #fff; font-size: 13px; line-height: 1.6; }
+    .msg-bot p { color: #444; font-size: 13px; line-height: 1.6; }
+    .msg-bot strong { color: #F2071B; }
+    .bot-avatar {
+      width: 26px; height: 26px; background: #F2071B; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; color: #fff; flex-shrink: 0; margin-top: 2px;
+    }
+    .msg-row-bot { display: flex; gap: 8px; }
+    .msg-row-bot .msg-bot { flex: 1; max-width: calc(75% + 34px); }
+
+    /* ── SYSTEM MSG ── */
+    .sys-msg { text-align: center; }
+    .sys-msg span {
+      font-size: 11px; color: #aaa; background: #f0eeec;
+      padding: 4px 12px; border-radius: 20px; display: inline-block;
+    }
+
+    /* ── TYPING ── */
+    .typing-dot {
+      width: 6px; height: 6px; background: #ccc; border-radius: 50%;
+      animation: bounce .9s ease-in-out infinite;
+    }
+    .typing-dot:nth-child(2) { animation-delay: .15s; }
+    .typing-dot:nth-child(3) { animation-delay: .3s; }
+    @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+    /* ── ACTION BUTTONS IN BOT MSG ── */
+    .action-btns { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+    .action-btn {
+      background: #f0eeec; border: 1px solid #e0dedd; border-radius: 20px;
+      padding: 6px 14px; font-size: 12px; font-weight: 600; color: #666;
+      cursor: pointer; font-family: 'Poppins', sans-serif; transition: all .15s;
+    }
+    .action-btn:hover { background: #fff0f0; color: #c0392b; border-color: #F2071B; }
+
+    /* ── INPUT BAR ── */
+    .input-bar {
+      flex-shrink: 0; border-top: 1px solid #ebebeb;
+      background: #fff; padding: 10px 14px;
+    }
+    .input-row { display: flex; gap: 8px; max-width: 700px; margin: 0 auto; }
+    .chat-input {
+      flex: 1; background: #f7f7f5; border: 1px solid #e8e8e8; border-radius: 7px;
+      color: #333; font-size: 13px; font-family: 'Poppins', sans-serif;
+      padding: 10px 14px; outline: none; transition: border-color .15s;
+    }
+    .chat-input:focus { border-color: #F2071B; }
+    .chat-input::placeholder { color: #bbb; }
+    .send-btn {
+      background: #F27507; border: none; border-radius: 7px; color: #fff;
+      width: 36px; height: 36px; cursor: pointer; font-size: 11px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .send-btn:hover { background: #d96a05; }
+
+    /* ── REPORT MODAL ── */
+    #report-modal { display: none; position: fixed; inset: 0; z-index: 100; align-items: center; justify-content: center; background: rgba(0,0,0,.55); }
+    #report-modal.open { display: flex; }
+    .modal-box {
+      background: #fff; border: 1px solid #ebebeb; border-radius: 10px;
+      width: 100%; max-width: 860px; display: flex; flex-direction: column; margin: 16px;
+      max-height: 90vh;
+    }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; border-bottom: 1px solid #ebebeb; flex-shrink: 0;
+    }
+    .modal-title { font-size: 15px; font-weight: 700; color: #333; }
+    .modal-meta { font-size: 11px; color: #aaa; margin-top: 1px; }
+    .modal-close {
+      background: none; border: none; cursor: pointer; color: #aaa;
+      width: 28px; height: 28px; border-radius: 6px; font-size: 12px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal-close:hover { background: #f0eeec; color: #333; }
+    .modal-body { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* ── CHART CARDS ── */
+    .chart-card {
+      background: #fff; border: 1px solid #ebebeb; border-radius: 10px; padding: 14px;
+    }
     .chart-card h4 {
-      font-size: .72rem; font-weight: 700; color: #6b7280;
-      text-transform: uppercase; letter-spacing: .07em; margin-bottom: 1rem;
+      font-size: 11px; font-weight: 700; color: #999;
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;
     }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .grid-2c { display: grid; gap: 10px; }
 
-    /* ── Data table in reports ── */
-    .data-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
-    .data-table th { background: #0c1220; color: #4b5563; text-transform: uppercase; font-size: .65rem; letter-spacing: .06em; padding: .5rem .75rem; text-align: left; }
-    .data-table td { padding: .55rem .75rem; border-bottom: 1px solid #1f2937; color: #e5e7eb; vertical-align: middle; }
+    /* ── HERO METRICS ── */
+    .hero-metric {
+      text-align: center; padding: 20px 10px;
+    }
+    .hero-label { font-size: 10px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+    .hero-value { font-size: 42px; font-weight: 900; line-height: 1; }
+    .hero-sub { font-size: 11px; color: #aaa; margin-top: 4px; }
+
+    /* ── DATA TABLE ── */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .data-table th { background: #f7f7f5; color: #aaa; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; padding: 8px 10px; text-align: left; font-weight: 700; }
+    .data-table td { padding: 8px 10px; border-bottom: 1px solid #f0eeec; color: #444; }
     .data-table tr:last-child td { border-bottom: none; }
-    .data-table tr:hover td { background: rgba(255,255,255,.02); }
 
-    /* ── Gemini narrative ── */
-    .report-out p  { color: #d1d5db; line-height: 1.7; margin: .4rem 0; font-size: .9rem; }
-    .report-out ul { list-style: none; margin: .5rem 0; padding: 0; }
-    .report-out li { color: #d1d5db; padding: .35rem 0 .35rem 1.5rem; position: relative; font-size: .88rem; line-height: 1.5; }
-    .report-out li::before { content: '→'; position: absolute; left: 0; color: #ef4444; font-weight: 700; }
-    .report-out strong { color: #fca5a5; }
+    /* ── GEMINI NARRATIVE ── */
+    .report-out p  { color: #555; line-height: 1.7; margin: .4rem 0; font-size: 13px; }
+    .report-out ul { list-style: none; margin: .4rem 0; padding: 0; }
+    .report-out li { color: #555; padding: .35rem 0 .35rem 1.4rem; position: relative; font-size: 13px; line-height: 1.6; }
+    .report-out li::before { content: '→'; position: absolute; left: 0; color: #F2071B; font-weight: 700; }
+    .report-out strong { color: #A60842; }
     .report-out .rec {
-      background: linear-gradient(135deg, rgba(127,29,29,.35), rgba(127,29,29,.15));
-      border: 1px solid rgba(239,68,68,.3); border-left: 3px solid #ef4444;
-      padding: .9rem 1.2rem; border-radius: 0 .6rem .6rem 0; margin: 1rem 0;
-      color: #fca5a5; font-size: .88rem; line-height: 1.6;
+      background: #fff8f0; border: 1px solid #ffd8b0;
+      border-left: 3px solid #F2490C; padding: .9rem 1.1rem;
+      border-radius: 0 7px 7px 0; margin: .8rem 0;
+      color: #8a4010; font-size: 13px; line-height: 1.6;
     }
+    .report-out h2 { font-size: 15px; font-weight: 700; color: #F2071B; margin: .8rem 0 .3rem; }
+    .report-out h3 { font-size: 13px; font-weight: 600; color: #A60842; margin: .6rem 0 .3rem; }
 
-    /* ── Spinner ── */
-    .spin { border: 3px solid #1f2937; border-top-color: #ef4444; border-radius: 50%; width: 26px; height: 26px; animation: sp .7s linear infinite; }
+    /* ── LOADER ── */
+    .spin { border: 3px solid #f0eeec; border-top-color: #F2071B; border-radius: 50%; width: 22px; height: 22px; animation: sp .7s linear infinite; display: inline-block; }
     @keyframes sp { to { transform: rotate(360deg); } }
+
+    /* ── FADE UP ── */
+    @keyframes fadeUp { from { opacity:0; transform: translateY(18px); } to { opacity:1; transform: none; } }
+    .fade-up { animation: fadeUp .4s ease both; }
 
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #374151; border-radius: 99px; }
-
-    /* ── Animations ── */
-    @keyframes fadeUp { from { opacity:0; transform: translateY(24px); } to { opacity:1; transform: none; } }
-    .fade-up { animation: fadeUp .45s ease both; }
-
-    @keyframes pulseRing { 0%,100% { opacity:.15; transform: scale(1); } 50% { opacity:.25; transform: scale(1.04); } }
-    .pulse-ring { animation: pulseRing 3s ease infinite; }
-
-    .hero-center {
-      background: radial-gradient(ellipse at center, rgba(239,68,68,.08) 0%, transparent 70%);
-    }
-
-    /* ── Modal ── */
-    #report-modal { display: none; }
-    #report-modal.open { display: flex; }
+    ::-webkit-scrollbar-thumb { background: #ddd; border-radius: 99px; }
   </style>
 </head>
-
-<body class="text-gray-100 flex flex-col h-screen overflow-hidden">
+<body>
 
   <!-- ═══ REPORT MODAL ═══ -->
-  <div id="report-modal" class="fixed inset-0 z-50 items-center justify-center bg-black/75 backdrop-blur-sm">
-    <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-5xl flex flex-col shadow-2xl mx-4" style="max-height:90vh">
-
-      <!-- Modal header -->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-800 flex-shrink-0">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 bg-red-600 rounded-lg flex items-center justify-center">
-            <i class="fas fa-chart-bar text-white text-sm"></i>
-          </div>
-          <div>
-            <p class="font-bold text-white text-sm">Reporte Visual — Gemini AI</p>
-            <p class="text-gray-500 text-xs" id="modal-meta"></p>
-          </div>
+  <div id="report-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title"><i class="fas fa-chart-bar" style="color:#F2071B;margin-right:6px"></i>Reporte Visual — Gemini AI</div>
+          <div class="modal-meta" id="modal-meta"></div>
         </div>
-        <button onclick="closeModal()"
-          class="text-gray-500 hover:text-white w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-800 transition-colors">
-          <i class="fas fa-times"></i>
-        </button>
+        <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
       </div>
-
-      <!-- Modal body — scrollable report content -->
-      <div id="modal-body" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
-
+      <div id="modal-body" class="modal-body"></div>
     </div>
   </div>
 
   <!-- ═══ HEADER ═══ -->
-  <header class="flex-shrink-0 bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <div class="w-9 h-9 bg-red-600 rounded-lg flex items-center justify-center">
-        <i class="fas fa-robot text-white text-sm"></i>
-      </div>
-      <div>
-        <p class="font-bold text-white text-sm leading-tight">ArcaBot – Generador de Reportes</p>
-        <p class="text-gray-500 text-xs">Haz preguntas sobre los datos o genera un reporte visual</p>
-      </div>
+  <header class="app-header">
+    <div class="logo">sw<span>a</span>pp</div>
+    <nav class="header-nav">
+      <a href="/" class="nav-tab">Dashboard CEDI</a>
+      <a href="/report-builder" class="nav-tab active">Reportes IA</a>
+      <a href="#" class="nav-tab">Análisis</a>
+    </nav>
+    <div class="header-right">
+      <a href="/" class="back-link"><i class="fas fa-arrow-left" style="font-size:10px"></i> Dashboard</a>
+      <div class="avatar">AC</div>
     </div>
-    <a href="/" class="flex items-center gap-2 text-gray-500 hover:text-gray-200 text-sm transition-colors">
-      <i class="fas fa-arrow-left text-xs"></i> Dashboard
-    </a>
   </header>
 
   <!-- ═══ BODY ═══ -->
-  <div class="flex flex-1 overflow-hidden">
+  <div class="body-wrap">
 
-    <!-- ─── LEFT PANEL ─── -->
-    <aside class="w-72 flex-shrink-0 bg-gray-900 border-r border-gray-800 flex flex-col overflow-y-auto">
+    <!-- ─── SIDEBAR ─── -->
+    <aside class="sidebar">
 
-      <div class="opt-section p-4">
-        <p class="text-xs font-bold text-gray-500 uppercase mb-2.5 tracking-wider">
-          <i class="fas fa-chart-bar mr-1.5 text-red-400"></i>Tipo de Análisis
-        </p>
-        <div id="chips-analysis" class="flex flex-wrap gap-1.5">
-          <span class="chip text-gray-600 text-xs">Cargando...</span>
+      <div class="opt-section">
+        <div class="opt-label"><i class="fas fa-chart-bar" style="color:#F2071B"></i>Tipo de Análisis</div>
+        <div id="chips-analysis" class="chips-wrap">
+          <span class="chip" style="color:#bbb">Cargando...</span>
         </div>
       </div>
 
-      <div class="opt-section p-4">
-        <p class="text-xs font-bold text-gray-500 uppercase mb-2.5 tracking-wider">
-          <i class="fas fa-globe-americas mr-1.5 text-blue-400"></i>País
-        </p>
-        <div id="chips-country" class="flex flex-wrap gap-1.5"></div>
+      <div class="opt-section">
+        <div class="opt-label"><i class="fas fa-globe-americas" style="color:#F2490C"></i>País</div>
+        <div id="chips-country" class="chips-wrap"></div>
       </div>
 
-      <div class="opt-section p-4">
-        <p class="text-xs font-bold text-gray-500 uppercase mb-2.5 tracking-wider">
-          <i class="fas fa-warehouse mr-1.5 text-orange-400"></i>CEDIS
-        </p>
-        <div id="chips-cedis" class="flex flex-wrap gap-1.5"></div>
+      <div class="opt-section">
+        <div class="opt-label"><i class="fas fa-warehouse" style="color:#F27507"></i>CEDIS</div>
+        <div id="chips-cedis" class="chips-wrap"></div>
       </div>
 
-      <div class="opt-section p-4">
-        <p class="text-xs font-bold text-gray-500 uppercase mb-2.5 tracking-wider">
-          <i class="fas fa-briefcase mr-1.5 text-purple-400"></i>Unidad de Negocio
-        </p>
-        <div id="chips-bu" class="flex flex-wrap gap-1.5"></div>
+      <div class="opt-section">
+        <div class="opt-label"><i class="fas fa-briefcase" style="color:#A60842"></i>Unidad de Negocio</div>
+        <div id="chips-bu" class="chips-wrap"></div>
       </div>
 
-      <div class="opt-section p-4">
-        <p class="text-xs font-bold text-gray-500 uppercase mb-2.5 tracking-wider">
-          <i class="fas fa-chart-pie mr-1.5 text-green-400"></i>Gráficas a incluir
-        </p>
-        <div id="chips-charts" class="flex flex-wrap gap-1.5"></div>
+      <div class="opt-section">
+        <div class="opt-label"><i class="fas fa-chart-pie" style="color:#2e9e5a"></i>Gráficas a incluir</div>
+        <div id="chips-charts" class="chips-wrap"></div>
       </div>
 
-      <!-- Status + generate -->
-      <div class="mt-auto p-4 border-t border-gray-800">
-        <p class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-3">Selección actual</p>
-        <div class="space-y-1.5 mb-4">
-          <div class="flex items-center justify-between">
-            <span class="text-xs text-gray-600">Análisis</span>
-            <span class="param-pill pending" id="badge-analysis">Sin definir</span>
-          </div>
-          <div class="flex items-center justify-between">
-            <span class="text-xs text-gray-600">País</span>
-            <span class="param-pill" id="badge-country"><i class="fas fa-check text-xs"></i> Todos</span>
-          </div>
-          <div class="flex items-center justify-between">
-            <span class="text-xs text-gray-600">CEDIS</span>
-            <span class="param-pill" id="badge-cedis"><i class="fas fa-check text-xs"></i> Todos</span>
-          </div>
-          <div class="flex items-center justify-between">
-            <span class="text-xs text-gray-600">Unidad</span>
-            <span class="param-pill" id="badge-bu"><i class="fas fa-check text-xs"></i> Todos</span>
-          </div>
+      <div class="sidebar-footer">
+        <div style="font-size:7px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Selección actual</div>
+        <div class="param-row">
+          <span class="param-key">Análisis</span>
+          <span class="param-pill pending" id="badge-analysis">Sin definir</span>
         </div>
-
-        <button id="btn-generate" onclick="generateReport()"
-          class="w-full bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl py-3 text-sm font-bold flex items-center justify-center gap-2 transition-colors"
-          disabled>
+        <div class="param-row">
+          <span class="param-key">País</span>
+          <span class="param-pill" id="badge-country"><i class="fas fa-check" style="font-size:6px"></i> Todos</span>
+        </div>
+        <div class="param-row">
+          <span class="param-key">CEDIS</span>
+          <span class="param-pill" id="badge-cedis"><i class="fas fa-check" style="font-size:6px"></i> Todos</span>
+        </div>
+        <div class="param-row">
+          <span class="param-key">Unidad</span>
+          <span class="param-pill" id="badge-bu"><i class="fas fa-check" style="font-size:6px"></i> Todos</span>
+        </div>
+        <button id="btn-generate" class="btn-generate" onclick="generateReport()" disabled>
           <i class="fas fa-sparkles"></i> Generar Reporte Visual
         </button>
-        <p class="text-gray-700 text-xs text-center mt-2" id="generate-hint">Selecciona un tipo de análisis</p>
+        <div class="generate-hint" id="generate-hint">Selecciona un tipo de análisis</div>
       </div>
     </aside>
 
-    <!-- ─── MAIN AREA (chat only) ─── -->
-    <main class="flex-1 flex flex-col overflow-hidden">
-
-      <!-- Chat messages -->
-      <div id="chat-messages" class="flex-1 overflow-y-auto p-5 space-y-4"></div>
-
-      <!-- Input bar -->
-      <div class="flex-shrink-0 border-t border-gray-800 bg-gray-900/80 p-4">
-        <div class="flex gap-3 max-w-3xl mx-auto">
-          <input id="chat-input" type="text"
-            placeholder="Pregunta algo sobre los datos: '¿cuál CEDIS tiene más sustituciones?', '¿cuántos clientes críticos hay?'…"
-            class="flex-1 bg-gray-800 text-gray-200 placeholder-gray-600 text-sm px-4 py-3 rounded-xl border border-gray-700 focus:outline-none focus:border-red-500 transition-colors"
+    <!-- ─── MAIN CHAT AREA ─── -->
+    <main class="main-area">
+      <div id="chat-messages" class="chat-messages"></div>
+      <div class="input-bar">
+        <div class="input-row">
+          <input id="chat-input" class="chat-input" type="text"
+            placeholder="Pregunta algo sobre los datos: '¿cuál CEDIS tiene más sustituciones?'…"
             onkeydown="if(event.key==='Enter') sendChat()"/>
-          <button onclick="sendChat()" class="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-xl transition-colors">
-            <i class="fas fa-paper-plane text-sm"></i>
+          <button class="send-btn" onclick="sendChat()">
+            <i class="fas fa-paper-plane"></i>
           </button>
         </div>
       </div>
-
     </main>
+
   </div>
 
   <!-- ═══ SCRIPTS ═══ -->
@@ -239,18 +347,19 @@
     let activeChips = {};
     let lastReportData = null;
 
-    // ── Action registry — avoids serializing functions into onclick ──
+    // Action registry
     const _actions = {};
     let _actIdx = 0;
-    function regAction(fn) {
-      const k = 'act_' + (++_actIdx);
-      _actions[k] = fn;
-      return k;
-    }
+    function regAction(fn) { const k = 'act_' + (++_actIdx); _actions[k] = fn; return k; }
 
     // ── Boot ──────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', async () => {
-      await loadOptions();
+      try {
+        await loadOptions();
+      } catch(e) {
+        document.getElementById('chips-analysis').innerHTML =
+          '<span style="font-size:12px;color:#F2071B;font-weight:600">⚠️ Servidor Flask no disponible.<br>Corre: <code>python app.py</code></span>';
+      }
       addBotMessage(
         `¡Hola! Soy ArcaBot.\n\nPuedo responder preguntas sobre los datos de sustituciones de Arca Continental, o generar un **reporte visual** con gráficas.\n\nSelecciona el tipo de análisis en el panel izquierdo para el reporte, o escríbeme lo que necesitas saber.`,
         [
@@ -269,51 +378,35 @@
     }
 
     function buildChips() {
-      // Analysis
       const ca = document.getElementById('chips-analysis');
       ca.innerHTML = '';
       options.analysis_types.forEach(at => {
-        const el = makeChip(`<i class="fas ${at.icon}"></i>${at.label}`, () => {
-          selectParam('analysis_type', at.value, el);
-        });
+        const el = makeChip(`<i class="fas ${at.icon}" style="font-size:9px"></i>${at.label}`, () => selectParam('analysis_type', at.value, el));
         el.title = at.desc;
         ca.appendChild(el);
       });
 
-      // Country
       const cc = document.getElementById('chips-country');
       cc.innerHTML = '';
       const allC = makeChip('Todos', () => selectParam('country', 'todos', allC));
       allC.classList.add('active'); activeChips['country'] = allC;
       cc.appendChild(allC);
-      options.countries.forEach(c => {
-        const el = makeChip(c, () => selectParam('country', c, el));
-        cc.appendChild(el);
-      });
+      options.countries.forEach(c => { const el = makeChip(c, () => selectParam('country', c, el)); cc.appendChild(el); });
 
-      // CEDIS
       const cd = document.getElementById('chips-cedis');
       cd.innerHTML = '';
       const allD = makeChip('Todos', () => selectParam('cedis', 'todos', allD));
       allD.classList.add('active'); activeChips['cedis'] = allD;
       cd.appendChild(allD);
-      options.cedis.forEach(c => {
-        const el = makeChip('CEDIS ' + c, () => selectParam('cedis', c, el));
-        cd.appendChild(el);
-      });
+      options.cedis.forEach(c => { const el = makeChip('CEDIS ' + c, () => selectParam('cedis', c, el)); cd.appendChild(el); });
 
-      // BU
       const cb = document.getElementById('chips-bu');
       cb.innerHTML = '';
       const allB = makeChip('Todos', () => selectParam('business_unit', 'todos', allB));
       allB.classList.add('active'); activeChips['business_unit'] = allB;
       cb.appendChild(allB);
-      options.business_units.forEach(b => {
-        const el = makeChip(b, () => selectParam('business_unit', b, el));
-        cb.appendChild(el);
-      });
+      options.business_units.forEach(b => { const el = makeChip(b, () => selectParam('business_unit', b, el)); cb.appendChild(el); });
 
-      // Chart types (multi-select)
       const cch = document.getElementById('chips-charts');
       cch.innerHTML = '';
       options.chart_types.forEach(ct => {
@@ -361,7 +454,7 @@
         const el = document.getElementById(conf.id);
         const val = params[key];
         if (!val) { el.className = 'param-pill pending'; el.textContent = 'Sin definir'; }
-        else { el.className = 'param-pill'; el.innerHTML = `<i class="fas fa-check text-xs"></i> ${conf.fmt(val)}`; }
+        else { el.className = 'param-pill'; el.innerHTML = `<i class="fas fa-check" style="font-size:6px"></i> ${conf.fmt(val)}`; }
       });
     }
 
@@ -371,15 +464,15 @@
       if (params.analysis_type) {
         btn.disabled = false;
         hint.textContent = '¡Listo para generar!';
-        hint.className = 'text-green-500 text-xs text-center mt-2 font-medium';
+        hint.className = 'generate-hint ready';
       } else {
         btn.disabled = true;
         hint.textContent = 'Selecciona un tipo de análisis';
-        hint.className = 'text-gray-700 text-xs text-center mt-2';
+        hint.className = 'generate-hint';
       }
     }
 
-    // ── Chat (pure Q&A) ───────────────────────────────────────────
+    // ── Chat ──────────────────────────────────────────────────────
     async function sendChat() {
       const input = document.getElementById('chat-input');
       const msg = input.value.trim();
@@ -395,8 +488,7 @@
       addTyping();
       try {
         const res = await fetch(API + '/api/rb/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ message: msg, session_id: sessionId }),
         });
         const data = await res.json();
@@ -412,16 +504,17 @@
     const msgs = () => document.getElementById('chat-messages');
 
     function addUserMessage(text) {
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'display:flex;justify-content:flex-end';
       const div = document.createElement('div');
-      div.className = 'flex justify-end';
-      div.innerHTML = `<div class="msg-user text-white text-sm px-4 py-3 max-w-lg leading-relaxed">${esc(text)}</div>`;
-      msgs().appendChild(div);
+      div.className = 'msg-user';
+      div.innerHTML = `<p>${esc(text)}</p>`;
+      wrap.appendChild(div);
+      msgs().appendChild(wrap);
       scrollChat();
     }
 
     function addBotMessage(text, actionButtons = null) {
-      const div = document.createElement('div');
-      div.className = 'flex gap-3 max-w-2xl';
       const fmt = text
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/_(.*?)_/g, '<em>$1</em>')
@@ -431,25 +524,24 @@
       if (actionButtons && actionButtons.length) {
         const btnItems = actionButtons.map(b => {
           const k = regAction(b.action);
-          return `<button class="chip hover:!bg-red-900/40 hover:!text-red-300 hover:!border-red-700"
-            onclick="_actions['${k}']()">${esc(b.label)}</button>`;
+          return `<button class="action-btn" onclick="_actions['${k}']()">${esc(b.label)}</button>`;
         }).join('');
-        btnsHtml = `<div class="flex flex-wrap gap-2 mt-3">${btnItems}</div>`;
+        btnsHtml = `<div class="action-btns">${btnItems}</div>`;
       }
 
-      div.innerHTML = `
-        <div class="w-8 h-8 bg-red-700 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-          <i class="fas fa-robot text-white text-xs"></i>
-        </div>
-        <div class="msg-bot text-gray-200 text-sm px-4 py-3 leading-relaxed">${fmt}${btnsHtml}</div>`;
-      msgs().appendChild(div);
+      const row = document.createElement('div');
+      row.className = 'msg-row-bot';
+      row.innerHTML = `
+        <div class="bot-avatar"><i class="fas fa-robot" style="font-size:10px"></i></div>
+        <div class="msg-bot"><p>${fmt}</p>${btnsHtml}</div>`;
+      msgs().appendChild(row);
       scrollChat();
     }
 
     function addSystemMsg(html) {
       const div = document.createElement('div');
-      div.className = 'flex justify-center';
-      div.innerHTML = `<div class="text-xs text-gray-500 bg-gray-800/50 px-4 py-1.5 rounded-full">${html}</div>`;
+      div.className = 'sys-msg';
+      div.innerHTML = `<span>${html}</span>`;
       msgs().appendChild(div);
       scrollChat();
       return div;
@@ -458,15 +550,13 @@
     let typingEl = null;
     function addTyping() {
       typingEl = document.createElement('div');
-      typingEl.className = 'flex gap-3 max-w-2xl';
+      typingEl.className = 'msg-row-bot';
       typingEl.innerHTML = `
-        <div class="w-8 h-8 bg-red-700 rounded-full flex items-center justify-center flex-shrink-0">
-          <i class="fas fa-robot text-white text-xs"></i>
-        </div>
-        <div class="msg-bot px-4 py-3 flex gap-1.5 items-center">
-          <div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay:0s"></div>
-          <div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay:.15s"></div>
-          <div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay:.3s"></div>
+        <div class="bot-avatar"><i class="fas fa-robot" style="font-size:10px"></i></div>
+        <div class="msg-bot" style="display:flex;gap:5px;align-items:center;padding:12px">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
         </div>`;
       msgs().appendChild(typingEl);
       scrollChat();
@@ -474,8 +564,8 @@
     function removeTyping() { if (typingEl) { typingEl.remove(); typingEl = null; } }
     function scrollChat() { const m = msgs(); setTimeout(() => m.scrollTop = m.scrollHeight, 60); }
 
-    // ── Count-up animation ────────────────────────────────────────
-    function countUp(el, target, decimals = 0, suffix = '', duration = 1400) {
+    // ── Count-up ──────────────────────────────────────────────────
+    function countUp(el, target, decimals = 0, suffix = '', duration = 1200) {
       let startTime = null;
       const step = (ts) => {
         if (!startTime) startTime = ts;
@@ -496,32 +586,21 @@
         addBotMessage('Primero selecciona un tipo de análisis en el panel izquierdo.');
         return;
       }
-
-      const loadEl = addSystemMsg(
-        '<i class="fas fa-circle-notch fa-spin text-red-400 mr-2"></i>Generando reporte visual con Gemini AI…'
-      );
+      const loadEl = addSystemMsg('<i class="fas fa-circle-notch fa-spin" style="color:#F2071B;margin-right:6px"></i>Generando reporte visual con Gemini AI…');
       document.getElementById('btn-generate').disabled = true;
-
       try {
         const res = await fetch(API + '/api/rb/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ params }),
         });
         const data = await res.json();
         loadEl.remove();
-
         if (!data.ok) throw new Error(data.error || 'Error desconocido');
-
         lastReportData = data;
-
-        // Message 1: report ready + open button
         addBotMessage(
           `✅ ¡Reporte listo! Generé **${data.charts.length} gráficas** con análisis de **${data.meta.sustituciones.toLocaleString('es-MX')}** sustituciones.\n\nHaz clic para visualizarlo:`,
           [{ label: '📊 Ver Reporte Visual', action: openModal }]
         );
-
-        // Message 2: Gemini's recommended next report (with short delay for UX)
         if (data.recommendation) {
           const rec = data.recommendation;
           setTimeout(() => {
@@ -531,7 +610,6 @@
             );
           }, 900);
         }
-
       } catch (e) {
         loadEl.remove();
         addBotMessage('Error generando el reporte: ' + e.message);
@@ -541,10 +619,7 @@
     }
 
     function applyRecommendation(rec) {
-      // Set the new analysis type in params
       params.analysis_type = rec.analysis_type;
-
-      // Update the chip UI to reflect the new selection
       const container = document.getElementById('chips-analysis');
       if (container && options.analysis_types) {
         const found = options.analysis_types.find(a => a.value === rec.analysis_type);
@@ -563,31 +638,22 @@
       generateReport();
     }
 
-    // ── Modal open / close ────────────────────────────────────────
+    // ── Modal ─────────────────────────────────────────────────────
     function openModal() {
       if (!lastReportData) return;
       renderReport(lastReportData);
       document.getElementById('report-modal').classList.add('open');
-      document.body.style.overflow = 'hidden';
     }
-
-    function closeModal() {
-      document.getElementById('report-modal').classList.remove('open');
-      document.body.style.overflow = '';
-    }
-
-    // Close modal on backdrop click
+    function closeModal() { document.getElementById('report-modal').classList.remove('open'); }
     document.getElementById('report-modal').addEventListener('click', function(e) {
       if (e.target === this) closeModal();
     });
 
     // ── renderReport ──────────────────────────────────────────────
     function renderReport(data) {
-      // Destroy old charts
       Object.values(chartInstances).forEach(c => { try { c.destroy(); } catch(_) {} });
       chartInstances = {};
 
-      // Meta line
       const filtros = Object.entries(data.meta.filtros)
         .filter(([k, v]) => v && v !== 'todos' && !Array.isArray(v) && k !== 'ready')
         .map(([k, v]) => `${k}: ${v}`).join(' · ');
@@ -603,129 +669,121 @@
       const critCard = data.summary_cards.find(c => c.label.includes('Crítico'));
       const criticos = critCard ? parseInt(critCard.value) : null;
 
-      // ── 1. HERO METRICS ROW ──────────────────────────────────────
+      // ── HERO METRICS ──────────────────────────────────────────────
       const hero = document.createElement('div');
-      hero.className = 'grid grid-cols-3 gap-4 fade-up';
+      hero.className = 'grid-3 fade-up';
       hero.innerHTML = `
-        <div class="chart-card flex flex-col items-center justify-center py-10">
-          <p class="text-gray-600 text-xs font-bold uppercase tracking-widest mb-3">Pedidos Analizados</p>
-          <p class="text-5xl lg:text-6xl font-black text-white count-hero" data-val="${pedidos}" data-dec="0">0</p>
-          <p class="text-gray-600 text-xs mt-2">pedidos en el periodo</p>
+        <div class="chart-card hero-metric">
+          <div class="hero-label">Pedidos Analizados</div>
+          <div class="hero-value count-hero" data-val="${pedidos}" data-dec="0" style="color:#333">0</div>
+          <div class="hero-sub">pedidos en el periodo</div>
         </div>
-        <div class="chart-card hero-center flex flex-col items-center justify-center py-10 relative overflow-hidden">
-          <div class="absolute inset-0 flex items-center justify-center pulse-ring pointer-events-none">
-            <div class="w-56 h-56 rounded-full border-4 border-red-600/20"></div>
-          </div>
-          <div class="absolute inset-0 flex items-center justify-center pulse-ring pointer-events-none" style="animation-delay:.6s">
-            <div class="w-40 h-40 rounded-full border-2 border-red-500/15"></div>
-          </div>
-          <p class="text-gray-500 text-xs font-bold uppercase tracking-widest mb-3 z-10">Tasa de Sustitución</p>
-          <p class="text-7xl lg:text-8xl font-black text-red-400 z-10 count-hero" data-val="${tasa}" data-dec="1" data-suf="%">0%</p>
-          <p class="text-gray-600 text-xs mt-2 z-10">de pedidos con cambios</p>
+        <div class="chart-card hero-metric" style="background:linear-gradient(135deg,#fff0f0,#fff8f8)">
+          <div class="hero-label">Tasa de Sustitución</div>
+          <div class="hero-value count-hero" data-val="${tasa}" data-dec="1" data-suf="%" style="color:#F2071B">0%</div>
+          <div class="hero-sub">de pedidos con cambios</div>
         </div>
-        <div class="chart-card flex flex-col items-center justify-center py-10 gap-2">
-          <p class="text-gray-600 text-xs font-bold uppercase tracking-widest mb-1">Sustituciones</p>
-          <p class="text-5xl lg:text-6xl font-black text-orange-400 count-hero" data-val="${sust}" data-dec="0">0</p>
-          <p class="text-gray-600 text-xs mb-3">productos cambiados</p>
+        <div class="chart-card hero-metric">
+          <div class="hero-label">Sustituciones</div>
+          <div class="hero-value count-hero" data-val="${sust}" data-dec="0" style="color:#F2490C">0</div>
+          <div class="hero-sub">productos cambiados</div>
           ${criticos !== null ? `
-          <div class="w-full border-t border-gray-800 pt-3 flex flex-col items-center">
-            <p class="text-gray-600 text-xs font-bold uppercase tracking-widest mb-1">Críticos</p>
-            <p class="text-3xl font-black text-red-400 count-hero" data-val="${criticos}" data-dec="0">0</p>
-            <p class="text-gray-600 text-xs">clientes en alerta roja</p>
+          <div style="border-top:1px solid #f0eeec;margin-top:10px;padding-top:10px">
+            <div class="hero-label">Críticos</div>
+            <div style="font-size:28px;font-weight:900;color:#A60842" class="count-hero" data-val="${criticos}" data-dec="0">0</div>
+            <div class="hero-sub">clientes en alerta</div>
           </div>` : ''}
         </div>`;
       main.appendChild(hero);
 
-      // ── 2. CHARTS ────────────────────────────────────────────────
+      // ── CHARTS ────────────────────────────────────────────────────
       const charts   = data.charts;
       const tables   = charts.filter(c => c.type === 'table');
       const visuals  = charts.filter(c => c.type !== 'table');
       const doughnuts = visuals.filter(c => c.type === 'doughnut');
       const bars      = visuals.filter(c => c.type === 'bar');
+      const RISK_COLORS = ['#F2071B', '#F2490C', '#2e9e5a'];
 
       if (doughnuts.length && bars.length) {
         const doughnut = doughnuts[0];
         const firstBar = bars[0];
         const critCount = doughnut.data.datasets[0].data[0] || 0;
         const totalRisk = doughnut.data.datasets[0].data.reduce((a, b) => a + b, 0);
-        const RISK_COLORS = ['#ef4444', '#fb923c', '#60a5fa'];
 
         const twoCol = document.createElement('div');
-        twoCol.className = 'grid gap-4 fade-up';
-        twoCol.style.cssText = 'grid-template-columns: 2fr 3fr; animation-delay:.1s';
+        twoCol.className = 'grid-2c fade-up';
+        twoCol.style.cssText = 'grid-template-columns: 2fr 3fr; animation-delay:.08s';
         twoCol.innerHTML = `
           <div class="chart-card">
-            <h4><i class="fas fa-exclamation-triangle mr-2" style="color:#ef4444"></i>${doughnut.title}</h4>
-            <div class="flex flex-col items-center">
-              <div class="relative" style="width:190px;height:190px">
+            <h4><i class="fas fa-exclamation-triangle" style="color:#F2071B;margin-right:5px"></i>${doughnut.title}</h4>
+            <div style="display:flex;flex-direction:column;align-items:center">
+              <div style="position:relative;width:160px;height:160px">
                 <canvas id="canvas_${doughnut.id}"></canvas>
-                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <p class="text-4xl font-black text-red-400 count-hero" data-val="${critCount}" data-dec="0">0</p>
-                  <p class="text-xs text-gray-500 font-medium">críticos</p>
+                <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
+                  <div style="font-size:32px;font-weight:900;color:#F2071B" class="count-hero" data-val="${critCount}" data-dec="0">0</div>
+                  <div style="font-size:8px;color:#aaa;font-weight:600">críticos</div>
                 </div>
               </div>
-              <div class="w-full mt-5 space-y-3">
+              <div style="width:100%;margin-top:12px;display:flex;flex-direction:column;gap:6px">
                 ${doughnut.data.labels.map((lbl, i) => {
                   const val = doughnut.data.datasets[0].data[i] || 0;
                   const pct = totalRisk > 0 ? Math.round(val / totalRisk * 100) : 0;
-                  return `<div class="flex items-center gap-3">
-                    <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${RISK_COLORS[i]}"></div>
-                    <span class="text-xs text-gray-500 flex-1 truncate">${lbl}</span>
-                    <div class="flex items-center gap-2">
-                      <div class="w-16 h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                        <div class="h-full rounded-full" style="width:${pct}%;background:${RISK_COLORS[i]}"></div>
-                      </div>
-                      <span class="text-xl font-black w-8 text-right" style="color:${RISK_COLORS[i]}">${val}</span>
+                  return `<div style="display:flex;align-items:center;gap:6px">
+                    <div style="width:10px;height:10px;border-radius:50%;background:${RISK_COLORS[i]||'#ccc'};flex-shrink:0"></div>
+                    <span style="font-size:11px;color:#888;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${lbl}</span>
+                    <div style="width:50px;height:5px;background:#f0eeec;border-radius:4px;overflow:hidden">
+                      <div style="width:${pct}%;height:100%;background:${RISK_COLORS[i]||'#ccc'};border-radius:4px"></div>
                     </div>
+                    <span style="font-size:12px;font-weight:900;min-width:20px;text-align:right;color:${RISK_COLORS[i]||'#ccc'}">${val}</span>
                   </div>`;
                 }).join('')}
               </div>
             </div>
           </div>
           <div class="chart-card">
-            <h4><i class="fas fa-chart-bar mr-2" style="color:#ef4444"></i>${firstBar.title}</h4>
-            <div style="height:290px;position:relative"><canvas id="canvas_${firstBar.id}"></canvas></div>
+            <h4><i class="fas fa-chart-bar" style="color:#F2071B;margin-right:5px"></i>${firstBar.title}</h4>
+            <div style="height:250px;position:relative"><canvas id="canvas_${firstBar.id}"></canvas></div>
           </div>`;
         main.appendChild(twoCol);
 
         bars.slice(1).forEach((bar, i) => {
           const card = document.createElement('div');
           card.className = 'chart-card fade-up';
-          card.style.animationDelay = (0.15 + i * 0.08) + 's';
+          card.style.animationDelay = (0.12 + i * 0.07) + 's';
           card.innerHTML = `
-            <h4><i class="fas fa-warehouse mr-2" style="color:#fb923c"></i>${bar.title}</h4>
-            <div style="height:270px;position:relative"><canvas id="canvas_${bar.id}"></canvas></div>`;
+            <h4><i class="fas fa-warehouse" style="color:#F2490C;margin-right:5px"></i>${bar.title}</h4>
+            <div style="height:230px;position:relative"><canvas id="canvas_${bar.id}"></canvas></div>`;
           main.appendChild(card);
         });
 
         if (doughnuts[1]) {
           const d2 = doughnuts[1];
-          const BU_COLORS = ['rgba(167,139,250,.9)', 'rgba(52,211,153,.9)', 'rgba(251,191,36,.9)', 'rgba(236,72,153,.9)'];
+          const BU_COLORS = ['rgba(242,7,27,.85)','rgba(242,73,12,.85)','rgba(242,117,7,.85)','rgba(140,8,94,.85)'];
           const d2total = d2.data.datasets[0].data.reduce((a, b) => a + b, 0);
           const card = document.createElement('div');
-          card.className = 'chart-card fade-up grid gap-8 items-center';
-          card.style.cssText = 'grid-template-columns: 1fr 1fr; animation-delay:.2s';
+          card.className = 'chart-card fade-up grid-2c items-center';
+          card.style.cssText = 'grid-template-columns: 1fr 1fr; animation-delay:.18s';
           card.innerHTML = `
             <div>
-              <h4><i class="fas fa-briefcase mr-2" style="color:#a78bfa"></i>${d2.title}</h4>
-              <div style="height:210px;position:relative"><canvas id="canvas_${d2.id}"></canvas></div>
+              <h4><i class="fas fa-briefcase" style="color:#A60842;margin-right:5px"></i>${d2.title}</h4>
+              <div style="height:180px;position:relative"><canvas id="canvas_${d2.id}"></canvas></div>
             </div>
-            <div class="space-y-4">
+            <div style="display:flex;flex-direction:column;gap:10px">
               ${d2.data.labels.map((lbl, i) => {
                 const val = d2.data.datasets[0].data[i] || 0;
                 const pct = d2total > 0 ? Math.round(val / d2total * 100) : 0;
                 return `<div>
-                  <div class="flex items-center justify-between mb-1">
-                    <div class="flex items-center gap-2">
-                      <div class="w-3 h-3 rounded-sm" style="background:${BU_COLORS[i]}"></div>
-                      <span class="text-sm text-gray-300 font-medium">${lbl}</span>
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+                    <div style="display:flex;align-items:center;gap:5px">
+                      <div style="width:12px;height:12px;border-radius:3px;background:${BU_COLORS[i]||'#ccc'}"></div>
+                      <span style="font-size:12px;color:#444;font-weight:600">${lbl}</span>
                     </div>
-                    <span class="text-2xl font-black text-white">${val.toLocaleString('es-MX')}</span>
+                    <span style="font-size:18px;font-weight:900;color:#333">${val.toLocaleString('es-MX')}</span>
                   </div>
-                  <div class="h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                    <div class="h-full rounded-full" style="width:${pct}%;background:${BU_COLORS[i]}"></div>
+                  <div style="height:6px;background:#f0eeec;border-radius:4px;overflow:hidden">
+                    <div style="width:${pct}%;height:100%;background:${BU_COLORS[i]||'#ccc'};border-radius:4px"></div>
                   </div>
-                  <p class="text-gray-600 text-xs mt-0.5 text-right">${pct}% del total</p>
+                  <div style="font-size:10px;color:#aaa;margin-top:2px;text-align:right">${pct}% del total</div>
                 </div>`;
               }).join('')}
             </div>`;
@@ -735,37 +793,37 @@
         visuals.forEach((ch, i) => {
           const card = document.createElement('div');
           card.className = 'chart-card fade-up';
-          card.style.animationDelay = (i * 0.1) + 's';
+          card.style.animationDelay = (i * 0.08) + 's';
           card.innerHTML = `
             <h4>${ch.title}</h4>
-            <div style="height:270px;position:relative"><canvas id="canvas_${ch.id}"></canvas></div>`;
+            <div style="height:230px;position:relative"><canvas id="canvas_${ch.id}"></canvas></div>`;
           main.appendChild(card);
         });
       }
 
-      // ── 3. TABLES ────────────────────────────────────────────────
+      // ── TABLES ────────────────────────────────────────────────────
       tables.forEach((t, i) => {
         const freqMax = Math.max(...t.rows.map(r => Number(r[2]) || 0), 1);
         const card = document.createElement('div');
         card.className = 'chart-card fade-up';
-        card.style.animationDelay = (0.25 + i * 0.08) + 's';
+        card.style.animationDelay = (0.2 + i * 0.07) + 's';
         card.innerHTML = `
-          <h4><i class="fas fa-exchange-alt mr-2" style="color:#ef4444"></i>${t.title}</h4>
+          <h4><i class="fas fa-exchange-alt" style="color:#F2071B;margin-right:5px"></i>${t.title}</h4>
           <table class="data-table">
             <thead><tr>${t.headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
             <tbody>${t.rows.map((row, ri) => {
               const freq = Number(row[2]) || 0;
               const pct  = Math.round(freq / freqMax * 100);
-              const col  = ri === 0 ? '#ef4444' : ri < 3 ? '#fb923c' : '#6b7280';
+              const col  = ri === 0 ? '#F2071B' : ri < 3 ? '#F2490C' : '#aaa';
               return `<tr>
-                <td><span class="text-gray-300 text-xs">${row[0]}</span></td>
-                <td><span style="color:#fb923c;font-size:.8rem">→</span> <span class="text-gray-300 text-xs">${row[1]}</span></td>
-                <td style="min-width:140px">
-                  <div class="flex items-center gap-2">
-                    <div class="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
-                      <div class="h-full rounded-full" style="width:${pct}%;background:${col}"></div>
+                <td><span style="color:#444;font-size:12px">${row[0]}</span></td>
+                <td><span style="color:#F2490C;font-size:12px">→</span> <span style="color:#444;font-size:12px">${row[1]}</span></td>
+                <td style="min-width:130px">
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <div style="flex:1;height:6px;background:#f0eeec;border-radius:4px;overflow:hidden">
+                      <div style="width:${pct}%;height:100%;background:${col};border-radius:4px"></div>
                     </div>
-                    <span class="font-bold text-sm" style="color:${col};min-width:30px;text-align:right">${freq}</span>
+                    <span style="font-size:12px;font-weight:700;color:${col};min-width:28px;text-align:right">${freq}</span>
                   </div>
                 </td>
               </tr>`;
@@ -774,24 +832,30 @@
         main.appendChild(card);
       });
 
-      // ── 4. GEMINI NARRATIVE ───────────────────────────────────────
+      // ── GEMINI NARRATIVE ──────────────────────────────────────────
       const narCard = document.createElement('div');
       narCard.className = 'chart-card fade-up';
-      narCard.style.animationDelay = '.35s';
+      narCard.style.animationDelay = '.28s';
       narCard.innerHTML = `
-        <h4><i class="fas fa-robot mr-2" style="color:#ef4444"></i>Análisis e Insights de Gemini AI</h4>
+        <h4><i class="fas fa-robot" style="color:#F2071B;margin-right:5px"></i>Análisis e Insights de Gemini AI</h4>
         <div class="report-out">${data.narrative}</div>`;
       main.appendChild(narCard);
 
-      // ── Initialize Chart.js ───────────────────────────────────────
+      // ── Init Chart.js ─────────────────────────────────────────────
+      const CD_MODAL = {
+        plugins: { legend: { labels: { color: '#888', font: { size: 9, family: 'Poppins' } } } },
+        scales: {
+          x: { ticks: { color: '#aaa', font: { size: 9, family: 'Poppins' } }, grid: { color: '#f0eeec' } },
+          y: { ticks: { color: '#aaa', font: { size: 9, family: 'Poppins' } }, grid: { color: '#f0eeec' } },
+        },
+      };
       setTimeout(() => {
         visuals.forEach(ch => {
           const ctx = document.getElementById('canvas_' + ch.id)?.getContext('2d');
           if (!ctx) return;
           const isDoughnut = ch.type === 'doughnut';
           chartInstances['canvas_' + ch.id] = new Chart(ctx, {
-            type: ch.type,
-            data: ch.data,
+            type: ch.type, data: ch.data,
             options: {
               responsive: true, maintainAspectRatio: false,
               indexAxis: ch.options?.indexAxis || 'x',
@@ -800,16 +864,13 @@
                 legend: { display: false },
                 tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label || ''}: ${ctx.formattedValue}` } },
               },
-              scales: isDoughnut ? undefined : {
-                x: { ticks: { color: '#6b7280', font: { size: 10 } }, grid: { color: '#1f2937' } },
-                y: { ticks: { color: '#6b7280', font: { size: 10 } }, grid: { color: '#1f2937' } },
-              },
+              scales: isDoughnut ? undefined : CD_MODAL.scales,
             },
           });
         });
       }, 80);
 
-      // ── Count-up animations ───────────────────────────────────────
+      // ── Count-up ──────────────────────────────────────────────────
       setTimeout(() => {
         main.querySelectorAll('.count-hero').forEach(el => {
           countUp(el, parseFloat(el.dataset.val || 0), parseInt(el.dataset.dec || 0), el.dataset.suf || '');

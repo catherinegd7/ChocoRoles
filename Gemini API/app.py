@@ -10,7 +10,10 @@ from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 from google import genai
 from google.genai import types
-from data_processor import get_dashboard_data, load_data
+from data_processor import (
+    get_dashboard_data, load_data,
+    get_mongo_client_profile, get_mongo_clientes_riesgo, list_mongo_collections,
+)
 
 app = Flask(__name__)
 CORS(app)
@@ -65,10 +68,17 @@ _chat_sessions: dict = {}
 
 def _build_system_prompt(data: dict) -> str:
     data_str = json.dumps(data, indent=2, ensure_ascii=False, default=str)
+    mongo_note = ""
+    if data.get("mongo_clientes_riesgo"):
+        mongo_note = (
+            f"\n\nAdemás tienes acceso a {data.get('mongo_total_clientes', 0)} perfiles de clientes "
+            "pre-calculados en MongoDB (campo 'mongo_clientes_riesgo'). "
+            "Estos perfiles incluyen score_riesgo, estado_satisfaccion y total_compras calculados por el equipo de Data Science."
+        )
     return f"""Eres 'ArcaBot', el asistente de IA integrado en el dashboard de supervisores de almacén de Arca Continental.
 
-Tienes acceso a los siguientes datos reales de la operación:
-{data_str}
+Tienes acceso a los siguientes datos reales de la operación (fuente: CSV backend + MongoDB):
+{data_str}{mongo_note}
 
 Reglas estrictas:
 1. Responde siempre en español, con un tono empático, profesional y directo.
@@ -420,6 +430,94 @@ reason: una sola oración explicando por qué ese análisis aporta valor despué
 
     except Exception as e:
         return jsonify({"ok": False, "error": str(e), "trace": traceback.format_exc()}), 500
+
+
+@app.route("/api/mongo/status")
+def mongo_status():
+    """Return MongoDB connection status and available collections."""
+    try:
+        colecciones = list_mongo_collections()
+        clientes = get_mongo_clientes_riesgo()
+        return jsonify({
+            "ok": True,
+            "colecciones": colecciones,
+            "clientes_riesgo_count": len(clientes),
+        })
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route("/api/analizar-cliente/<customer_id>")
+def analizar_cliente(customer_id):
+    """Generate an AI recommendation for a specific client using MongoDB + CSV data."""
+    try:
+        # Try MongoDB first for pre-computed risk profile
+        perfil = get_mongo_client_profile(customer_id)
+
+        if perfil:
+            prompt = f"""Eres un asistente de ventas experto de Arca Continental.
+Tenemos un cliente con el siguiente perfil de riesgo calculado por nuestro equipo de Data Science:
+
+- ID del Cliente: {perfil.get('customer_id', customer_id)}
+- Total de Compras: {perfil.get('total_compras', 'N/D')}
+- Productos que le faltaron (Sustituidos): {perfil.get('productos_sustituidos', 'N/D')}
+- Score de Riesgo (0 a 100): {perfil.get('score_riesgo', 'N/D')}
+- Estado de Satisfacción: {perfil.get('estado_satisfaccion', 'N/D')}
+
+Basado en estos datos, redacta un mensaje corto (máximo 3 líneas) con una recomendación directa
+para el vendedor que va a visitar a este cliente hoy.
+¿Qué le podemos ofrecer para que no abandone la marca?"""
+        else:
+            # Fallback: compute from CSV data
+            orders, _, resultados = load_data()
+            try:
+                cid = float(customer_id)
+                c_orders = orders[orders["customer_id"] == cid]
+                c_sust = resultados[resultados["id_pedido"].isin(c_orders["id_pedido"])]
+            except ValueError:
+                c_orders = orders[orders["customer_id"].astype(str) == customer_id]
+                c_sust = resultados[resultados["id_pedido"].isin(c_orders["id_pedido"])]
+
+            if c_orders.empty:
+                return jsonify({"ok": False, "error": "Cliente no encontrado"}), 404
+
+            n_pedidos = len(c_orders)
+            n_sust = len(c_sust)
+            tasa = round(n_sust / max(n_pedidos, 1) * 100, 1)
+            valor = round(c_orders["Total"].sum(), 2) if "Total" in c_orders.columns else "N/D"
+            top_sust = c_sust["nombre_sku_solicitado"].value_counts().head(3).to_dict() if n_sust else {}
+
+            prompt = f"""Eres un asistente de ventas experto de Arca Continental.
+Tenemos un cliente derivado del análisis de nuestros datos CSV:
+
+- ID del Cliente: {customer_id}
+- Total de Pedidos: {n_pedidos}
+- Total de Sustituciones Recibidas: {n_sust}
+- Tasa de Sustitución: {tasa}%
+- Valor Total de Compras: {valor}
+- Productos más sustituidos: {top_sust}
+
+Basado en estos datos, redacta un mensaje corto (máximo 3 líneas) con una recomendación directa
+para el vendedor que va a visitar a este cliente hoy."""
+
+        config = types.GenerateContentConfig(
+            system_instruction="Analista de ventas de Arca Continental. Español. Tono empático y directo.",
+            temperature=0.4,
+        )
+        response = gemini_generate(contents=prompt, config=config)
+        return jsonify({"ok": True, "customer_id": customer_id, "recomendacion": response.text, "fuente": "mongodb" if perfil else "csv"})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route("/api/mongo/clientes-riesgo")
+def mongo_clientes_riesgo():
+    """Return all MongoDB pre-computed client risk profiles."""
+    try:
+        clientes = get_mongo_clientes_riesgo()
+        return jsonify({"ok": True, "clientes": clientes, "total": len(clientes)})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 
 if __name__ == "__main__":
