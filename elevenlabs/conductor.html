@@ -338,10 +338,10 @@
       <div class="app-header">
         <div class="header-top">
           <div class="logo">sw<span>a</span>pp</div>
-          <div class="header-role">🚚 Conductor</div>
+          <div class="header-role">Conductor</div>
         </div>
         <div class="header-meta">
-          <div class="route-pill">📍 Ruta CEDIS Norte</div>
+          <div class="route-pill">Ruta CEDIS Norte</div>
           <div class="voice-status">
             <div class="voice-dot"></div>
             Voz activa
@@ -481,7 +481,7 @@ function renderAlerts(alerts) {
   if (crits.length) {
     const lbl = document.createElement('div');
     lbl.className = 'section-lbl';
-    lbl.textContent = `⚠️ Clientes en riesgo crítico (${crits.length})`;
+    lbl.textContent = `Clientes en riesgo crítico (${crits.length})`;
     list.appendChild(lbl);
     crits.forEach(a => list.appendChild(makeCard(a)));
   }
@@ -492,7 +492,7 @@ function renderAlerts(alerts) {
     const lbl = document.createElement('div');
     lbl.className = 'section-lbl';
     lbl.style.marginTop = '4px';
-    lbl.textContent = `🔔 Avisos de ruta (${aviss.length})`;
+    lbl.textContent = `Avisos de ruta (${aviss.length})`;
     list.appendChild(lbl);
     aviss.forEach(a => list.appendChild(makeCard(a)));
   }
@@ -503,7 +503,7 @@ function renderAlerts(alerts) {
     const lbl = document.createElement('div');
     lbl.className = 'section-lbl';
     lbl.style.marginTop = '4px';
-    lbl.textContent = `✅ Entrega normal (${oks.length})`;
+    lbl.textContent = `Entrega normal (${oks.length})`;
     list.appendChild(lbl);
     oks.forEach(a => list.appendChild(makeCard(a)));
   }
@@ -520,7 +520,7 @@ function makeCard(a) {
   // Sustitución row
   const sustHTML = a.producto_original ? `
     <div class="sust-row">
-      <span>📦</span>
+      <span></span>
       <span style="flex:1;">
         <span style="text-decoration:${a.producto_sustituto ? 'line-through' : 'none'};color:#aaa;">${a.producto_original}</span>
         ${a.producto_sustituto ? `<span class="sust-arrow">→</span><strong style="color:#F2071B;">${a.producto_sustituto}</strong>` : ''}
@@ -531,7 +531,7 @@ function makeCard(a) {
   // Botones según tipo
   const apartadoBtn = (a.tipo === 'critico') ? `
     <button class="btn-apartar" id="btn-ap-${a.id}" onclick="apartar('${a.id}')">
-      📦 Apartar
+      Apartar
     </button>` : '';
 
   const waBtn = (a.tipo !== 'ok') ? `
@@ -548,7 +548,7 @@ function makeCard(a) {
         <div class="alert-cedis">${a.cedis}</div>
       </div>
       <div class="alert-badge badge-${a.tipo}">
-        ${ a.tipo === 'critico' ? '🚨 Crítico' : a.tipo === 'aviso' ? '⚠️ Aviso' : '✅ Normal' }
+        ${ a.tipo === 'critico' ? 'Crítico' : a.tipo === 'aviso' ? 'Aviso' : 'Normal' }
       </div>
     </div>
 
@@ -570,7 +570,7 @@ function makeCard(a) {
 
     <div class="action-row">
       <button class="btn-voice" id="btn-v-${a.id}" onclick="playVoice('${a.id}')">
-        🔊 Escuchar
+        Escuchar
       </button>
       ${waBtn}
       ${apartadoBtn}
@@ -591,7 +591,7 @@ async function playVoice(alertId) {
 
   // Intenta audio real de ElevenLabs
   try {
-    if (btn) { btn.textContent = '⏳ Cargando…'; btn.disabled = true; }
+    if (btn) { btn.textContent = 'Cargando…'; btn.disabled = true; }
     const res = await fetch(`${API}/alerts/${alertId}/audio`, { signal: AbortSignal.timeout(5000) });
     if (!res.ok) throw new Error('no audio');
     const blob = await res.blob();
@@ -599,9 +599,9 @@ async function playVoice(alertId) {
     if (currentAudio) { currentAudio.pause(); URL.revokeObjectURL(currentAudio.src); }
     currentAudio = new Audio(url);
     currentAudio.play();
-    if (btn) { btn.className = 'btn-voice playing'; btn.textContent = '▶ Reproduciendo…'; btn.disabled = false; }
+    if (btn) { btn.className = 'btn-voice playing'; btn.textContent = 'Reproduciendo…'; btn.disabled = false; }
     currentAudio.onended = () => {
-      if (btn) { btn.className = 'btn-voice'; btn.textContent = '🔊 Escuchar alerta'; }
+      if (btn) { btn.className = 'btn-voice'; btn.textContent = 'Escuchar alerta'; }
     };
   } catch {
     // Sin conexión a ElevenLabs → simula con voz del navegador
@@ -636,13 +636,13 @@ function simulateTTS(alert, btn) {
     const esVoice = voices.find(v => v.lang.startsWith('es'));
     if (esVoice) utt.voice = esVoice;
     utt.onend = () => {
-      if (btn) { btn.className = 'btn-voice'; btn.textContent = '🔊 Escuchar alerta'; btn.disabled = false; }
+      if (btn) { btn.className = 'btn-voice'; btn.textContent = 'Escuchar alerta'; btn.disabled = false; }
     };
-    if (btn) { btn.className = 'btn-voice playing'; btn.textContent = '▶ Reproduciendo…'; btn.disabled = false; }
+    if (btn) { btn.className = 'btn-voice playing'; btn.textContent = 'Reproduciendo…'; btn.disabled = false; }
     window.speechSynthesis.speak(utt);
   } else {
-    showToast('🔊 Sin soporte de voz en este navegador');
-    if (btn) { btn.className = 'btn-voice'; btn.textContent = '🔊 Escuchar alerta'; btn.disabled = false; }
+    showToast('Sin soporte de voz en este navegador');
+    if (btn) { btn.className = 'btn-voice'; btn.textContent = 'Escuchar alerta'; btn.disabled = false; }
   }
 }
 
@@ -663,7 +663,7 @@ async function enviarWA(alertId) {
   if (!btn || btn.dataset.sent) return;
 
   btn.className = 'btn-wa sending';
-  btn.textContent = '⏳ Enviando…';
+  btn.textContent = 'Enviando…';
   btn.disabled = true;
 
   try {
@@ -678,12 +678,12 @@ async function enviarWA(alertId) {
     btn.style.background = '#128C7E';
     btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.999 2C6.477 2 2 6.477 2 12c0 1.822.487 3.53 1.338 5L2 22l5.13-1.31A9.96 9.96 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/></svg> ✅ Enviado`;
     btn.disabled = false;
-    showToast('📲 Nota de voz enviada por WhatsApp');
+    showToast('Nota de voz enviada por WhatsApp');
   } catch (err) {
     btn.className = 'btn-wa';
     btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.999 2C6.477 2 2 6.477 2 12c0 1.822.487 3.53 1.338 5L2 22l5.13-1.31A9.96 9.96 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/></svg> WhatsApp`;
     btn.disabled = false;
-    showToast('⚠️ Error enviando. Revisar servidor.');
+    showToast('Error enviando. Revisar servidor.');
     console.error('WA error:', err);
   }
 }
@@ -693,8 +693,8 @@ function apartar(alertId) {
   const btn = document.getElementById('btn-ap-' + alertId);
   if (apartados.has(alertId)) return;
   apartados.add(alertId);
-  if (btn) { btn.className = 'btn-apartar done'; btn.textContent = '✅ Producto apartado'; }
-  showToast('📦 Producto apartado para cliente crítico');
+  if (btn) { btn.className = 'btn-apartar done'; btn.textContent = 'Producto apartado'; }
+  showToast('Producto apartado para cliente crítico');
   // Simula notificación de voz corta
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel();

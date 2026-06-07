@@ -151,7 +151,7 @@ def build_voice_script(alert: dict) -> str:
 
     if alert["tipo"] == "critico":
         detalle = (
-            f"Ha tenido {sust} sustituciones con una tasa de afectación del {tasa:.0f} por ciento. "
+            f"Ha tenido {sust} sustituciones. "
             if sust > 0 else
             "Su nivel de riesgo es crítico. "
         )
@@ -160,7 +160,6 @@ def build_voice_script(alert: dict) -> str:
             f"{detalle}"
             f"Por favor, preséntate con amabilidad y menciona que el cliente recibirá "
             f"{puntos} puntos de compensación en su próximo pedido. "
-            f"Tu trato en este momento puede marcar la diferencia para retener a este cliente."
         )
     elif alert["tipo"] == "aviso":
         return (
@@ -173,3 +172,10 @@ def build_voice_script(alert: dict) -> str:
             f"Parada {parada}. "
             "Cliente satisfecho, entrega normal sin cambios. Buen servicio."
         )
+
+def build_apartar_script(alert: dict) -> str:
+    parada = alert["parada"]
+    puntos = alert["puntos_compensacion"]
+    return (
+        f"Producto apartado para la parada {parada}. "
+    )

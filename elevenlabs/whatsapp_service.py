@@ -16,7 +16,7 @@ ELEVENLABS_API_KEY  = os.getenv("ELEVENLABS_API_KEY")
 ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "9Godp7dNohUvXk6qp0gS")
 ELEVENLABS_MODEL_ID = os.getenv("ELEVENLABS_MODEL_ID", "eleven_multilingual_v2")
 
-WA_BASE = "https://graph.facebook.com/v19.0"
+WA_BASE = "https://graph.facebook.com/v25.0"
 
 
 # ── PASO 1: Generar audio con ElevenLabs ─────────────────────────────────────
