@@ -3,7 +3,7 @@ import json
 import os
 import re
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv("key.env")
 import time
 import uuid
 import traceback
@@ -960,4 +960,5 @@ def _get_mongo_db_direct():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=8080)
+
