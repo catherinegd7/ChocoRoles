@@ -689,18 +689,24 @@ async function enviarWA(alertId) {
 }
 
 // ── APARTAR PRODUCTO ──────────────────────────────────────────────────────
-function apartar(alertId) {
+async function apartar(alertId) {
   const btn = document.getElementById('btn-ap-' + alertId);
   if (apartados.has(alertId)) return;
   apartados.add(alertId);
   if (btn) { btn.className = 'btn-apartar done'; btn.textContent = 'Producto apartado'; }
   showToast('Producto apartado para cliente crítico');
-  // Simula notificación de voz corta
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance('Producto apartado.');
-    utt.lang = 'es-MX'; utt.rate = 0.95;
-    window.speechSynthesis.speak(utt);
+
+  try {
+    const res = await fetch(`${API}/alerts/${alertId}/apartar-audio`);
+    if (!res.ok) throw new Error('no audio');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    if (currentAudio) { currentAudio.pause(); URL.revokeObjectURL(currentAudio.src); }
+    currentAudio = new Audio(url);
+    currentAudio.play();
+    currentAudio.onended = () => { currentAudio = null; };
+  } catch (e) {
+    console.error('Error generando audio de apartar:', e);
   }
 }
 

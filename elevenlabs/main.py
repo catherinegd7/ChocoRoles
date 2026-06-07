@@ -75,6 +75,27 @@ async def get_alert_audio(alert_id: str):
         headers={"Content-Disposition": f"inline; filename=alerta_{alert_id}.mp3"},
     )
 
+@app.get("/alerts/{alert_id}/apartar-audio")
+async def get_apartar_audio(alert_id: str):
+    alert = get_alert_by_id(alert_id)
+    if not alert:
+        raise HTTPException(status_code=404, detail="Alerta no encontrada")
+
+    from mock_data import build_apartar_script
+    script = build_apartar_script(alert)
+
+    try:
+        audio_bytes = await text_to_speech(script)
+    except ValueError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Error en ElevenLabs: {str(e)}")
+
+    return Response(
+        content=audio_bytes,
+        media_type="audio/mpeg",
+        headers={"Content-Disposition": f"inline; filename=apartar_{alert_id}.mp3"},
+    )
 
 @app.post("/alerts/{alert_id}/whatsapp")
 async def send_alert_whatsapp(alert_id: str, numero: str | None = None):
