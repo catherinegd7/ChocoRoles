@@ -236,6 +236,140 @@
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(0,0,0,.12); border-radius: 99px; }
+<<<<<<< HEAD
+=======
+
+    /* ── REPORTES GENERALES ── */
+    .rpt-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:10px; }
+    .rpt-main-title { font-size:15px; font-weight:800; color:#333; }
+    .rpt-subtitle   { font-size:11px; color:#aaa; margin-top:2px; }
+    .rpt-tab-bar { display:flex; gap:4px; background:#f0eeec; padding:4px; border-radius:9px; }
+    .rpt-tab {
+      padding:7px 18px; border-radius:6px; font-size:12px; font-weight:600;
+      color:#888; background:transparent; border:none; cursor:pointer; transition:all .15s;
+    }
+    .rpt-tab.active { background:#F2071B; color:#fff; }
+    .rpt-loader { display:flex; align-items:center; gap:8px; color:#bbb; font-size:12px; padding:20px 0; }
+    .rpt-kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px; }
+    .rpt-kpi-card {
+      background:#fff; border-radius:10px; border:1px solid #eee;
+      padding:14px 16px; display:flex; flex-direction:column; gap:3px;
+    }
+    .rpt-kpi-val  { font-size:26px; font-weight:800; line-height:1.1; }
+    .rpt-kpi-lbl  { font-size:10px; color:#999; text-transform:uppercase; letter-spacing:.4px; }
+    .rpt-kpi-sub  { font-size:11px; font-weight:600; margin-top:2px; }
+    .rpt-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+    .rpt-card { background:#fff; border-radius:10px; border:1px solid #eee; overflow:hidden; }
+    .rpt-card-header {
+      padding:10px 14px; border-bottom:1px solid #f0eeec;
+      font-size:11px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:.4px;
+      display:flex; align-items:center; gap:6px;
+    }
+    .rpt-card-body { padding:0; }
+    .rpt-table { width:100%; border-collapse:collapse; font-size:12px; }
+    .rpt-table th { background:#fafaf8; color:#999; font-size:10px; font-weight:700; text-transform:uppercase; padding:7px 12px; text-align:left; border-bottom:1px solid #f0eeec; }
+    .rpt-table td { padding:7px 12px; border-bottom:1px solid #f7f7f5; color:#444; }
+    .rpt-table tr:last-child td { border-bottom:none; }
+    .rpt-bar-wrap { background:#f0eeec; border-radius:20px; height:5px; min-width:60px; overflow:hidden; }
+    .rpt-bar { height:100%; border-radius:20px; }
+    .rpt-badge { display:inline-block; padding:2px 8px; border-radius:20px; font-size:10px; font-weight:700; }
+    .rpt-risk-row { display:flex; gap:10px; margin-top:8px; }
+    .rpt-risk-box {
+      flex:1; border-radius:8px; padding:12px; text-align:center; border:1px solid transparent;
+    }
+    .rpt-risk-box .rv { font-size:28px; font-weight:900; line-height:1; }
+    .rpt-risk-box .rl { font-size:10px; font-weight:600; text-transform:uppercase; margin-top:4px; }
+
+    /* ── PREDICCIONES ── */
+    .pred-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .pred-card {
+      background: linear-gradient(145deg, #1a0830, #120620);
+      border: 1px solid rgba(242,7,27,.25); border-radius: 12px;
+      overflow: hidden; display: flex; flex-direction: column;
+    }
+    .pred-header {
+      padding: 14px 16px 12px; display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+    .pred-icon {
+      width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 15px;
+    }
+    .pred-info { flex: 1; min-width: 0; }
+    .pred-title { font-size: 13px; font-weight: 700; color: #f0e0ff; margin-bottom: 2px; }
+    .pred-desc  { font-size: 10px; color: #9a7ab8; line-height: 1.4; }
+    .pred-body  { padding: 12px 16px 14px; display: flex; flex-direction: column; gap: 10px; }
+    .pred-btn {
+      align-self: flex-start;
+      padding: 8px 18px; border-radius: 7px; border: none; cursor: pointer;
+      font-size: 12px; font-weight: 700; font-family: Poppins, sans-serif;
+      background: linear-gradient(to right, #F2071B, #F2490C);
+      color: #fff; display: flex; align-items: center; gap: 7px;
+      transition: opacity .15s; white-space: nowrap;
+    }
+    .pred-btn:hover:not(:disabled) { opacity: .85; }
+    .pred-btn:disabled { opacity: .5; cursor: default; }
+    .pred-output {
+      display: none; background: rgba(255,255,255,.04); border-radius: 8px;
+      padding: 12px 14px; border: 1px solid rgba(255,255,255,.07);
+      max-height: 340px; overflow-y: auto;
+      font-size: 13px; color: #d0b8e8; line-height: 1.65;
+    }
+    .pred-output.visible { display: block; }
+    .pred-output h3 { font-size: 14px; font-weight: 700; color: #F2490C; margin: 0 0 8px; }
+    .pred-output h4 { font-size: 13px; font-weight: 600; color: #F27507; margin: 10px 0 5px; }
+    .pred-output p  { margin: 4px 0; color: #c0a8d8; }
+    .pred-output p.rec { background: rgba(242,7,27,.12); border-left: 3px solid #F2071B; padding: 6px 10px; border-radius: 0 6px 6px 0; color: #fca5a5; margin-top: 8px; }
+    .pred-output ul { margin: 4px 0 6px 1.2rem; }
+    .pred-output li { color: #c0a8d8; margin: 3px 0; }
+    .pred-output table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 12px; }
+    .pred-output th { background: rgba(255,255,255,.08); color: #9a7ab8; padding: 5px 8px; text-align: left; font-weight: 600; }
+    .pred-output td { padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,.05); color: #c8a8e0; }
+    .pred-output .accion-cliente { background: rgba(255,255,255,.03); border-radius: 8px; padding: 10px 12px; margin: 6px 0; border: 1px solid rgba(255,255,255,.06); }
+    .pred-output .accion-header  { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; color: #e0c8f8; }
+    .pred-output .accion-diagnostico { font-size: 12px; color: #a08ab8; margin: 2px 0 4px; }
+    .pred-output .accion-rec  { font-size: 13px; color: #fca5a5; background: rgba(242,7,27,.08); border-radius: 5px; padding: 5px 9px; margin-top: 4px; }
+    .pred-output .badge-riesgo { padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .pred-output .badge-riesgo.critico { background: rgba(242,7,27,.25); color: #fca5a5; }
+    .pred-output .badge-riesgo.alto    { background: rgba(242,73,12,.25); color: #fdba74; }
+    .pred-loading { display: flex; align-items: center; gap: 8px; color: #9a7ab8; font-size: 13px; padding: 4px 0; }
+
+    /* ── IMPACTO ECONÓMICO — full width ── */
+    .pred-card-full {
+      background: linear-gradient(145deg, #1a0830, #120620);
+      border: 1px solid rgba(242,7,27,.3); border-radius: 12px;
+      margin-top: 12px; overflow: hidden;
+    }
+    .pred-card-full .pred-output { max-height: none; }
+    .pred-output .kpi-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0 12px; }
+    .pred-output .kpi-pill {
+      flex: 1; min-width: 120px; background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.1); border-radius: 8px;
+      padding: 10px 12px; text-align: center;
+    }
+    .pred-output .kpi-pill .kp-val { font-size: 20px; font-weight: 800; color: #f0e0ff; line-height: 1.1; }
+    .pred-output .kpi-pill .kp-lbl { font-size: 10px; color: #7a5a9a; text-transform: uppercase; letter-spacing: .4px; margin-top: 3px; }
+    .pred-output .kpi-pill .kp-risk { font-size: 10px; font-weight: 700; margin-top: 4px; padding: 2px 7px; border-radius: 20px; display: inline-block; }
+    .kp-risk.alto    { background: rgba(242,7,27,.2);  color: #fca5a5; }
+    .kp-risk.medio   { background: rgba(242,117,7,.2); color: #fdba74; }
+    .kp-risk.bajo    { background: rgba(46,158,90,.2); color: #6ee7b7; }
+    .pred-output .plan-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      background: rgba(255,255,255,.03); border-radius: 8px;
+      padding: 10px 12px; margin: 5px 0; border: 1px solid rgba(255,255,255,.05);
+    }
+    .pred-output .plan-item .prio-badge {
+      flex-shrink: 0; font-size: 10px; font-weight: 800;
+      padding: 3px 8px; border-radius: 20px; margin-top: 1px; letter-spacing: .3px;
+    }
+    .prio-badge.alta  { background: rgba(242,7,27,.25);  color: #fca5a5; }
+    .prio-badge.media { background: rgba(242,117,7,.25); color: #fdba74; }
+    .prio-badge.baja  { background: rgba(46,158,90,.2);  color: #6ee7b7; }
+    .pred-output .plan-item .plan-text { flex: 1; font-size: 12px; color: #c0a8d8; }
+    .pred-output .plan-item .plan-roi  { font-size: 12px; font-weight: 700; color: #F27507; white-space: nowrap; margin-left: 6px; }
+    .pred-output .roi-bar-wrap { background: rgba(255,255,255,.06); border-radius: 20px; height: 7px; margin-top: 4px; overflow: hidden; }
+    .pred-output .roi-bar { height: 100%; border-radius: 20px; background: linear-gradient(to right, #F2071B, #F27507); }
+>>>>>>> cdcb84d36e133b17b04d16a324430c9c8e0154e5
   </style>
 </head>
 <body>
@@ -247,9 +381,15 @@
   <header class="app-header">
     <div class="logo">sw<span>a</span>pp</div>
     <nav class="header-nav">
+<<<<<<< HEAD
       <a href="/" class="nav-tab active">Dashboard CEDI</a>
       <a href="/report-builder" class="nav-tab">Reportes IA</a>
       <a href="#" class="nav-tab">Análisis</a>
+=======
+      <a href="#" class="nav-tab active" id="nav-dashboard" onclick="showDashboard(this);return false;">Dashboard</a>
+      <a href="/report-builder" class="nav-tab">Reportes</a>
+      <a href="#" class="nav-tab" id="nav-analisis" onclick="showAnalisis(this);return false;">Predicciones</a>
+>>>>>>> cdcb84d36e133b17b04d16a324430c9c8e0154e5
     </nav>
     <div class="header-right">
       <div class="bell-wrap">
@@ -309,10 +449,14 @@
       <!-- Section nav -->
       <div class="section-nav">
         <button class="section-tab active" onclick="showSection('dashboard', this)">Dashboard</button>
+<<<<<<< HEAD
         <button class="section-tab" onclick="showSection('reportes', this)">Reportes IA</button>
         <button class="section-tab" onclick="showSection('clientes', this)">Clientes Riesgo</button>
         <button class="section-tab" onclick="showSection('sustituciones', this)">Sustituciones</button>
         <button class="section-tab" onclick="showSection('cedis', this)">CEDIS</button>
+=======
+        <button class="section-tab" onclick="showSection('reporte', this)">Reportes Generales</button>
+>>>>>>> cdcb84d36e133b17b04d16a324430c9c8e0154e5
       </div>
 
       <div class="col-content">
@@ -336,7 +480,7 @@
           <div class="grid-2">
             <div class="card">
               <div class="card-header">
-                <span class="card-title"><i class="fas fa-shield-alt" style="color:#F27507;margin-right:6px"></i>Score de Riesgo (Top Clientes)</span>
+                <span class="card-title"><i class="fas fa-shield-alt" style="color:#F27507;margin-right:6px"></i>Distribución de Riesgo de Clientes</span>
               </div>
               <div style="height:200px"><canvas id="chart-risk"></canvas></div>
             </div>
@@ -347,6 +491,7 @@
               <div style="height:200px"><canvas id="chart-bu"></canvas></div>
             </div>
           </div>
+<<<<<<< HEAD
           <div style="font-size:10px;color:#bbb;text-align:right" id="last-update"></div>
         </div>
 
@@ -380,9 +525,127 @@
                 <i class="fas fa-paper-plane"></i>
               </button>
             </div>
+=======
+          <!-- Risk + Sust compacto en el dashboard principal -->
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title"><i class="fas fa-exclamation-triangle" style="color:#F2071B;margin-right:6px"></i>Top 5 Peor Tasa de Sustitución</span>
+                <span style="font-size:10px;color:#bbb">sust. / pedidos totales</span>
+              </div>
+              <div id="risk-list-dash"></div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title"><i class="fas fa-exchange-alt" style="color:#F2490C;margin-right:6px"></i>Top Sustituciones</span>
+              </div>
+              <table>
+                <thead><tr><th>#</th><th>Solicitado</th><th></th><th>Sustituido por</th><th>Freq.</th></tr></thead>
+                <tbody id="dash-sust-table"><tr><td colspan="5" style="text-align:center;color:#bbb;padding:16px">Cargando…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <div style="font-size:10px;color:#bbb;text-align:right" id="last-update"></div>
+        </div>
+
+        <!-- ─── ANÁLISIS IA ─── -->
+        <div id="sec-analisis" class="section-content">
+          <div style="margin-bottom:12px">
+            <div style="font-size:15px;font-weight:800;color:#333;margin-bottom:3px">Predicciones con IA</div>
+            <div style="font-size:11px;color:#aaa">Gemini analiza los datos históricos de sustituciones para predecir riesgos y recomendar acciones concretas.</div>
+          </div>
+          <div class="pred-grid">
+
+            <!-- Quiebre de Stock -->
+            <div class="pred-card">
+              <div class="pred-header">
+                <div class="pred-icon" style="background:rgba(242,7,27,.18);color:#F2071B"><i class="fas fa-boxes"></i></div>
+                <div class="pred-info">
+                  <div class="pred-title">Alerta de Quiebre de Stock</div>
+                  <div class="pred-desc">Predice qué productos se agotarán esta semana según frecuencia histórica de sustituciones.</div>
+                </div>
+              </div>
+              <div class="pred-body">
+                <button class="pred-btn" id="btn-stock" onclick="runPredStock()">
+                  <i class="fas fa-bolt"></i> Ejecutar
+                </button>
+                <div class="pred-output" id="out-stock"></div>
+              </div>
+            </div>
+
+            <!-- Siguiente Mejor Acción -->
+            <div class="pred-card">
+              <div class="pred-header">
+                <div class="pred-icon" style="background:rgba(242,73,12,.18);color:#F2490C"><i class="fas fa-user-shield"></i></div>
+                <div class="pred-info">
+                  <div class="pred-title">Siguiente Mejor Accion</div>
+                  <div class="pred-desc">Acción concreta para el vendedor con cada uno de los 5 clientes en mayor riesgo hoy.</div>
+                </div>
+              </div>
+              <div class="pred-body">
+                <button class="pred-btn" id="btn-accion" onclick="runPredAccion()">
+                  <i class="fas fa-bolt"></i> Ejecutar
+                </button>
+                <div class="pred-output" id="out-accion"></div>
+              </div>
+            </div>
+
+            <!-- Temporada Alta -->
+            <div class="pred-card">
+              <div class="pred-header">
+                <div class="pred-icon" style="background:rgba(242,117,7,.18);color:#F27507"><i class="fas fa-calendar-alt"></i></div>
+                <div class="pred-info">
+                  <div class="pred-title">Prediccion de Temporada</div>
+                  <div class="pred-desc">Picos de demanda esperados este mes por producto y region, con oportunidades de cross-selling.</div>
+                </div>
+              </div>
+              <div class="pred-body">
+                <button class="pred-btn" id="btn-temporada" onclick="runPredTemporada()">
+                  <i class="fas fa-bolt"></i> Ejecutar
+                </button>
+                <div class="pred-output" id="out-temporada"></div>
+              </div>
+            </div>
+
+            <!-- Clientes Acaparadores -->
+            <div class="pred-card">
+              <div class="pred-header">
+                <div class="pred-icon" style="background:rgba(140,8,94,.18);color:#A60842"><i class="fas fa-store"></i></div>
+                <div class="pred-info">
+                  <div class="pred-title">Clientes Acaparadores</div>
+                  <div class="pred-desc">Detecta clientes con pedidos irregulares y de alta varianza que vacian el inventario del camion.</div>
+                </div>
+              </div>
+              <div class="pred-body">
+                <button class="pred-btn" id="btn-acapar" onclick="runPredAcaparadores()">
+                  <i class="fas fa-bolt"></i> Ejecutar
+                </button>
+                <div class="pred-output" id="out-acapar"></div>
+              </div>
+            </div>
+
+>>>>>>> cdcb84d36e133b17b04d16a324430c9c8e0154e5
+          </div>
+
+          <!-- Impacto Económico — full width -->
+          <div class="pred-card-full">
+            <div class="pred-header">
+              <div class="pred-icon" style="background:rgba(242,7,27,.18);color:#F2071B"><i class="fas fa-chart-line"></i></div>
+              <div class="pred-info">
+                <div class="pred-title" style="color:#f0e0ff;font-size:14px">Plan de Accion e Impacto Economico</div>
+                <div class="pred-desc" style="color:#7a5a9a">Analisis financiero completo: perdida proyectada, escenarios de intervencion, ROI por accion y prioridades ejecutivas.</div>
+              </div>
+              <button class="pred-btn" id="btn-economico" onclick="runPredEconomico()" style="flex-shrink:0;margin-left:auto">
+                <i class="fas fa-bolt"></i> Generar Plan
+              </button>
+            </div>
+            <div class="pred-body">
+              <div class="pred-output" id="out-economico"></div>
+            </div>
           </div>
         </div>
 
+<<<<<<< HEAD
         <!-- ─── CLIENTES EN RIESGO ─── -->
         <div id="sec-clientes" class="section-content">
           <div class="card">
@@ -455,7 +718,26 @@
               <span class="card-title"><i class="fas fa-warehouse" style="color:#F2490C;margin-right:6px"></i>CEDIS – Detalle de Sustituciones</span>
             </div>
             <div style="height:420px"><canvas id="chart-cedis-detail"></canvas></div>
+=======
+        <!-- ─── REPORTES GENERALES ─── -->
+        <div id="sec-reporte" class="section-content">
+          <div class="rpt-header">
+            <div>
+              <div class="rpt-main-title">Reportes Generales</div>
+              <div class="rpt-subtitle" id="rpt-periodo">Selecciona un período para cargar el reporte.</div>
+            </div>
+            <div class="rpt-tab-bar">
+              <button class="rpt-tab" onclick="loadReporte('diario',this)">Diario</button>
+              <button class="rpt-tab" onclick="loadReporte('semanal',this)">Semanal</button>
+              <button class="rpt-tab" onclick="loadReporte('mensual',this)">Mensual</button>
+              <button class="rpt-tab" onclick="loadReporte('anual',this)">Anual</button>
+            </div>
+>>>>>>> cdcb84d36e133b17b04d16a324430c9c8e0154e5
           </div>
+          <div id="rpt-loader" class="rpt-loader" style="display:none">
+            <div class="loader"></div> Cargando reporte…
+          </div>
+          <div id="rpt-content"></div>
         </div>
 
       </div><!-- col-content -->
@@ -538,14 +820,20 @@
           backgroundColor: 'rgba(242,73,12,.7)', borderColor: '#F2490C', borderWidth: 1, borderRadius: 4 }],
       }, { ...CD, plugins: { legend: { display: false } } });
 
-      mkChart('chart-risk', 'bar', {
-        labels: dashboardData.clientes_riesgo.slice(0, 10).map((_, i) => 'C' + (i+1)),
-        datasets: [{ label: 'Score de Riesgo', data: dashboardData.clientes_riesgo.slice(0, 10).map(c => c.riesgo_score),
-          backgroundColor: dashboardData.clientes_riesgo.slice(0, 10).map(c =>
-            c.nivel_riesgo === 'Crítico' ? 'rgba(242,7,27,.8)' : c.nivel_riesgo === 'Alto' ? 'rgba(242,73,12,.8)' : 'rgba(46,158,90,.8)'
-          ), borderRadius: 4 }],
-      }, { ...CD, plugins: { legend: { display: false } },
-        scales: { ...CD.scales, y: { ...CD.scales.y, max: 100, ticks: { ...CD.scales.y.ticks, callback: v => v + '%' } } } });
+      const dist = dashboardData.riesgo_distribucion || { critico: 0, alto: 0, medio: 0, sin_riesgo: 0 };
+      mkChart('chart-risk', 'doughnut', {
+        labels: [
+          `Crítico — ${dist.critico}`,
+          `Alto — ${dist.alto}`,
+          `Medio — ${dist.medio}`,
+          `Sin riesgo — ${dist.sin_riesgo}`
+        ],
+        datasets: [{
+          data: [dist.critico, dist.alto, dist.medio, dist.sin_riesgo],
+          backgroundColor: ['rgba(242,7,27,.85)','rgba(242,73,12,.85)','rgba(242,117,7,.75)','rgba(46,158,90,.7)'],
+          borderColor: '#f7f7f5', borderWidth: 2
+        }],
+      }, { plugins: { legend: { labels: { color: '#777', font: { size: 11, family: 'Poppins' }, boxWidth: 12 } } } });
 
       const bu = dashboardData.por_business_unit;
       mkChart('chart-bu', 'doughnut', {
@@ -573,6 +861,7 @@
       chartsCreated[id] = new Chart(ctx, { type, data, options: { responsive: true, maintainAspectRatio: false, ...options } });
     }
 
+<<<<<<< HEAD
     // ─── RISK LIST ───────────────────────────────────────────────────
     function buildRiskList() {
       const container = document.getElementById('risk-list');
@@ -582,19 +871,43 @@
         const col = COLOR[c.nivel_riesgo] || '#999';
         const pct = c.riesgo_score;
         const fillCol = pct >= 70 ? '#F2071B' : pct >= 40 ? '#F2490C' : '#2e9e5a';
+=======
+    // ─── TOP 5 WORST SUBSTITUTION RATE (dashboard) ──────────────────
+    function buildRiskListDash() {
+      const container = document.getElementById('risk-list-dash');
+      const top5 = [...dashboardData.clientes_riesgo]
+        .sort((a, b) => b.tasa_sustitucion - a.tasa_sustitucion)
+        .slice(0, 5);
+      const maxTasa = Math.max(...top5.map(c => c.tasa_sustitucion), 1);
+      container.innerHTML = top5.map(c => {
+        const col = c.tasa_sustitucion >= 50 ? '#F2071B' : c.tasa_sustitucion >= 25 ? '#F2490C' : '#F27507';
+        const pillCls = c.tasa_sustitucion >= 50 ? 'pill-critico' : c.tasa_sustitucion >= 25 ? 'pill-alto' : 'pill-medio';
+        const barW = Math.round(c.tasa_sustitucion / maxTasa * 100);
+>>>>>>> cdcb84d36e133b17b04d16a324430c9c8e0154e5
         return `<div class="risk-row">
           <div class="risk-avatar" style="background:${col}">${c.customer_id.toString().slice(-2)}</div>
           <div class="risk-info">
             <div class="risk-name">Cliente ${c.customer_id}</div>
+<<<<<<< HEAD
             <div class="risk-sub">${c.sustituciones} sustituciones · ${c.tasa_sustitucion}%</div>
             <div style="display:flex;align-items:center;gap:7px;margin-top:4px">
               <div class="bar-track" style="width:80px"><div class="bar-fill" style="width:${pct}%;background:${fillCol}"></div></div>
               <span style="font-size:11px;font-weight:700;color:${fillCol}">${pct}%</span>
+=======
+            <div class="risk-sub">${c.sustituciones} sust. / ${c.total_pedidos} pedidos</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:3px">
+              <div class="bar-track" style="width:70px"><div class="bar-fill" style="width:${barW}%;background:${col}"></div></div>
+              <span style="font-size:11px;font-weight:700;color:${col}">${c.tasa_sustitucion}%</span>
+>>>>>>> cdcb84d36e133b17b04d16a324430c9c8e0154e5
             </div>
           </div>
-          <span class="pill ${PILL[c.nivel_riesgo]||''}">${c.nivel_riesgo}</span>
+          <span class="pill ${pillCls}">${c.tasa_sustitucion}% tasa</span>
         </div>`;
+<<<<<<< HEAD
       }).join('');
+=======
+      }).join('') || '<p style="color:#bbb;font-size:12px;padding:12px">Sin datos.</p>';
+>>>>>>> cdcb84d36e133b17b04d16a324430c9c8e0154e5
     }
 
     // ─── SUSTITUCIONES TABLE ─────────────────────────────────────────
@@ -651,6 +964,7 @@
       }).join('');
     }
 
+<<<<<<< HEAD
     function buildSustSubstitutos() {
       const data = dashboardData.productos_sustitutos;
       if (!data || !data.length) return;
@@ -706,6 +1020,196 @@
       input.value = '';
       addBubble(msg, 'user');
       const typing = addBubble('…', 'ai');
+=======
+    // ─── REPORTES GENERALES ─────────────────────────────────────────
+    async function loadReporte(tipo, el) {
+      document.querySelectorAll('.rpt-tab').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      document.getElementById('rpt-loader').style.display = 'flex';
+      document.getElementById('rpt-content').innerHTML = '';
+      try {
+        const res = await fetch(API + '/api/reportes/' + tipo);
+        const d   = await res.json();
+        if (!d.ok) throw new Error(d.error);
+        document.getElementById('rpt-periodo').textContent = 'Período: ' + d.periodo;
+        document.getElementById('rpt-content').innerHTML = renderReporte(d);
+      } catch (e) {
+        document.getElementById('rpt-content').innerHTML =
+          `<p style="color:#F2071B;font-size:12px;padding:12px 0">Error cargando reporte: ${e.message}</p>`;
+      } finally {
+        document.getElementById('rpt-loader').style.display = 'none';
+      }
+    }
+
+    function renderReporte(d) {
+      const tipos = { diario:'Diario', semanal:'Semanal', mensual:'Mensual', anual:'Anual' };
+      const tasa = d.kpis.tasa;
+      const tasaColor = tasa >= 15 ? '#F2071B' : tasa >= 8 ? '#F2490C' : '#2e9e5a';
+      const maxSust = Math.max(...d.top_sustituciones.map(s => s.frecuencia), 1);
+      const maxCedis = Math.max(...d.cedis_criticos.map(c => c.sustituciones), 1);
+      const maxProd  = Math.max(...d.productos_vulnerables.map(p => p.veces), 1);
+      const maxSubs  = Math.max(...d.top_sustitutos.map(s => s.veces), 1);
+
+      const kpiColor = ['#F2071B','#F2490C','#A60842','#F27507'];
+
+      return `
+      <div class="rpt-kpi-row">
+        <div class="rpt-kpi-card">
+          <div class="rpt-kpi-val" style="color:${kpiColor[0]}">${d.kpis.pedidos.toLocaleString('es-MX')}</div>
+          <div class="rpt-kpi-lbl">Pedidos</div>
+          <div class="rpt-kpi-sub" style="color:${kpiColor[0]}">Órdenes procesadas</div>
+        </div>
+        <div class="rpt-kpi-card">
+          <div class="rpt-kpi-val" style="color:${kpiColor[1]}">${d.kpis.sustituciones.toLocaleString('es-MX')}</div>
+          <div class="rpt-kpi-lbl">Sustituciones</div>
+          <div class="rpt-kpi-sub" style="color:${kpiColor[1]}">Productos no entregados</div>
+        </div>
+        <div class="rpt-kpi-card">
+          <div class="rpt-kpi-val" style="color:${tasaColor}">${d.kpis.tasa}%</div>
+          <div class="rpt-kpi-lbl">Tasa de Sustitución</div>
+          <div class="rpt-kpi-sub" style="color:${tasaColor}">${tasa >= 15 ? 'Nivel crítico' : tasa >= 8 ? 'Nivel alto' : 'Nivel normal'}</div>
+        </div>
+        <div class="rpt-kpi-card">
+          <div class="rpt-kpi-val" style="color:${kpiColor[2]}">${d.kpis.criticos}</div>
+          <div class="rpt-kpi-lbl">Clientes Críticos</div>
+          <div class="rpt-kpi-sub" style="color:${kpiColor[2]}">Riesgo de abandono</div>
+        </div>
+      </div>
+
+      <div class="rpt-grid2">
+        <div class="rpt-card">
+          <div class="rpt-card-header"><i class="fas fa-exchange-alt" style="color:#F2071B"></i> Top Sustituciones</div>
+          <div class="rpt-card-body">
+            <table class="rpt-table">
+              <thead><tr><th>#</th><th>Solicitado</th><th>Sustituido por</th><th>Freq.</th><th></th></tr></thead>
+              <tbody>${d.top_sustituciones.map((s,i) => {
+                const col = i===0?'#F2071B':i<3?'#F2490C':'#aaa';
+                const pct = Math.round(s.frecuencia/maxSust*100);
+                return `<tr>
+                  <td style="color:#bbb;font-weight:700">${i+1}</td>
+                  <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.solicitado}</td>
+                  <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#F2490C">${s.sustituto}</td>
+                  <td style="font-weight:700;color:${col}">${s.frecuencia}x</td>
+                  <td><div class="rpt-bar-wrap"><div class="rpt-bar" style="width:${pct}%;background:${col}"></div></div></td>
+                </tr>`;
+              }).join('')}</tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="rpt-card">
+          <div class="rpt-card-header"><i class="fas fa-warehouse" style="color:#F2490C"></i> CEDIS con Más Sustituciones</div>
+          <div class="rpt-card-body">
+            <table class="rpt-table">
+              <thead><tr><th>#</th><th>CEDIS</th><th>Sustituciones</th><th></th></tr></thead>
+              <tbody>${d.cedis_criticos.slice(0,8).map((c,i) => {
+                const col = i===0?'#F2071B':i<3?'#F2490C':'#aaa';
+                const pct = Math.round(c.sustituciones/maxCedis*100);
+                return `<tr>
+                  <td style="color:#bbb;font-weight:700">${i+1}</td>
+                  <td style="font-weight:600">CEDIS ${c.cedis}</td>
+                  <td style="font-weight:700;color:${col}">${c.sustituciones.toLocaleString('es-MX')}</td>
+                  <td><div class="rpt-bar-wrap"><div class="rpt-bar" style="width:${pct}%;background:${col}"></div></div></td>
+                </tr>`;
+              }).join('')}</tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="rpt-grid2">
+        <div class="rpt-card">
+          <div class="rpt-card-header"><i class="fas fa-box-open" style="color:#F27507"></i> Productos más Vulnerables</div>
+          <div class="rpt-card-body">
+            <table class="rpt-table">
+              <thead><tr><th>#</th><th>Producto</th><th>Veces</th><th>%</th><th></th></tr></thead>
+              <tbody>${d.productos_vulnerables.slice(0,8).map((p,i) => {
+                const col = i===0?'#F2071B':i<3?'#F2490C':'#aaa';
+                const pct = Math.round(p.veces/maxProd*100);
+                return `<tr>
+                  <td style="color:#bbb;font-weight:700">${i+1}</td>
+                  <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.producto}</td>
+                  <td style="font-weight:700;color:${col}">${p.veces.toLocaleString('es-MX')}</td>
+                  <td style="color:#aaa">${p.pct}%</td>
+                  <td><div class="rpt-bar-wrap"><div class="rpt-bar" style="width:${pct}%;background:${col}"></div></div></td>
+                </tr>`;
+              }).join('')}</tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="rpt-card">
+          <div class="rpt-card-header"><i class="fas fa-check-circle" style="color:#2e9e5a"></i> Productos Sustitutos más Usados</div>
+          <div class="rpt-card-body">
+            <table class="rpt-table">
+              <thead><tr><th>#</th><th>Sustituto</th><th>Veces usado</th><th></th></tr></thead>
+              <tbody>${d.top_sustitutos.map((s,i) => {
+                const col = i===0?'#2e9e5a':'#aaa';
+                const pct = Math.round(s.veces/maxSubs*100);
+                return `<tr>
+                  <td style="color:#bbb;font-weight:700">${i+1}</td>
+                  <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.producto}</td>
+                  <td style="font-weight:700;color:${col}">${s.veces.toLocaleString('es-MX')}</td>
+                  <td><div class="rpt-bar-wrap"><div class="rpt-bar" style="width:${pct}%;background:${col}"></div></div></td>
+                </tr>`;
+              }).join('')}</tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="rpt-card" style="margin-bottom:12px">
+        <div class="rpt-card-header"><i class="fas fa-users" style="color:#A60842"></i> Distribución de Riesgo de Clientes</div>
+        <div class="rpt-card-body" style="padding:14px 16px">
+          <div class="rpt-risk-row">
+            <div class="rpt-risk-box" style="background:#fff0f0;border-color:#fecaca">
+              <div class="rv" style="color:#F2071B">${d.riesgo_clientes.critico}</div>
+              <div class="rl" style="color:#F2071B">Crítico</div>
+            </div>
+            <div class="rpt-risk-box" style="background:#fff4ee;border-color:#fed7aa">
+              <div class="rv" style="color:#F2490C">${d.riesgo_clientes.alto}</div>
+              <div class="rl" style="color:#F2490C">Alto</div>
+            </div>
+            <div class="rpt-risk-box" style="background:#f0faf4;border-color:#a7f3d0">
+              <div class="rv" style="color:#2e9e5a">${d.riesgo_clientes.medio}</div>
+              <div class="rl" style="color:#2e9e5a">Medio</div>
+            </div>
+            <div class="rpt-risk-box" style="flex:2;background:#fafaf8;border-color:#eee;text-align:left;padding:14px 16px">
+              <div style="font-size:11px;color:#888;margin-bottom:8px;font-weight:700;text-transform:uppercase">Contexto</div>
+              <div style="font-size:12px;color:#555">
+                ${d.riesgo_clientes.critico > 0
+                  ? `<strong style="color:#F2071B">${d.riesgo_clientes.critico} clientes críticos</strong> requieren atención inmediata.`
+                  : 'Sin clientes en nivel crítico en este período.'}
+                Tasa global de sustitución: <strong style="color:${tasaColor}">${d.kpis.tasa}%</strong>.
+                ${d.tipo === 'anual' ? `Total de pedidos analizados: <strong>${d.kpis.pedidos.toLocaleString('es-MX')}</strong>.` : ''}
+              </div>
+            </div>
+          </div>
+          ${d.business_units && d.business_units.length ? `
+          <div style="margin-top:14px">
+            <div style="font-size:10px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Por Unidad de Negocio</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              ${d.business_units.map((b,i) => {
+                const bCol = ['#F2071B','#F2490C','#F27507','#A60842'][i%4];
+                return `<div style="background:#fafaf8;border:1px solid #eee;border-radius:7px;padding:8px 12px;font-size:12px">
+                  <span style="font-weight:700;color:${bCol}">${b.sustituciones.toLocaleString('es-MX')}</span>
+                  <span style="color:#aaa;margin-left:5px">${b.bu}</span>
+                </div>`;
+              }).join('')}
+            </div>
+          </div>` : ''}
+        </div>
+      </div>`;
+    }
+
+    // ─── PREDICCIONES IA ────────────────────────────────────────────
+    async function _runPrediccion(endpointPath, btnId, outId) {
+      const btn = document.getElementById(btnId);
+      const out = document.getElementById(outId);
+      btn.disabled = true;
+      out.classList.add('visible');
+      out.innerHTML = '<div class="pred-loading"><div class="loader"></div> Analizando datos con Gemini AI…</div>';
+>>>>>>> cdcb84d36e133b17b04d16a324430c9c8e0154e5
       try {
         const res = await fetch(API + '/api/rb/chat', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -717,6 +1221,14 @@
         typing.querySelector('.bubble-text').textContent = 'Error al conectar con el servidor.';
       }
     }
+<<<<<<< HEAD
+=======
+    function runPredStock()        { _runPrediccion('/api/predicciones/stock',            'btn-stock',    'out-stock'); }
+    function runPredAccion()       { _runPrediccion('/api/predicciones/siguiente-accion', 'btn-accion',   'out-accion'); }
+    function runPredTemporada()    { _runPrediccion('/api/predicciones/temporada',        'btn-temporada','out-temporada'); }
+    function runPredAcaparadores() { _runPrediccion('/api/predicciones/acaparadores',     'btn-acapar',   'out-acapar'); }
+    function runPredEconomico()    { _runPrediccion('/api/predicciones/impacto-economico','btn-economico','out-economico'); }
+>>>>>>> cdcb84d36e133b17b04d16a324430c9c8e0154e5
 
     async function generateReport(type) {
       const typeName = { diario: 'Diario', semanal: 'Semanal', mensual: 'Mensual', anual: 'Anual' }[type] || type;

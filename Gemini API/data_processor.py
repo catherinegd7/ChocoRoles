@@ -234,6 +234,32 @@ def get_customer_risk(orders, resultados, top_n=20):
     return csv_records
 
 
+def get_risk_distribution(orders, resultados):
+    """Count ALL customers by risk level for donut chart."""
+    merged = resultados.merge(orders[["id_pedido", "customer_id"]], on="id_pedido", how="left")
+    subs_per = merged.groupby("customer_id").size().reset_index(name="sustituciones")
+    orders_per = orders.groupby("customer_id").size().reset_index(name="total_pedidos")
+    risk = subs_per.merge(orders_per, on="customer_id", how="outer").fillna(0)
+    risk["tasa_sustitucion"] = (risk["sustituciones"] / risk["total_pedidos"].clip(lower=1) * 100).round(1)
+    risk["riesgo_score"] = (
+        risk["tasa_sustitucion"] * 0.55 + (risk["sustituciones"].clip(0, 6) / 6 * 45)
+    ).clip(0, 100).round(1)
+    risk["nivel_riesgo"] = risk["riesgo_score"].apply(
+        lambda x: "Crítico" if x >= 70 else ("Alto" if x >= 40 else "Medio")
+    )
+    total_clientes = int(orders["customer_id"].nunique())
+    clientes_con_sust = len(risk)
+    sin_riesgo = max(0, total_clientes - clientes_con_sust)
+    dist = risk["nivel_riesgo"].value_counts().to_dict()
+    return {
+        "total": total_clientes,
+        "critico": int(dist.get("Crítico", 0)),
+        "alto": int(dist.get("Alto", 0)),
+        "medio": int(dist.get("Medio", 0)),
+        "sin_riesgo": int(sin_riesgo),
+    }
+
+
 def get_substitutions_by_businessunit(orders, resultados):
     merged = resultados.merge(
         orders[["id_pedido", "business_unit"]], on="id_pedido", how="left"
@@ -258,6 +284,7 @@ def get_dashboard_data():
         "productos_sustitutos": get_most_used_substitutes(resultados),
         "cedis_criticos": get_cedis_stats(orders, resultados),
         "clientes_riesgo": get_customer_risk(orders, resultados),
+        "riesgo_distribucion": get_risk_distribution(orders, resultados),
         "por_business_unit": get_substitutions_by_businessunit(orders, resultados),
     }
 
