@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import re
@@ -11,7 +12,7 @@ from flask_cors import CORS
 from google import genai
 from google.genai import types
 from data_processor import (
-    get_dashboard_data, load_data,
+    get_dashboard_data, load_data, get_customer_risk,
     get_mongo_client_profile, get_mongo_clientes_riesgo, list_mongo_collections,
 )
 
@@ -518,6 +519,266 @@ def mongo_clientes_riesgo():
         return jsonify({"ok": True, "clientes": clientes, "total": len(clientes)})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
+
+
+# ─── PREDICCIONES IA ──────────────────────────────────────────────────────────
+
+@app.route("/api/predicciones/stock", methods=["POST"])
+def prediccion_stock():
+    """Predict stock-break risk for most-substituted products."""
+    try:
+        orders, _, resultados = load_data()
+        total_pedidos = len(orders)
+        total_sust = len(resultados)
+
+        # Top 10 productos más sustituidos con su probabilidad
+        top_prods = resultados["nombre_sku_solicitado"].value_counts().head(10)
+        productos_info = []
+        for prod, freq in top_prods.items():
+            prob_pct = round(freq / max(total_pedidos, 1) * 100, 2)
+            # Best substitute found for this product
+            sust_row = (
+                resultados[resultados["nombre_sku_solicitado"] == prod]
+                ["nombre_sku_solicitado_cambio"].value_counts()
+            )
+            sustituto = sust_row.index[0] if len(sust_row) else "Sin sustituto claro"
+            productos_info.append({
+                "producto": prod[:50],
+                "veces_sustituido": int(freq),
+                "probabilidad_fallo_pct": prob_pct,
+                "mejor_sustituto": sustituto[:50],
+            })
+
+        # Try MongoDB productos_vulnerables for enrichment
+        try:
+            db = _get_mongo_db_direct()
+            if db is not None:
+                vuln = list(db["productos_vulnerables"].find({}, {"_id": 0}))
+                vuln_map = {v.get("nombre_sku_solicitado", ""): v for v in vuln}
+                for p in productos_info:
+                    mongo_data = vuln_map.get(p["producto"])
+                    if mongo_data:
+                        p["probabilidad_fallo_pct"] = mongo_data.get("probabilidad_sustitucion_%", p["probabilidad_fallo_pct"])
+        except Exception:
+            pass
+
+
+        mes_actual = datetime.datetime.now().strftime("%B %Y")
+        cedis_top = (
+            resultados.merge(orders[["id_pedido", "cedis"]], on="id_pedido", how="left")
+            .groupby("cedis").size().sort_values(ascending=False).head(3)
+        )
+        cedis_criticos = [f"CEDIS {c}" for c in cedis_top.index]
+
+        prompt = f"""Analista de suministro Arca Continental. HTML sin DOCTYPE. Sin emojis ni iconos de ningún tipo.
+
+DATOS: {mes_actual} | {total_pedidos:,} pedidos | {total_sust:,} sustituciones | CEDIS criticos: {', '.join(cedis_criticos)}
+TOP 10 PRODUCTOS: {json.dumps(productos_info, ensure_ascii=False)}
+
+Genera exactamente este HTML sin emojis y sin texto extra fuera del HTML:
+<h3>Quiebre de Stock — {mes_actual}</h3>
+<h4>Riesgo esta semana</h4>
+<table><thead><tr><th>Producto</th><th>% Fallo</th><th>Sustituto</th><th>Accion</th></tr></thead>
+<tbody>[5 filas con datos reales, accion en 5 palabras max]</tbody></table>
+<h4>Inventario</h4>
+<ul>[3 bullets: verbo + objeto + cantidad/plazo, sin explicaciones]</ul>
+<p class="rec"><strong>HOY:</strong> [Una accion urgente, max 15 palabras]</p>"""
+
+        response = gemini_generate(
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction="Analista de cadena de suministro de Arca Continental. Español, profesional y directo. Jamas uses emojis, iconos unicode ni simbolos especiales.",
+                temperature=0.3,
+            ),
+        )
+        return jsonify({"ok": True, "prediccion": response.text, "datos_usados": len(productos_info)})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route("/api/predicciones/siguiente-accion", methods=["POST"])
+def prediccion_siguiente_accion():
+    """Next best action for the top at-risk clients."""
+    try:
+
+        orders, _, resultados = load_data()
+        clientes = get_customer_risk(orders, resultados, top_n=5)
+
+        clientes_str = json.dumps(clientes, ensure_ascii=False, indent=2, default=str)
+
+        prompt = f"""Asesor comercial Arca Continental. HTML sin DOCTYPE. Sin emojis. Sin texto fuera del HTML.
+
+CLIENTES EN RIESGO: {clientes_str}
+
+Para cada cliente genera exactamente este bloque, sin emojis ni iconos:
+<div class="accion-cliente">
+  <div class="accion-header"><span class="badge-riesgo [critico|alto]">[Critico|Alto]</span> <strong>Cliente [ID]</strong> — Score [X]% — [X] sustituciones</div>
+  <p class="accion-diagnostico">[Motivo en 10 palabras max: producto fallido, frecuencia]</p>
+  <p class="accion-rec"><strong>HOY:</strong> [Accion concreta: verbo + que + a quien, max 15 palabras]</p>
+</div>
+[Repite para los 5 clientes. Sin h3, sin p inicial, sin texto extra, sin emojis]"""
+
+        response = gemini_generate(
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction="Asesor comercial senior de Arca Continental. Español, accionable, empático. Jamas uses emojis, iconos unicode ni simbolos especiales.",
+                temperature=0.4,
+            ),
+        )
+        return jsonify({"ok": True, "prediccion": response.text, "clientes_analizados": len(clientes)})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route("/api/predicciones/temporada", methods=["POST"])
+def prediccion_temporada():
+    """Seasonal high-demand prediction based on current month + product data."""
+    try:
+
+        orders, _, resultados = load_data()
+
+        now = datetime.datetime.now()
+        mes = now.month
+        nombre_mes = now.strftime("%B")
+
+        top_prods = resultados["nombre_sku_solicitado"].value_counts().head(15)
+        prods_list = [{"producto": p[:50], "sustituciones": int(f)} for p, f in top_prods.items()]
+
+        # Business unit breakdown
+        bu_merged = resultados.merge(orders[["id_pedido", "business_unit"]], on="id_pedido", how="left")
+        bu_counts = bu_merged.groupby("business_unit").size().sort_values(ascending=False).to_dict()
+
+        # CEDIS breakdown
+        cedis_merged = resultados.merge(orders[["id_pedido", "cedis"]], on="id_pedido", how="left")
+        cedis_counts = cedis_merged.groupby("cedis").size().sort_values(ascending=False).head(5).to_dict()
+        cedis_str = {f"CEDIS {k}": int(v) for k, v in cedis_counts.items()}
+
+        contexto_estacional = {
+            12: "diciembre, temporada navideña — alta demanda de bebidas premium, cervezas, sidras",
+            1: "enero, inicio de año — demanda estable, menor actividad post-fiestas",
+            2: "febrero, San Valentín — oportunidad en jugos y bebidas especiales",
+            3: "marzo, inicio primavera — demanda creciente de bebidas refrescantes",
+            4: "abril, Semana Santa — picos en agua, jugos, bebidas sin alcohol",
+            5: "mayo, calor creciente — alta demanda de agua y bebidas frías",
+            6: "junio, inicio de verano — MÁXIMA demanda de bebidas: refrescos, agua, deportivas, sin alcohol",
+            7: "julio, verano pleno — demanda muy alta de bebidas frías y de hidratación",
+            8: "agosto, fin de verano — demanda sostenida de bebidas, regreso a clases",
+            9: "septiembre, Fiestas Patrias México — alta demanda de cervezas y bebidas especiales",
+            10: "octubre — demanda en descenso gradual, oportunidad de reposición de inventario",
+            11: "noviembre, previo temporada navideña — alerta de preparación de inventario",
+        }.get(mes, f"{nombre_mes}, mes estándar")
+
+        prompt = f"""Analista de demanda Arca Continental. HTML sin DOCTYPE. Sin emojis. Solo HTML.
+
+{nombre_mes} — {contexto_estacional}
+PRODUCTOS (mas sustituidos): {json.dumps(prods_list, ensure_ascii=False)}
+CEDIS TOP 5: {json.dumps(cedis_str, ensure_ascii=False)}
+
+Genera exactamente este HTML sin emojis ni iconos:
+<h3>Temporada {nombre_mes}</h3>
+<p><strong>Contexto:</strong> [1 oracion clave sobre riesgo de demanda este mes]</p>
+<h4>Demanda esperada</h4>
+<table><thead><tr><th>Producto</th><th>Riesgo</th><th>+Demanda</th><th>Stock recomendado</th></tr></thead>
+<tbody>[6 filas con datos reales y cifras estimadas]</tbody></table>
+<h4>Alertas CEDIS</h4>
+<ul>[3 bullets: CEDIS + riesgo especifico + accion, max 12 palabras c/u]</ul>
+<h4>Cross-selling</h4>
+<ul>[2 bullets: producto + perfil de cliente + probabilidad aceptacion]</ul>
+<p class="rec"><strong>Esta semana:</strong> [Accion prioritaria, max 15 palabras]</p>"""
+
+        response = gemini_generate(
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction="Analista de demanda de Arca Continental. Español. Predicciones basadas en datos históricos. Jamas uses emojis, iconos unicode ni simbolos especiales.",
+                temperature=0.35,
+            ),
+        )
+        return jsonify({"ok": True, "prediccion": response.text, "mes": nombre_mes})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route("/api/predicciones/impacto-economico", methods=["POST"])
+def prediccion_impacto_economico():
+    """Financial loss projection from at-risk clients."""
+    try:
+
+        orders, _, resultados = load_data()
+        clientes = get_customer_risk(orders, resultados, top_n=50)
+
+        criticos = [c for c in clientes if c["nivel_riesgo"] == "Crítico"]
+        altos    = [c for c in clientes if c["nivel_riesgo"] == "Alto"]
+        medios   = [c for c in clientes if c["nivel_riesgo"] == "Medio"]
+
+        valor_criticos = sum(c.get("valor_total", 0) or 0 for c in criticos)
+        valor_altos    = sum(c.get("valor_total", 0) or 0 for c in altos)
+        valor_medios   = sum(c.get("valor_total", 0) or 0 for c in medios)
+        valor_total    = valor_criticos + valor_altos + valor_medios
+
+        total_pedidos = len(orders)
+        total_sust = len(resultados)
+        tasa_global = round(total_sust / max(total_pedidos, 1) * 100, 1)
+
+        top_critico = max(criticos, key=lambda c: c.get("valor_total", 0) or 0) if criticos else None
+
+        resumen = {
+            "clientes_criticos": len(criticos),
+            "clientes_altos": len(altos),
+            "clientes_medios": len(medios),
+            "valor_en_riesgo_criticos": round(valor_criticos, 2),
+            "valor_en_riesgo_altos": round(valor_altos, 2),
+            "valor_en_riesgo_medios": round(valor_medios, 2),
+            "valor_total_en_riesgo": round(valor_total, 2),
+            "tasa_sustitucion_global": tasa_global,
+            "cliente_mayor_valor_en_riesgo": top_critico,
+        }
+
+        prompt = f"""Director financiero Arca Continental. HTML sin DOCTYPE. Sin emojis. Solo HTML.
+
+DATOS: {json.dumps(resumen, ensure_ascii=False, default=str)}
+
+Genera exactamente este HTML sin emojis ni iconos:
+<h3>Impacto Economico</h3>
+<table><thead><tr><th>KPI</th><th>Valor</th><th>Nivel</th></tr></thead>
+<tbody>
+<tr><td>Clientes Criticos</td><td>[N]</td><td>Alto</td></tr>
+<tr><td>Valor en Riesgo</td><td>$[monto MXN]</td><td>Inmediato</td></tr>
+<tr><td>Tasa Sustitucion</td><td>[%]</td><td>[nivel segun umbral]</td></tr>
+<tr><td>Perdida proyectada/mes</td><td>$[estimado MXN]</td><td>Proyectado</td></tr>
+</tbody></table>
+<h4>Cliente prioritario</h4>
+<p>[ID + valor historico + accion especifica en 1 linea]</p>
+<h4>Proyeccion</h4>
+<table><thead><tr><th>Escenario</th><th>Clientes perdidos</th><th>Perdida/mes</th><th>Anual</th></tr></thead>
+<tbody>[2 filas: sin intervencion vs con plan]</tbody></table>
+<h4>Plan de rescate</h4>
+<ul>[3 bullets: accion + responsable + plazo, max 12 palabras c/u]</ul>
+<p class="rec"><strong>Direccion:</strong> [Una decision ejecutiva, max 15 palabras]</p>"""
+
+        response = gemini_generate(
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction="Director de estrategia financiera de Arca Continental. Español. Tono ejecutivo, cifras concretas en pesos mexicanos. Jamas uses emojis, iconos unicode ni simbolos especiales.",
+                temperature=0.3,
+            ),
+        )
+        return jsonify({"ok": True, "prediccion": response.text, "resumen_datos": resumen})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+def _get_mongo_db_direct():
+    """Direct MongoDB access for prediction endpoints."""
+    try:
+        from pymongo import MongoClient
+        import certifi
+        c = MongoClient(
+            "mongodb+srv://agustovalentin07_db_user:elbichosiu@basededatossi.7woegj5.mongodb.net/?appName=BaseDeDatosSi",
+            tlsCAFile=certifi.where(), serverSelectionTimeoutMS=3000
+        )
+        return c["HackathonArca"]
+    except Exception:
+        return None
 
 
 if __name__ == "__main__":
