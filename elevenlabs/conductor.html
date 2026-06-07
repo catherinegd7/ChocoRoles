@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Rescue — Conductor</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f4f4f0;
+      color: #1a1a1a;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: #e63329;
+      color: white;
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .header-icon { font-size: 24px; }
+    .header-title { font-size: 17px; font-weight: 600; }
+    .header-sub { font-size: 12px; opacity: 0.85; }
+    .header-badge {
+      margin-left: auto;
+      background: rgba(255,255,255,0.25);
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* ── Status bar ── */
+    .status-bar {
+      background: white;
+      border-bottom: 1px solid #e8e8e4;
+      padding: 10px 1.25rem;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+    }
+    .pill {
+      white-space: nowrap;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .pill-green  { background: #e8f5e9; color: #2e7d32; }
+    .pill-teal   { background: #e0f2f1; color: #00695c; }
+    .pill-red    { background: #ffebee; color: #c62828; }
+
+    /* ── Content ── */
+    .content { padding: 1rem 1.25rem; max-width: 480px; margin: 0 auto; }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 1rem 0 8px;
+    }
+
+    /* ── Alert card ── */
+    .card {
+      background: white;
+      border-radius: 14px;
+      border: 1px solid #e8e8e4;
+      padding: 1rem 1.125rem;
+      margin-bottom: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 4px;
+    }
+    .card.critico::before  { background: #e53935; }
+    .card.aviso::before    { background: #fb8c00; }
+    .card.info::before     { background: #00897b; }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .card-title { font-size: 14px; font-weight: 600; color: #1a1a1a; margin-bottom: 3px; }
+    .card-body  { font-size: 13px; color: #555; line-height: 1.5; }
+
+    .badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+      margin-left: 8px;
+      flex-shrink: 0;
+    }
+    .badge-critico { background: #ffebee; color: #c62828; }
+    .badge-aviso   { background: #fff3e0; color: #e65100; }
+    .badge-info    { background: #e0f2f1; color: #00695c; }
+
+    .meta { font-size: 11px; color: #999; margin-top: 6px; }
+
+    /* ── Churn bar ── */
+    .churn-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+    .churn-label { font-size: 11px; color: #888; white-space: nowrap; }
+    .churn-bg { flex: 1; height: 5px; background: #f0f0ec; border-radius: 999px; overflow: hidden; }
+    .churn-fill { height: 100%; border-radius: 999px; transition: width 0.6s ease; }
+    .churn-score { font-size: 11px; font-weight: 600; white-space: nowrap; }
+
+    /* ── Play button ── */
+    .play-btn {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      background: #fafaf8;
+      font-size: 13px;
+      font-weight: 500;
+      color: #1a1a1a;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .play-btn:hover  { background: #f0f0ec; }
+    .play-btn:active { transform: scale(0.98); }
+    .play-btn.loading { opacity: 0.55; cursor: not-allowed; }
+    .play-btn.playing { background: #e0f2f1; border-color: #80cbc4; color: #00695c; }
+
+    /* ── Wave animation ── */
+    .wave { display: none; align-items: center; gap: 2px; height: 18px; }
+    .wave.active { display: flex; }
+    .wave span {
+      display: block;
+      width: 3px;
+      background: #00897b;
+      border-radius: 2px;
+      animation: wv 0.6s ease-in-out infinite;
+    }
+    .wave span:nth-child(1) { height: 5px;  animation-delay: 0s; }
+    .wave span:nth-child(2) { height: 13px; animation-delay: 0.1s; }
+    .wave span:nth-child(3) { height: 18px; animation-delay: 0.2s; }
+    .wave span:nth-child(4) { height: 11px; animation-delay: 0.3s; }
+    .wave span:nth-child(5) { height: 7px;  animation-delay: 0.15s; }
+    @keyframes wv {
+      0%, 100% { transform: scaleY(0.4); }
+      50%       { transform: scaleY(1); }
+    }
+
+    .status-msg {
+      font-size: 11px;
+      text-align: center;
+      margin-top: 5px;
+      min-height: 14px;
+      color: #999;
+    }
+    .status-msg.error   { color: #c62828; }
+    .status-msg.success { color: #2e7d32; }
+
+    /* ── Loading state ── */
+    .loading-state {
+      text-align: center;
+      padding: 2rem;
+      color: #999;
+      font-size: 14px;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 11px;
+      color: #bbb;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <span class="header-icon">🚚</span>
+  <div>
+    <div class="header-title">Order Rescue</div>
+    <div class="header-sub">Panel del conductor</div>
+  </div>
+  <div class="header-badge" id="alertCount">...</div>
+</div>
+
+<div class="status-bar">
+  <span class="pill pill-green">🟢 En línea</span>
+  <span class="pill pill-teal">📍 Ruta 7 · 12 paradas</span>
+  <span class="pill pill-red" id="alertPill">🔔 Cargando...</span>
+</div>
+
+<div class="content">
+  <div class="section-label">Alertas activas</div>
+  <div id="alertsContainer">
+    <div class="loading-state">Cargando alertas...</div>
+  </div>
+</div>
+
+<div class="footer">Order Rescue · Arca Continental · Powered by ElevenLabs</div>
+
+<script>
+  // ── Config ──────────────────────────────────────────────────────────────────
+  // Cambia este URL si tu backend corre en otro puerto
+  const API_BASE = 'http://localhost:8000';
+
+  // ── Estado ──────────────────────────────────────────────────────────────────
+  let currentAudio = null;
+  let currentAlertId = null;
+
+  // ── Cargar alertas al iniciar ────────────────────────────────────────────────
+  async function loadAlerts() {
+    try {
+      const res = await fetch(`${API_BASE}/alerts`);
+      if (!res.ok) throw new Error('Error al cargar alertas');
+      const alerts = await res.json();
+      renderAlerts(alerts);
+    } catch (e) {
+      document.getElementById('alertsContainer').innerHTML =
+        `<div class="loading-state" style="color:#c62828;">
+          ⚠ No se pudo conectar al backend.<br>
+          <small>Asegúrate de que FastAPI esté corriendo en ${API_BASE}</small>
+        </div>`;
+    }
+  }
+
+  // ── Render ──────────────────────────────────────────────────────────────────
+  function renderAlerts(alerts) {
+    const criticos = alerts.filter(a => a.tipo === 'critico').length;
+    document.getElementById('alertCount').textContent = `${criticos} críticas`;
+    document.getElementById('alertPill').textContent = `🔔 ${alerts.length} alertas`;
+
+    const container = document.getElementById('alertsContainer');
+    container.innerHTML = '';
+
+    alerts.forEach(alert => {
+      const churnColor = alert.churn_score >= 70 ? '#e53935'
+                       : alert.churn_score >= 40 ? '#fb8c00' : '#43a047';
+
+      const badgeClass = `badge-${alert.tipo}`;
+      const badgeLabel = alert.tipo === 'critico' ? '🔴 Crítico'
+                       : alert.tipo === 'aviso'   ? '🟠 Aviso' : '🟢 Info';
+
+      const bodyText = alert.producto_original
+        ? alert.producto_sustituto
+          ? `<strong>${alert.producto_original}</strong> → <strong>${alert.producto_sustituto}</strong>`
+          : `<strong>${alert.producto_original}</strong> no disponible hoy`
+        : 'Entrega completa sin cambios';
+
+      const accion = alert.accion_recomendada
+        ? `<div style="margin-top:6px; font-size:12px; color:#555; background:#fafaf8; border-radius:8px; padding:6px 8px;">
+            💡 ${alert.accion_recomendada}
+           </div>`
+        : '';
+
+      container.innerHTML += `
+        <div class="card ${alert.tipo}" id="card_${alert.id}">
+          <div class="card-top">
+            <div>
+              <div class="card-title">Parada ${alert.parada} — ${alert.cliente}</div>
+              <div class="card-body">${bodyText}</div>
+            </div>
+            <span class="badge ${badgeClass}">${badgeLabel}</span>
+          </div>
+
+          <div class="churn-row">
+            <span class="churn-label">Riesgo churn</span>
+            <div class="churn-bg">
+              <div class="churn-fill" style="width:${alert.churn_score}%; background:${churnColor};"></div>
+            </div>
+            <span class="churn-score" style="color:${churnColor};">${alert.churn_score}%</span>
+          </div>
+
+          ${accion}
+
+          <div class="meta">👤 ${alert.cliente} · ${alert.cedis} · ${alert.sustituciones_mes} sustituciones este mes</div>
+
+          <button class="play-btn" id="btn_${alert.id}" onclick="playAlert('${alert.id}')">
+            <div class="wave" id="wave_${alert.id}">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <span id="icon_${alert.id}">🔊</span>
+            <span id="label_${alert.id}">Escuchar alerta de voz</span>
+          </button>
+          <div class="status-msg" id="msg_${alert.id}"></div>
+        </div>
+      `;
+    });
+  }
+
+  // ── Reproducir audio desde el backend ───────────────────────────────────────
+  async function playAlert(alertId) {
+    const btn   = document.getElementById(`btn_${alertId}`);
+    const wave  = document.getElementById(`wave_${alertId}`);
+    const icon  = document.getElementById(`icon_${alertId}`);
+    const label = document.getElementById(`label_${alertId}`);
+    const msg   = document.getElementById(`msg_${alertId}`);
+
+    // Si ya está sonando esta alerta, pausar
+    if (currentAudio && currentAlertId === alertId) {
+      currentAudio.pause();
+      currentAudio = null;
+      resetBtn(alertId);
+      return;
+    }
+
+    // Si hay otro audio sonando, pararlo
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio = null;
+      if (currentAlertId) resetBtn(currentAlertId);
+    }
+
+    // Estado: cargando
+    btn.classList.add('loading');
+    btn.disabled = true;
+    icon.textContent = '⏳';
+    label.textContent = 'Generando audio...';
+    msg.textContent = 'Conectando con ElevenLabs...';
+    msg.className = 'status-msg';
+
+    try {
+      // Pide el audio al backend — el backend llama a ElevenLabs
+      const res = await fetch(`${API_BASE}/alerts/${alertId}/audio`);
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'Error en el servidor');
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+
+      currentAudio = audio;
+      currentAlertId = alertId;
+
+      // Estado: reproduciendo
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      btn.classList.add('playing');
+      wave.classList.add('active');
+      icon.textContent = '⏸';
+      label.textContent = 'Reproduciendo... (toca para pausar)';
+      msg.textContent = '✓ Audio generado con ElevenLabs';
+      msg.className = 'status-msg success';
+
+      audio.play();
+      audio.onended = () => { resetBtn(alertId); currentAudio = null; };
+      audio.onerror = () => {
+        resetBtn(alertId);
+        msg.textContent = '⚠ Error al reproducir';
+        msg.className = 'status-msg error';
+        currentAudio = null;
+      };
+
+    } catch (e) {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      resetBtn(alertId);
+      msg.textContent = '⚠ ' + (e.message || 'Error de conexión');
+      msg.className = 'status-msg error';
+    }
+  }
+
+  function resetBtn(alertId) {
+    const btn   = document.getElementById(`btn_${alertId}`);
+    const wave  = document.getElementById(`wave_${alertId}`);
+    const icon  = document.getElementById(`icon_${alertId}`);
+    const label = document.getElementById(`label_${alertId}`);
+    if (!btn) return;
+    btn.classList.remove('loading', 'playing');
+    btn.disabled = false;
+    wave.classList.remove('active');
+    icon.textContent = '🔊';
+    label.textContent = 'Escuchar alerta de voz';
+    currentAlertId = null;
+  }
+
+  // ── Init ────────────────────────────────────────────────────────────────────
+  loadAlerts();
+</script>
+</body>
+</html>

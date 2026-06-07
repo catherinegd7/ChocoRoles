@@ -1,0 +1,87 @@
+# main.py
+# Servidor principal — corre con: uvicorn main:app --reload --port 8000
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
+from mock_data import get_all_alerts, get_alert_by_id, build_voice_script
+from elevenlabs_service import text_to_speech
+
+app = FastAPI(title="Order Rescue API", version="1.0.0")
+
+# CORS: permite que el archivo conductor.html llame a esta API
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # En producción cambiar por el dominio real
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# ─── Endpoints ────────────────────────────────────────────────────────────────
+
+@app.get("/")
+def root():
+    return {"status": "Order Rescue API corriendo", "version": "1.0.0"}
+
+
+@app.get("/alerts")
+def list_alerts():
+    """
+    Devuelve todas las alertas activas para la ruta del conductor.
+    Cuando el Rol 1 termine MongoDB, este endpoint usará la DB real.
+    """
+    return get_all_alerts()
+
+
+@app.get("/alerts/{alert_id}")
+def get_alert(alert_id: str):
+    """
+    Devuelve una alerta específica por ID.
+    """
+    alert = get_alert_by_id(alert_id)
+    if not alert:
+        raise HTTPException(status_code=404, detail="Alerta no encontrada")
+    return alert
+
+
+@app.get("/alerts/{alert_id}/audio")
+async def get_alert_audio(alert_id: str):
+    """
+    Endpoint principal para ElevenLabs.
+    1. Busca la alerta por ID
+    2. Genera el guión de voz empático
+    3. Llama a ElevenLabs
+    4. Devuelve el MP3 al frontend (el conductor lo escucha en su celular)
+    """
+    alert = get_alert_by_id(alert_id)
+    if not alert:
+        raise HTTPException(status_code=404, detail="Alerta no encontrada")
+
+    script = build_voice_script(alert)
+
+    try:
+        audio_bytes = await text_to_speech(script)
+    except ValueError as e:
+        # API key no configurada
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Error en ElevenLabs: {str(e)}")
+
+    return Response(
+        content=audio_bytes,
+        media_type="audio/mpeg",
+        headers={"Content-Disposition": f"inline; filename=alerta_{alert_id}.mp3"},
+    )
+
+
+@app.get("/alerts/{alert_id}/script")
+def get_alert_script(alert_id: str):
+    """
+    Devuelve el texto del guión sin convertir a audio.
+    Útil para revisar qué dirá la voz antes de gastar créditos.
+    """
+    alert = get_alert_by_id(alert_id)
+    if not alert:
+        raise HTTPException(status_code=404, detail="Alerta no encontrada")
+    return {"alert_id": alert_id, "script": build_voice_script(alert)}
