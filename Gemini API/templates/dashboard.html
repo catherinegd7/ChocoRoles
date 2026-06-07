@@ -40,6 +40,43 @@
       align-items: center; justify-content: center; line-height: 1;
     }
     #bell-badge.show { display: flex; }
+    /* ── NOTIFICATIONS DROPDOWN ── */
+    .notif-dd {
+      display:none; position:absolute; top:calc(100% + 10px); right:0;
+      width:310px; background:#fff; border:1px solid #eee;
+      border-radius:13px; box-shadow:0 10px 40px rgba(0,0,0,.18);
+      z-index:9000; overflow:hidden;
+    }
+    .notif-dd.open { display:block; }
+    .notif-dd-head {
+      padding:12px 14px 10px; border-bottom:1px solid #f2f0ee;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .notif-dd-head-title { font-size:12px; font-weight:800; color:#222; }
+    .notif-dd-count-pill {
+      background:#F2071B; color:#fff; font-size:10px; font-weight:700;
+      border-radius:20px; padding:1px 7px;
+    }
+    .notif-dd-list { max-height:300px; overflow-y:auto; }
+    .notif-dd-item {
+      display:flex; align-items:flex-start; gap:10px;
+      padding:11px 14px; cursor:pointer; border-bottom:1px solid #f8f6f4;
+      transition:background .15s;
+    }
+    .notif-dd-item:last-child { border-bottom:none; }
+    .notif-dd-item:hover { background:#faf8f6; }
+    .notif-dd-ico {
+      width:32px; height:32px; border-radius:8px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center; font-size:12px;
+    }
+    .notif-dd-text { flex:1; min-width:0; }
+    .notif-dd-title { font-size:11px; font-weight:700; color:#222; margin-bottom:2px; }
+    .notif-dd-body { font-size:10px; color:#777; line-height:1.4; }
+    .notif-dd-cta { font-size:10px; font-weight:600; margin-top:3px; }
+    .notif-dd-empty {
+      padding:20px 14px; text-align:center;
+      font-size:12px; color:#bbb;
+    }
     .avatar {
       width: 30px; height: 30px; border-radius: 50%;
       background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.5);
@@ -295,7 +332,7 @@
     }
     .pred-info { flex: 1; min-width: 0; }
     .pred-title { font-size: 13px; font-weight: 700; color: #f0e0ff; margin-bottom: 2px; }
-    .pred-desc  { font-size: 10px; color: #9a7ab8; line-height: 1.4; }
+    .pred-desc  { font-size: 11px; color: #9a7ab8; line-height: 1.4; }
     .pred-body  { padding: 12px 16px 14px; display: flex; flex-direction: column; gap: 10px; }
     .pred-btn {
       align-self: flex-start;
@@ -331,6 +368,102 @@
     .pred-output .badge-riesgo.critico { background: rgba(242,7,27,.25); color: #fca5a5; }
     .pred-output .badge-riesgo.alto    { background: rgba(242,73,12,.25); color: #fdba74; }
     .pred-loading { display: flex; align-items: center; gap: 8px; color: #9a7ab8; font-size: 13px; padding: 4px 0; }
+
+    /* ── ACTION BAR ── */
+    .action-bar { display:none; margin-top:14px; padding-top:12px; border-top:1px solid rgba(255,255,255,.07); }
+    .action-bar.visible { display:block; }
+    .action-bar-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:#7a5a9a; margin-bottom:8px; }
+    .act-btns-row { display:flex; gap:7px; flex-wrap:wrap; }
+    .act-btn {
+      display:flex; align-items:flex-start; gap:8px; flex:1; min-width:145px;
+      background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09);
+      border-radius:9px; padding:9px 11px; cursor:pointer; transition:all .18s; text-align:left;
+    }
+    .act-btn:hover:not(.done) { background:rgba(242,117,7,.1); border-color:rgba(242,117,7,.35); }
+    .act-btn.done { background:rgba(46,158,90,.12); border-color:rgba(46,158,90,.35); cursor:default; }
+    .act-btn-icon { font-size:15px; color:#F27507; flex-shrink:0; margin-top:1px; }
+    .act-btn.done .act-btn-icon { color:#2e9e5a; }
+    .act-btn-body { flex:1; }
+    .act-btn-label { font-size:12px; font-weight:600; color:#e0c8f8; line-height:1.35; }
+    .act-btn.done .act-btn-label { color:#6fcf97; }
+    .act-btn-money { font-size:11px; font-weight:700; margin-top:3px; }
+    .act-btn-money.cost    { color:#F2490C; }
+    .act-btn-money.gain    { color:#2e9e5a; }
+    .act-btn-money.neutral { color:#7a5a9a; }
+
+    /* ── TOAST ── */
+    .action-toast {
+      position:fixed; bottom:22px; right:22px; z-index:9999;
+      background:#1a0d2e; border:1px solid rgba(46,158,90,.45);
+      border-radius:10px; padding:12px 16px;
+      display:flex; align-items:flex-start; gap:10px;
+      box-shadow:0 8px 32px rgba(0,0,0,.45); max-width:320px;
+      transform:translateY(60px); opacity:0; pointer-events:none;
+      transition:transform .28s ease, opacity .28s ease;
+    }
+    .action-toast.show { transform:translateY(0); opacity:1; }
+    .action-toast-icon { font-size:16px; color:#2e9e5a; flex-shrink:0; margin-top:2px; }
+    .action-toast-body { font-size:12px; color:#b0a0c8; line-height:1.5; }
+    .action-toast-body strong { color:#e0d0f8; display:block; margin-bottom:2px; }
+
+    /* ── NOTIFICATION MODAL ── */
+    .notif-overlay {
+      position:fixed; inset:0; z-index:10000;
+      background:rgba(0,0,0,.55); backdrop-filter:blur(3px);
+      display:flex; align-items:center; justify-content:center;
+      opacity:0; pointer-events:none; transition:opacity .22s ease;
+    }
+    .notif-overlay.open { opacity:1; pointer-events:all; }
+    .notif-modal {
+      background:#fff; border-radius:14px; width:100%; max-width:440px;
+      box-shadow:0 20px 60px rgba(0,0,0,.25);
+      transform:translateY(16px) scale(.97); transition:transform .22s ease;
+      overflow:hidden;
+    }
+    .notif-overlay.open .notif-modal { transform:translateY(0) scale(1); }
+    .notif-modal-top {
+      padding:18px 18px 14px;
+      border-bottom:1px solid #f0eeec;
+      display:flex; align-items:flex-start; gap:12px;
+    }
+    .notif-modal-ico {
+      width:38px; height:38px; border-radius:9px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center; font-size:15px;
+    }
+    .notif-modal-titles { flex:1; }
+    .notif-modal-tag { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; margin-bottom:3px; }
+    .notif-modal-title { font-size:15px; font-weight:800; color:#222; line-height:1.3; }
+    .notif-modal-close-btn {
+      background:none; border:none; cursor:pointer; color:#bbb;
+      font-size:16px; line-height:1; padding:2px; flex-shrink:0;
+    }
+    .notif-modal-close-btn:hover { color:#888; }
+    .notif-modal-body { padding:16px 18px; }
+    .notif-modal-detail { font-size:13px; color:#555; line-height:1.6; margin-bottom:14px; }
+    .notif-modal-detail strong { color:#222; }
+    .notif-action-box {
+      border-radius:9px; padding:13px 14px;
+      border-left:3px solid;
+    }
+    .notif-action-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; margin-bottom:5px; }
+    .notif-action-text { font-size:13px; font-weight:700; color:#222; margin-bottom:5px; line-height:1.4; }
+    .notif-action-impact { font-size:11px; font-weight:600; }
+    .notif-modal-footer {
+      padding:13px 18px; border-top:1px solid #f0eeec;
+      display:flex; gap:10px; justify-content:flex-end;
+    }
+    .notif-btn-omit {
+      background:none; border:1px solid #ddd; border-radius:8px;
+      padding:8px 18px; font-size:12px; font-weight:600; color:#888;
+      cursor:pointer; transition:all .15s;
+    }
+    .notif-btn-omit:hover { background:#f5f5f5; color:#555; }
+    .notif-btn-accept {
+      border:none; border-radius:8px;
+      padding:8px 20px; font-size:12px; font-weight:700; color:#fff;
+      cursor:pointer; transition:opacity .15s;
+    }
+    .notif-btn-accept:hover { opacity:.88; }
 
     /* ── IMPACTO ECONÓMICO — full width ── */
     .pred-card-full {
@@ -384,10 +517,17 @@
     </nav>
     <div class="header-right">
       <div class="bell-wrap">
-        <button class="bell-btn" id="bell-btn" onclick="replayNotifications()" title="Ver alertas">
+        <button class="bell-btn" id="bell-btn" onclick="toggleNotifDropdown(event)" title="Ver alertas">
           <i class="fas fa-bell"></i>
         </button>
         <span id="bell-badge"></span>
+        <div class="notif-dd" id="notif-dd">
+          <div class="notif-dd-head">
+            <span class="notif-dd-head-title">Notificaciones</span>
+            <span class="notif-dd-count-pill" id="notif-dd-pill">0</span>
+          </div>
+          <div class="notif-dd-list" id="notif-dd-list"></div>
+        </div>
       </div>
       <div class="avatar">AC</div>
     </div>
@@ -519,6 +659,23 @@
                   <i class="fas fa-bolt"></i> Ejecutar
                 </button>
                 <div class="pred-output" id="out-stock"></div>
+                <div class="action-bar" id="actions-stock">
+                  <div class="action-bar-title"><i class="fas fa-bolt" style="margin-right:4px;color:#F27507"></i>Acciones disponibles</div>
+                  <div class="act-btns-row">
+                    <button class="act-btn" onclick="doAction(this,'Orden de reabastecimiento emitida','Costo comprometido','$45,000 MXN','cost')">
+                      <i class="fas fa-truck act-btn-icon"></i>
+                      <div class="act-btn-body"><div class="act-btn-label">Emitir orden de reabastecimiento urgente</div><div class="act-btn-money cost">Costo: $45,000 MXN</div></div>
+                    </button>
+                    <button class="act-btn" onclick="doAction(this,'Notificación enviada al proveedor','Pedido incrementado +30% en productos críticos','sin costo directo','neutral')">
+                      <i class="fas fa-bell act-btn-icon"></i>
+                      <div class="act-btn-body"><div class="act-btn-label">Notificar proveedor: incrementar pedido +30%</div><div class="act-btn-money neutral">Sin costo directo</div></div>
+                    </button>
+                    <button class="act-btn" onclick="doAction(this,'Precio temporal activado','Ingreso adicional estimado por ajuste de precio','+$18,000 MXN','gain')">
+                      <i class="fas fa-tags act-btn-icon"></i>
+                      <div class="act-btn-body"><div class="act-btn-label">Activar precio temporal +12% en productos críticos</div><div class="act-btn-money gain">Ingreso est.: +$18,000 MXN</div></div>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -536,6 +693,23 @@
                   <i class="fas fa-bolt"></i> Ejecutar
                 </button>
                 <div class="pred-output" id="out-accion"></div>
+                <div class="action-bar" id="actions-accion">
+                  <div class="action-bar-title"><i class="fas fa-bolt" style="margin-right:4px;color:#F27507"></i>Acciones disponibles</div>
+                  <div class="act-btns-row">
+                    <button class="act-btn" onclick="doAction(this,'Cupón enviado a clientes en riesgo','Descuento aplicado sobre próximos pedidos','-$6,800 MXN','cost')">
+                      <i class="fas fa-ticket-alt act-btn-icon"></i>
+                      <div class="act-btn-body"><div class="act-btn-label">Enviar descuento 5% a clientes críticos</div><div class="act-btn-money cost">Costo: −$6,800 MXN est.</div></div>
+                    </button>
+                    <button class="act-btn" onclick="doAction(this,'Asesor comercial asignado','Cuenta dedicada activada para clientes en riesgo alto','$12,000 MXN/mes','cost')">
+                      <i class="fas fa-user-tie act-btn-icon"></i>
+                      <div class="act-btn-body"><div class="act-btn-label">Asignar asesor comercial dedicado</div><div class="act-btn-money cost">Costo: $12,000 MXN/mes</div></div>
+                    </button>
+                    <button class="act-btn" onclick="doAction(this,'Crédito de retención aplicado','Programa de fidelización activado para top 5 clientes','-$9,500 MXN','cost')">
+                      <i class="fas fa-gift act-btn-icon"></i>
+                      <div class="act-btn-body"><div class="act-btn-label">Crédito $500 MXN en próximo pedido por cliente</div><div class="act-btn-money cost">Costo: −$9,500 MXN est.</div></div>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -553,6 +727,23 @@
                   <i class="fas fa-bolt"></i> Ejecutar
                 </button>
                 <div class="pred-output" id="out-temporada"></div>
+                <div class="action-bar" id="actions-temporada">
+                  <div class="action-bar-title"><i class="fas fa-bolt" style="margin-right:4px;color:#F27507"></i>Acciones disponibles</div>
+                  <div class="act-btns-row">
+                    <button class="act-btn" onclick="doAction(this,'Orden de inventario estacional aprobada','Stock incrementado 20% en productos de temporada alta','$95,000 MXN','cost')">
+                      <i class="fas fa-warehouse act-btn-icon"></i>
+                      <div class="act-btn-body"><div class="act-btn-label">Aumentar inventario estacional 20%</div><div class="act-btn-money cost">Inversión: $95,000 MXN</div></div>
+                    </button>
+                    <button class="act-btn" onclick="doAction(this,'Negociación con proveedor alternativo iniciada','Contrato temporal enviado a revisión legal','Ahorro est.: $42,000 MXN','gain')">
+                      <i class="fas fa-handshake act-btn-icon"></i>
+                      <div class="act-btn-body"><div class="act-btn-label">Negociar contrato con proveedor alternativo</div><div class="act-btn-money gain">Ahorro est.: $42,000 MXN</div></div>
+                    </button>
+                    <button class="act-btn" onclick="doAction(this,'Campaña promocional activada','Comunicación enviada a fuerza de ventas','Presupuesto: $28,000 MXN','cost')">
+                      <i class="fas fa-bullhorn act-btn-icon"></i>
+                      <div class="act-btn-body"><div class="act-btn-label">Lanzar campaña de demanda anticipada</div><div class="act-btn-money cost">Presupuesto: $28,000 MXN</div></div>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -570,6 +761,23 @@
                   <i class="fas fa-bolt"></i> Ejecutar
                 </button>
                 <div class="pred-output" id="out-acapar"></div>
+                <div class="action-bar" id="actions-acapar">
+                  <div class="action-bar-title"><i class="fas fa-bolt" style="margin-right:4px;color:#F27507"></i>Acciones disponibles</div>
+                  <div class="act-btns-row">
+                    <button class="act-btn" onclick="doAction(this,'Límite de compra aplicado','Regla activa: máx 2× promedio histórico por cliente','Protege $35,000 MXN','gain')">
+                      <i class="fas fa-ban act-btn-icon"></i>
+                      <div class="act-btn-body"><div class="act-btn-label">Limitar compra a 2× promedio histórico</div><div class="act-btn-money gain">Protege: $35,000 MXN inventario</div></div>
+                    </button>
+                    <button class="act-btn" onclick="doAction(this,'Precio diferenciado activado','Tarifa mayorista +8% aplicada a cuentas irregulares','+$22,000 MXN','gain')">
+                      <i class="fas fa-percentage act-btn-icon"></i>
+                      <div class="act-btn-body"><div class="act-btn-label">Precio mayorista diferenciado +8%</div><div class="act-btn-money gain">Ingreso adicional: +$22,000 MXN</div></div>
+                    </button>
+                    <button class="act-btn" onclick="doAction(this,'Auditoría iniciada','5 cuentas marcadas para revisión en los próximos 3 días','Sin costo','neutral')">
+                      <i class="fas fa-search act-btn-icon"></i>
+                      <div class="act-btn-body"><div class="act-btn-label">Auditar cuentas irregulares detectadas</div><div class="act-btn-money neutral">Sin costo operativo</div></div>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -589,6 +797,23 @@
             </div>
             <div class="pred-body">
               <div class="pred-output" id="out-economico"></div>
+              <div class="action-bar" id="actions-economico">
+                <div class="action-bar-title"><i class="fas fa-bolt" style="margin-right:4px;color:#F27507"></i>Acciones ejecutivas disponibles</div>
+                <div class="act-btns-row">
+                  <button class="act-btn" onclick="doAction(this,'Plan de recuperación Q3 aprobado','Presupuesto asignado y equipo notificado','Recuperable: $280,000 MXN','gain')">
+                    <i class="fas fa-check-double act-btn-icon"></i>
+                    <div class="act-btn-body"><div class="act-btn-label">Aprobar plan de recuperación Q3</div><div class="act-btn-money gain">Potencial de recuperación: $280,000 MXN</div></div>
+                  </button>
+                  <button class="act-btn" onclick="doAction(this,'Presupuesto reasignado','$50,000 MXN redirigidos a estrategia de retención de clientes','ROI estimado 3.2×','gain')">
+                    <i class="fas fa-random act-btn-icon"></i>
+                    <div class="act-btn-body"><div class="act-btn-label">Reasignar $50k del presupuesto a retención</div><div class="act-btn-money gain">ROI estimado: 3.2× en 90 días</div></div>
+                  </button>
+                  <button class="act-btn" onclick="doAction(this,'Reporte ejecutivo generado','PDF enviado a Dirección General y equipo financiero','Sin costo directo','neutral')">
+                    <i class="fas fa-file-alt act-btn-icon"></i>
+                    <div class="act-btn-body"><div class="act-btn-label">Generar reporte ejecutivo para Dirección</div><div class="act-btn-money neutral">Sin costo — entrega inmediata</div></div>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -616,6 +841,43 @@
       </div><!-- col-content -->
     </div><!-- col-main -->
   </div><!-- layout -->
+
+  <!-- Notification detail modal -->
+  <div class="notif-overlay" id="notif-overlay" onclick="closeNotifModal(event)">
+    <div class="notif-modal" onclick="event.stopPropagation()">
+      <div class="notif-modal-top">
+        <div class="notif-modal-ico" id="nm-ico"><i id="nm-ico-i" class="fas fa-bell"></i></div>
+        <div class="notif-modal-titles">
+          <div class="notif-modal-tag" id="nm-tag"></div>
+          <div class="notif-modal-title" id="nm-title"></div>
+        </div>
+        <button class="notif-modal-close-btn" onclick="closeNotifModal()">✕</button>
+      </div>
+      <div class="notif-modal-body">
+        <div class="notif-modal-detail" id="nm-detail"></div>
+        <div class="notif-action-box" id="nm-action-box">
+          <div class="notif-action-label" id="nm-action-label">Acción recomendada</div>
+          <div class="notif-action-text" id="nm-action-text"></div>
+          <div class="notif-action-impact" id="nm-action-impact"></div>
+        </div>
+      </div>
+      <div class="notif-modal-footer">
+        <button class="notif-btn-omit" onclick="resolveNotif(false)">Omitir</button>
+        <button class="notif-btn-accept" id="nm-accept-btn" onclick="resolveNotif(true)">
+          <i class="fas fa-check" style="margin-right:5px"></i>Aceptar acción
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="action-toast" id="action-toast">
+    <i class="fas fa-check-circle action-toast-icon"></i>
+    <div class="action-toast-body">
+      <strong id="toast-title"></strong>
+      <span id="toast-body"></span>
+    </div>
+  </div>
 
   <!-- ═══════ SCRIPTS ═══════ -->
   <script>
@@ -713,7 +975,7 @@
           backgroundColor: 'rgba(242,73,12,.7)', borderColor: '#F2490C', borderWidth: 1, borderRadius: 4 }],
       }, { ...CD, plugins: { legend: { display: false } } });
 
-      const dist = dashboardData.riesgo_distribucion || { critico: 0, alto: 0, medio: 0, sin_riesgo: 0 };
+      const dist = dashboardData.summary?.riesgo_distribucion || { critico: 0, alto: 0, medio: 0, sin_riesgo: 0 };
       mkChart('chart-risk', 'doughnut', {
         labels: [
           `Crítico — ${dist.critico}`,
@@ -971,9 +1233,14 @@
     }
 
     // ─── PREDICCIONES IA ────────────────────────────────────────────
-    async function _runPrediccion(endpointPath, btnId, outId) {
+    async function _runPrediccion(endpointPath, btnId, outId, actionsId) {
       const btn = document.getElementById(btnId);
       const out = document.getElementById(outId);
+      // Reset action bar on re-run
+      if (actionsId) {
+        const ab = document.getElementById(actionsId);
+        if (ab) { ab.classList.remove('visible'); ab.querySelectorAll('.act-btn').forEach(b => b.classList.remove('done')); }
+      }
       btn.disabled = true;
       out.classList.add('visible');
       out.innerHTML = '<div class="pred-loading"><div class="loader"></div> Analizando datos con Gemini AI…</div>';
@@ -982,17 +1249,42 @@
         const data = await res.json();
         if (!data.ok) throw new Error(data.error || 'Error desconocido');
         out.innerHTML = data.prediccion;
+        if (actionsId) {
+          const ab = document.getElementById(actionsId);
+          if (ab) ab.classList.add('visible');
+        }
       } catch (e) {
         out.innerHTML = `<p style="color:#F2071B"><i class="fas fa-exclamation-circle" style="margin-right:5px"></i>Error: ${e.message}</p>`;
       } finally {
         btn.disabled = false;
       }
     }
-    function runPredStock()        { _runPrediccion('/api/predicciones/stock',            'btn-stock',    'out-stock'); }
-    function runPredAccion()       { _runPrediccion('/api/predicciones/siguiente-accion', 'btn-accion',   'out-accion'); }
-    function runPredTemporada()    { _runPrediccion('/api/predicciones/temporada',        'btn-temporada','out-temporada'); }
-    function runPredAcaparadores() { _runPrediccion('/api/predicciones/acaparadores',     'btn-acapar',   'out-acapar'); }
-    function runPredEconomico()    { _runPrediccion('/api/predicciones/impacto-economico','btn-economico','out-economico'); }
+    function runPredStock()        { _runPrediccion('/api/predicciones/stock',            'btn-stock',    'out-stock',    'actions-stock'); }
+    function runPredAccion()       { _runPrediccion('/api/predicciones/siguiente-accion', 'btn-accion',   'out-accion',   'actions-accion'); }
+    function runPredTemporada()    { _runPrediccion('/api/predicciones/temporada',        'btn-temporada','out-temporada','actions-temporada'); }
+    function runPredAcaparadores() { _runPrediccion('/api/predicciones/acaparadores',     'btn-acapar',   'out-acapar',   'actions-acapar'); }
+    function runPredEconomico()    { _runPrediccion('/api/predicciones/impacto-economico','btn-economico','out-economico','actions-economico'); }
+
+    // ─── ACTION BUTTONS ──────────────────────────────────────────────
+    let _toastTimer = null;
+    function doAction(btn, title, detail, amount, amountType) {
+      if (btn.classList.contains('done')) return;
+      btn.classList.add('done');
+      btn.querySelector('.act-btn-icon').className = 'fas fa-check act-btn-icon';
+      btn.querySelector('.act-btn-label').textContent = title;
+      const moneyEl = btn.querySelector('.act-btn-money');
+      if (moneyEl) {
+        moneyEl.className = 'act-btn-money ' + (amountType || 'neutral');
+        moneyEl.textContent = amount;
+      }
+      // Show toast
+      const toast = document.getElementById('action-toast');
+      document.getElementById('toast-title').textContent = title;
+      document.getElementById('toast-body').textContent = detail + (amount ? ' — ' + amount : '');
+      toast.classList.add('show');
+      if (_toastTimer) clearTimeout(_toastTimer);
+      _toastTimer = setTimeout(() => toast.classList.remove('show'), 3800);
+    }
 
     // ─── REPORTES IA ─────────────────────────────────────────────────
     async function generateReport(type) {
@@ -1021,64 +1313,132 @@
     }
 
     // ─── NOTIFICATIONS ────────────────────────────────────────────────
-    const SUGGESTIONS = {
-      Crítico: ['Enviar cupón 15% descuento', 'Llamada inmediata del equipo comercial', 'Asignar entrega prioritaria'],
-      cedis:   ['Revisar inventario urgente', 'Alertar a supervisor de almacén'],
-      tasa:    ['Alertar al equipo de planificación', 'Revisar pronóstico semanal'],
-    };
-    function randomSuggestion(type) {
-      const arr = SUGGESTIONS[type] || SUGGESTIONS.tasa;
-      return arr[Math.floor(Math.random() * arr.length)];
-    }
-    function scheduleNotifications() {
-      if (!dashboardData) return;
+    let _activeModalNotif = null;
+
+    function _buildNotifList() {
+      if (!dashboardData) return [];
       const notifs = [];
-      (dashboardData.clientes_riesgo || []).filter(c => c.nivel_riesgo === 'Crítico').slice(0, 3).forEach(c => {
-        notifs.push({ type: 'critical', icon: 'fa-user-times',
+
+      (dashboardData.clientes_riesgo || []).filter(c => c.nivel_riesgo === 'Crítico').slice(0, 3).forEach((c, i) => {
+        const valor = (c.valor_total || 0).toLocaleString('es-MX', { maximumFractionDigits: 0 });
+        const totalProd = c.total_productos ?? c.total_pedidos;
+        const retCost = Math.max(100, Math.round((c.valor_total || 5000) * 0.05 / 100) * 100);
+        notifs.push({
+          id: 'notif-client-' + i, type: 'critical', icon: 'fa-user-times',
           title: 'Cliente en Riesgo Crítico',
-          body: `ID <strong>${c.customer_id}</strong> — <strong>${c.sustituciones} sustituciones</strong> · Score: <strong style="color:#F2071B">${c.riesgo_score}%</strong>`,
-          action: randomSuggestion('Crítico'), duration: 10000 });
+          body: `ID <strong>${c.customer_id}</strong> — <strong>${c.sustituciones} productos sustituidos</strong> de <strong>${totalProd} pedidos</strong> · Tasa: <strong style="color:#F2071B">${c.tasa_sustitucion}%</strong>`,
+          bodyPlain: `ID ${c.customer_id} — ${c.sustituciones} sust. / ${totalProd} prod. · ${c.tasa_sustitucion}%`,
+          detail: `El cliente <strong>${c.customer_id}</strong> tiene una tasa de sustitución del <strong>${c.tasa_sustitucion}%</strong> — <strong>${c.sustituciones} productos sustituidos</strong> de un total de <strong>${totalProd} productos pedidos</strong>. Valor de cuenta: <strong>$${valor} MXN</strong>. Sin intervención, existe riesgo alto de fuga a la competencia en los próximos 30 días.`,
+          actionLabel: 'Enviar cupón de descuento 5% en próximo pedido',
+          actionImpact: `Costo: −$${retCost.toLocaleString('es-MX')} MXN · Retención de cuenta valorada en $${valor} MXN`,
+          actionImpactType: 'cost', duration: 10000,
+        });
       });
+
       const topCedis = (dashboardData.cedis_criticos || [])[0];
-      if (topCedis) notifs.push({ type: 'warning', icon: 'fa-warehouse',
+      if (topCedis) notifs.push({
+        id: 'notif-cedis', type: 'warning', icon: 'fa-warehouse',
         title: `CEDIS ${topCedis.cedis} — Punto Crítico`,
-        body: `<strong>${topCedis.total_sustituciones} sustituciones</strong> registradas.`,
-        action: randomSuggestion('cedis'), duration: 10000 });
+        body: `<strong>${topCedis.total_sustituciones} sustituciones</strong> registradas en este punto de distribución.`,
+        bodyPlain: `${topCedis.total_sustituciones} sustituciones registradas.`,
+        detail: `El CEDIS <strong>${topCedis.cedis}</strong> acumula <strong>${topCedis.total_sustituciones} sustituciones</strong>, el mayor volumen en la red. Indica desabasto recurrente o problemas de inventario que fuerzan cambios de producto en cada entrega.`,
+        actionLabel: 'Auditoría de inventario urgente + alerta a supervisor de almacén',
+        actionImpact: 'Costo auditoría: $3,500 MXN · Previene pérdida estimada de $60,000 MXN',
+        actionImpactType: 'gain', duration: 10000,
+      });
+
       const tasa = dashboardData.summary?.tasa_sustitucion;
-      if (tasa > 4) notifs.push({ type: 'info', icon: 'fa-chart-line',
+      if (tasa > 4) notifs.push({
+        id: 'notif-tasa', type: 'info', icon: 'fa-chart-line',
         title: 'Tasa de Sustitución Elevada',
-        body: `La tasa global es <strong>${tasa}%</strong>. Supera el umbral recomendado.`,
-        action: randomSuggestion('tasa'), duration: 9000 });
+        body: `La tasa global es <strong>${tasa}%</strong> de productos pedidos. Supera el umbral operativo.`,
+        bodyPlain: `Tasa global: ${tasa}% de productos pedidos.`,
+        detail: `La tasa de sustitución global es de <strong>${tasa}%</strong> sobre el total de productos pedidos — por encima del umbral operativo del 4%. Significa que de cada 100 productos solicitados, <strong>${Math.round(tasa)} llegan como sustituto</strong>. Impacto estimado: reducción del 8–12% en satisfacción de cliente.`,
+        actionLabel: 'Alertar equipo de planificación y revisar pronóstico semanal',
+        actionImpact: 'Sin costo directo · Mejora estimada de NPS +15 puntos en 60 días',
+        actionImpactType: 'neutral', duration: 9000,
+      });
+
+      return notifs;
+    }
+
+    function scheduleNotifications() {
+      const notifs = _buildNotifList();
       pendingNotifications = notifs;
       updateBellBadge(notifs.length);
+      buildNotifDropdown();
       notifs.forEach((n, i) => setTimeout(() => showToast(n), i * 700));
     }
-    function replayNotifications() {
-      if (!pendingNotifications.length) return;
-      const btn = document.getElementById('bell-btn');
-      btn.classList.add('bell-pop');
-      setTimeout(() => btn.classList.remove('bell-pop'), 400);
-      pendingNotifications.forEach((n, i) => setTimeout(() => showToast(n), i * 600));
-    }
+
     function updateBellBadge(count) {
       const badge = document.getElementById('bell-badge');
       if (count > 0) { badge.textContent = count > 9 ? '9+' : count; badge.classList.add('show'); }
       else { badge.classList.remove('show'); }
+      const pill = document.getElementById('notif-dd-pill');
+      if (pill) pill.textContent = count;
     }
+
+    // ─── DROPDOWN ─────────────────────────────────────────────────────
+    function toggleNotifDropdown(e) {
+      e.stopPropagation();
+      const dd = document.getElementById('notif-dd');
+      const isOpen = dd.classList.contains('open');
+      dd.classList.toggle('open', !isOpen);
+      const btn = document.getElementById('bell-btn');
+      btn.classList.add('bell-pop');
+      setTimeout(() => btn.classList.remove('bell-pop'), 400);
+    }
+
+    function buildNotifDropdown() {
+      const list = document.getElementById('notif-dd-list');
+      if (!list) return;
+      const COLORS = {
+        critical: { accent: '#F2071B', bg: 'rgba(242,7,27,.1)' },
+        warning:  { accent: '#F2490C', bg: 'rgba(242,73,12,.1)' },
+        info:     { accent: '#A60842', bg: 'rgba(166,8,66,.1)' },
+      };
+      if (!pendingNotifications.length) {
+        list.innerHTML = '<div class="notif-dd-empty"><i class="fas fa-check-circle" style="color:#2e9e5a;margin-right:5px"></i>Sin alertas pendientes</div>';
+        return;
+      }
+      list.innerHTML = pendingNotifications.map(n => {
+        const c = COLORS[n.type] || COLORS.info;
+        return `<div class="notif-dd-item" onclick="openNotifModal('${n.id}');closeDropdown()">
+          <div class="notif-dd-ico" style="background:${c.bg};color:${c.accent}"><i class="fas ${n.icon}"></i></div>
+          <div class="notif-dd-text">
+            <div class="notif-dd-title">${n.title}</div>
+            <div class="notif-dd-body">${n.bodyPlain}</div>
+            <div class="notif-dd-cta" style="color:${c.accent}">Ver detalle y acción recomendada →</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function closeDropdown() {
+      document.getElementById('notif-dd')?.classList.remove('open');
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.bell-wrap')) closeDropdown();
+    });
+
     function showToast(notif) {
       const COLORS = {
-        critical: { border: '#F2071B', bg: '#fff0f0', accent: '#F2071B', pill: '#fde8e8', pillText: '#c0392b' },
-        warning:  { border: '#F2490C', bg: '#fff4ee', accent: '#F2490C', pill: '#fde8d8', pillText: '#a04010' },
-        info:     { border: '#A60842', bg: '#fdf0f5', accent: '#A60842', pill: '#f8d8e8', pillText: '#7a063a' },
+        critical: { border: '#F2071B', bg: '#fff0f0', accent: '#F2071B' },
+        warning:  { border: '#F2490C', bg: '#fff4ee', accent: '#F2490C' },
+        info:     { border: '#A60842', bg: '#fdf0f5', accent: '#A60842' },
       };
       const c = COLORS[notif.type] || COLORS.info;
-      const id = 'toast-' + Date.now() + '-' + Math.random().toString(36).slice(2,6);
+      const toastId = 'toast-' + notif.id;
+      const existing = document.getElementById(toastId);
+      if (existing) existing.remove();
       const el = document.createElement('div');
-      el.id = id;
+      el.id = toastId;
       el.className = 'toast';
-      el.style.cssText = `background:${c.bg};border:1px solid ${c.border};border-radius:9px;overflow:hidden;min-width:260px;max-width:310px`;
+      el.style.cssText = `background:${c.bg};border:1px solid ${c.border};border-radius:9px;overflow:hidden;min-width:260px;max-width:310px;cursor:pointer`;
       el.innerHTML = `
-        <div style="border-left:3px solid ${c.accent};padding:12px 14px">
+        <div style="border-left:3px solid ${c.accent};padding:12px 14px" onclick="openNotifModal('${notif.id}')">
           <div style="display:flex;align-items:flex-start;gap:10px">
             <div style="width:30px;height:30px;border-radius:7px;background:rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0">
               <i class="fas ${notif.icon}" style="font-size:12px;color:${c.accent}"></i>
@@ -1086,24 +1446,78 @@
             <div style="flex:1;min-width:0">
               <p style="font-weight:700;font-size:11px;color:#333;margin-bottom:3px">${notif.title}</p>
               <p style="font-size:10px;color:#555;line-height:1.4">${notif.body}</p>
-              <div style="margin-top:6px;display:flex;align-items:center;gap:5px">
-                <i class="fas fa-lightbulb" style="font-size:9px;color:${c.accent}"></i>
-                <span style="font-size:9px;font-weight:600;background:${c.pill};color:${c.pillText};padding:2px 8px;border-radius:20px">${notif.action}</span>
+              <div style="margin-top:5px;display:flex;align-items:center;gap:4px">
+                <i class="fas fa-hand-pointer" style="font-size:9px;color:${c.accent}"></i>
+                <span style="font-size:9px;font-weight:600;color:${c.accent}">Toca para ver detalle y acciones</span>
               </div>
             </div>
-            <button onclick="dismissToast('${id}')" style="background:none;border:none;cursor:pointer;color:#aaa;padding:0;font-size:12px;line-height:1;flex-shrink:0">✕</button>
+            <button onclick="event.stopPropagation();dismissToast('${toastId}')" style="background:none;border:none;cursor:pointer;color:#aaa;padding:0;font-size:12px;line-height:1;flex-shrink:0">✕</button>
           </div>
         </div>
         <div style="height:3px;background:#f0eeec"><div class="toast-progress" style="background:${c.accent};animation-duration:${notif.duration}ms"></div></div>`;
       document.getElementById('toast-container').appendChild(el);
       requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('show')));
-      setTimeout(() => dismissToast(id), notif.duration);
+      el._autoTimer = setTimeout(() => dismissToast(toastId), notif.duration);
     }
+
     function dismissToast(id) {
       const el = document.getElementById(id);
       if (!el) return;
+      if (el._autoTimer) clearTimeout(el._autoTimer);
       el.classList.remove('show');
       setTimeout(() => el.remove(), 350);
+    }
+
+    // ─── NOTIFICATION MODAL ──────────────────────────────────────────
+    function openNotifModal(notifId) {
+      const notif = pendingNotifications.find(n => n.id === notifId);
+      if (!notif) return;
+      _activeModalNotif = notif;
+      const THEME = {
+        critical: { accent:'#F2071B', bg:'rgba(242,7,27,.08)',  tag:'Alerta crítica',      icoStyle:'background:rgba(242,7,27,.12);color:#F2071B' },
+        warning:  { accent:'#F2490C', bg:'rgba(242,73,12,.08)', tag:'Alerta de operación', icoStyle:'background:rgba(242,73,12,.12);color:#F2490C' },
+        info:     { accent:'#A60842', bg:'rgba(166,8,66,.08)',  tag:'Aviso de rendimiento',icoStyle:'background:rgba(166,8,66,.12);color:#A60842' },
+      };
+      const th = THEME[notif.type] || THEME.info;
+      const impactCol = notif.actionImpactType === 'gain' ? '#2e9e5a' : notif.actionImpactType === 'cost' ? '#F2490C' : '#888';
+      document.getElementById('nm-ico').style.cssText = th.icoStyle + ';width:38px;height:38px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px';
+      document.getElementById('nm-ico-i').className = `fas ${notif.icon}`;
+      document.getElementById('nm-tag').style.color = th.accent;
+      document.getElementById('nm-tag').textContent = th.tag;
+      document.getElementById('nm-title').textContent = notif.title;
+      document.getElementById('nm-detail').innerHTML = notif.detail;
+      document.getElementById('nm-action-box').style.cssText = `border-radius:9px;padding:13px 14px;border-left:3px solid ${th.accent};background:${th.bg}`;
+      document.getElementById('nm-action-label').style.color = th.accent;
+      document.getElementById('nm-action-text').textContent = notif.actionLabel;
+      document.getElementById('nm-action-impact').style.color = impactCol;
+      document.getElementById('nm-action-impact').textContent = notif.actionImpact;
+      document.getElementById('nm-accept-btn').style.background = th.accent;
+      document.getElementById('notif-overlay').classList.add('open');
+    }
+
+    function closeNotifModal(e) {
+      if (e && e.target !== document.getElementById('notif-overlay')) return;
+      document.getElementById('notif-overlay').classList.remove('open');
+      _activeModalNotif = null;
+    }
+
+    function resolveNotif(accepted) {
+      const notif = _activeModalNotif;
+      document.getElementById('notif-overlay').classList.remove('open');
+      _activeModalNotif = null;
+      if (!notif) return;
+      pendingNotifications = pendingNotifications.filter(n => n.id !== notif.id);
+      updateBellBadge(pendingNotifications.length);
+      buildNotifDropdown();
+      dismissToast('toast-' + notif.id);
+      if (accepted) {
+        const toast = document.getElementById('action-toast');
+        document.getElementById('toast-title').textContent = 'Acción aceptada — ' + notif.title;
+        document.getElementById('toast-body').textContent = notif.actionLabel;
+        toast.classList.add('show');
+        if (_toastTimer) clearTimeout(_toastTimer);
+        _toastTimer = setTimeout(() => toast.classList.remove('show'), 4000);
+      }
     }
 
     // ─── UTILS ───────────────────────────────────────────────────────

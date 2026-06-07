@@ -134,7 +134,7 @@ def list_mongo_collections() -> list[str]:
 
 # ─── AGGREGATION FUNCTIONS ────────────────────────────────────────────────────
 
-def get_summary(orders, resultados):
+def get_summary(orders, order_details, resultados):
     total_pedidos = len(orders)
     total_sust = len(resultados)
     tasa = round(total_sust / total_pedidos * 100, 1) if total_pedidos else 0
@@ -143,11 +143,39 @@ def get_summary(orders, resultados):
     clientes_subs = merged.groupby("customer_id").size()
     criticos = int((clientes_subs >= 3).sum())
 
+    # Risk distribution — percentile-based, using product-level tasa
+    prods_merged = order_details.merge(orders[["id_pedido", "customer_id"]], on="id_pedido", how="left")
+    prods_per = prods_merged.groupby("customer_id").size().reset_index(name="total_productos")
+    subs_df = clientes_subs.reset_index(name="sustituciones")
+    risk_all = prods_per.merge(subs_df, on="customer_id", how="left").fillna(0)
+    risk_all["tasa"] = (risk_all["sustituciones"] / risk_all["total_productos"].clip(lower=1) * 100)
+
+    # Compute boundaries from the actual tasa distribution
+    tasas = risk_all["tasa"]
+    p50  = float(tasas.quantile(0.50))   # below median  → Sin riesgo (~50%)
+    p75  = float(tasas.quantile(0.75))   # 50–75th pct   → Medio     (~25%)
+    p90  = float(tasas.quantile(0.90))   # 75–90th pct   → Alto      (~15%)
+    # above p90 → Crítico (~10%)
+
+    risk_all["nivel"] = risk_all["tasa"].apply(
+        lambda t: "Sin riesgo" if t <= p50 else ("Medio" if t <= p75 else ("Alto" if t <= p90 else "Crítico"))
+    )
+    total_clientes = int(orders["customer_id"].nunique())
+    dist = risk_all["nivel"].value_counts()
+
     return {
         "total_pedidos": total_pedidos,
         "total_sustituciones": total_sust,
         "tasa_sustitucion": tasa,
         "clientes_criticos": criticos,
+        "total_clientes": total_clientes,
+        "riesgo_distribucion": {
+            "total": total_clientes,
+            "critico": int(dist.get("Crítico", 0)),
+            "alto": int(dist.get("Alto", 0)),
+            "medio": int(dist.get("Medio", 0)),
+            "sin_riesgo": int(dist.get("Sin riesgo", 0)),
+        },
     }
 
 
@@ -201,23 +229,32 @@ def get_cedis_stats(orders, resultados, top_n=10):
     return cedis.to_dict("records")
 
 
-def get_customer_risk(orders, resultados, top_n=20):
-    """CSV-derived risk scoring. Merged with MongoDB scores when available."""
+def get_customer_risk(orders, order_details, resultados, top_n=20):
+    """CSV-derived risk scoring using product-line tasa."""
     merged = resultados.merge(orders[["id_pedido", "customer_id"]], on="id_pedido", how="left")
 
-    subs_per = merged.groupby("customer_id").size().reset_index(name="sustituciones")
+    subs_per   = merged.groupby("customer_id").size().reset_index(name="sustituciones")
     orders_per = orders.groupby("customer_id").size().reset_index(name="total_pedidos")
-    value_per = orders.groupby("customer_id")["Total"].sum().reset_index(name="valor_total")
+    value_per  = orders.groupby("customer_id")["Total"].sum().reset_index(name="valor_total")
+    prods_merged = order_details.merge(orders[["id_pedido", "customer_id"]], on="id_pedido", how="left")
+    prods_per  = prods_merged.groupby("customer_id").size().reset_index(name="total_productos")
 
-    risk = subs_per.merge(orders_per, on="customer_id", how="left").merge(value_per, on="customer_id", how="left")
-    risk["tasa_sustitucion"] = (risk["sustituciones"] / risk["total_pedidos"] * 100).round(1)
-    risk["riesgo_score"] = (
-        risk["tasa_sustitucion"] * 0.55 + (risk["sustituciones"].clip(0, 6) / 6 * 45)
-    ).clip(0, 100).round(1)
-    risk["nivel_riesgo"] = risk["riesgo_score"].apply(
-        lambda x: "Crítico" if x >= 70 else ("Alto" if x >= 40 else "Medio")
+    risk = (subs_per.merge(orders_per, on="customer_id", how="left")
+                    .merge(prods_per,  on="customer_id", how="left")
+                    .merge(value_per,  on="customer_id", how="left"))
+    risk["tasa_sustitucion"] = (risk["sustituciones"] / risk["total_productos"].clip(lower=1) * 100).round(1)
+    risk["riesgo_score"] = risk["tasa_sustitucion"].round(1)
+
+    # Percentile thresholds matching the summary distribution
+    tasas = risk["tasa_sustitucion"]
+    p50 = float(tasas.quantile(0.50))
+    p75 = float(tasas.quantile(0.75))
+    p90 = float(tasas.quantile(0.90))
+    risk["nivel_riesgo"] = risk["tasa_sustitucion"].apply(
+        lambda t: "Sin riesgo" if t <= p50 else ("Medio" if t <= p75 else ("Alto" if t <= p90 else "Crítico"))
     )
-    risk = risk.sort_values("riesgo_score", ascending=False).head(top_n)
+    # Top-N shows highest-tasa customers only (exclude sin riesgo)
+    risk = risk[risk["tasa_sustitucion"] > p50].sort_values("tasa_sustitucion", ascending=False).head(top_n)
     risk["customer_id"] = risk["customer_id"].apply(lambda x: f"{float(x):.2e}" if pd.notna(x) else "N/A")
     risk["valor_total"] = risk["valor_total"].round(2).fillna(0)
 
@@ -235,32 +272,6 @@ def get_customer_risk(orders, resultados, top_n=20):
                 rec["mongo_total_compras"] = mongo_r.get("total_compras")
 
     return csv_records
-
-
-def get_risk_distribution(orders, resultados):
-    """Count ALL customers by risk level for donut chart."""
-    merged = resultados.merge(orders[["id_pedido", "customer_id"]], on="id_pedido", how="left")
-    subs_per = merged.groupby("customer_id").size().reset_index(name="sustituciones")
-    orders_per = orders.groupby("customer_id").size().reset_index(name="total_pedidos")
-    risk = subs_per.merge(orders_per, on="customer_id", how="outer").fillna(0)
-    risk["tasa_sustitucion"] = (risk["sustituciones"] / risk["total_pedidos"].clip(lower=1) * 100).round(1)
-    risk["riesgo_score"] = (
-        risk["tasa_sustitucion"] * 0.55 + (risk["sustituciones"].clip(0, 6) / 6 * 45)
-    ).clip(0, 100).round(1)
-    risk["nivel_riesgo"] = risk["riesgo_score"].apply(
-        lambda x: "Crítico" if x >= 70 else ("Alto" if x >= 40 else "Medio")
-    )
-    total_clientes = int(orders["customer_id"].nunique())
-    clientes_con_sust = len(risk)
-    sin_riesgo = max(0, total_clientes - clientes_con_sust)
-    dist = risk["nivel_riesgo"].value_counts().to_dict()
-    return {
-        "total": total_clientes,
-        "critico": int(dist.get("Crítico", 0)),
-        "alto": int(dist.get("Alto", 0)),
-        "medio": int(dist.get("Medio", 0)),
-        "sin_riesgo": int(sin_riesgo),
-    }
 
 
 def get_substitutions_by_businessunit(orders, resultados):
@@ -281,13 +292,12 @@ def get_dashboard_data():
     orders, order_details, resultados = load_data()
 
     data = {
-        "summary": get_summary(orders, resultados),
+        "summary": get_summary(orders, order_details, resultados),
         "top_sustituciones": get_top_substitutions(resultados),
         "productos_mas_sustituidos": get_most_substituted_products(resultados),
         "productos_sustitutos": get_most_used_substitutes(resultados),
         "cedis_criticos": get_cedis_stats(orders, resultados),
-        "clientes_riesgo": get_customer_risk(orders, resultados),
-        "riesgo_distribucion": get_risk_distribution(orders, resultados),
+        "clientes_riesgo": get_customer_risk(orders, order_details, resultados),
         "por_business_unit": get_substitutions_by_businessunit(orders, resultados),
     }
 

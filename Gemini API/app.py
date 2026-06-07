@@ -698,8 +698,8 @@ def prediccion_siguiente_accion():
     """Next best action for the top at-risk clients."""
     try:
 
-        orders, _, resultados = load_data()
-        clientes = get_customer_risk(orders, resultados, top_n=5)
+        orders, order_details, resultados = load_data()
+        clientes = get_customer_risk(orders, order_details, resultados, top_n=5)
 
         clientes_str = json.dumps(clientes, ensure_ascii=False, indent=2, default=str)
 
@@ -800,8 +800,8 @@ def prediccion_impacto_economico():
     """Financial loss projection from at-risk clients."""
     try:
 
-        orders, _, resultados = load_data()
-        clientes = get_customer_risk(orders, resultados, top_n=50)
+        orders, order_details, resultados = load_data()
+        clientes = get_customer_risk(orders, order_details, resultados, top_n=50)
 
         criticos = [c for c in clientes if c["nivel_riesgo"] == "Crítico"]
         altos    = [c for c in clientes if c["nivel_riesgo"] == "Alto"]
