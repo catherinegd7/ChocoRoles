@@ -404,7 +404,7 @@ const API = 'http://localhost:8000';          // FastAPI ElevenLabs server
 const FALLBACK_ALERTS = [
   {
     id:'alert_001', parada:1, tipo:'critico',
-    cliente:'Abarrotes El Baby #8429', cedis:'CEDIS Norte',
+    cliente:'Abarrotes Tec #8429', cedis:'CEDIS Norte',
     churn_score:87, sustituciones_mes:5, tasa_sustitucion:72,
     producto_original:'Coca-Cola 600ml ×24', producto_sustituto:'Coca-Cola Sin Azúcar 600ml',
     accion_recomendada:'Cliente con 5 sustituciones y tasa del 72%. Preséntate con amabilidad y ofrece puntos de compensación.',
@@ -506,14 +506,6 @@ function renderAlerts(alerts) {
     lbl.textContent = `✅ Entrega normal (${oks.length})`;
     list.appendChild(lbl);
     oks.forEach(a => list.appendChild(makeCard(a)));
-  }
-
-  // Auto-play primera alerta crítica al cargar (como Waze)
-  if (crits.length > 0) {
-    setTimeout(() => {
-      triggerVoice(crits[0]);
-      simulateTTS(crits[0], null);
-    }, 1200);
   }
 }
 

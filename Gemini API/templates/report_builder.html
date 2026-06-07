@@ -14,24 +14,24 @@
 
     /* ── HEADER ── */
     .app-header {
-      height: 46px; flex-shrink: 0;
+      height: 56px; flex-shrink: 0;
       background: linear-gradient(to right, #8C085E, #A60842, #F2071B, #F2490C, #F27507);
-      display: flex; align-items: center; padding: 0 16px; gap: 14px;
+      display: flex; align-items: center; padding: 0 20px; gap: 16px;
     }
-    .logo { font-size: 20px; font-weight: 900; color: #fff; letter-spacing: -0.5px; white-space: nowrap; }
+    .logo { font-size: 22px; font-weight: 900; color: #fff; letter-spacing: -0.5px; white-space: nowrap; }
     .logo span { color: #F27507; }
-    .header-nav { display: flex; gap: 4px; flex: 1; }
+    .header-nav { display: flex; gap: 5px; flex: 1; }
     .nav-tab {
-      padding: 5px 13px; border-radius: 7px; font-size: 12px; font-weight: 600;
+      padding: 6px 15px; border-radius: 8px; font-size: 12.5px; font-weight: 600;
       color: rgba(255,255,255,0.7); background: transparent; border: none; cursor: pointer;
       text-decoration: none; display: inline-flex; align-items: center; transition: background .15s;
     }
     .nav-tab.active { background: rgba(255,255,255,0.22); color: #fff; }
-    .header-right { display: flex; align-items: center; gap: 8px; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
     .avatar {
-      width: 26px; height: 26px; border-radius: 50%;
+      width: 30px; height: 30px; border-radius: 50%;
       background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.5);
-      color: #fff; font-size: 9px; font-weight: 700;
+      color: #fff; font-size: 10px; font-weight: 700;
       display: flex; align-items: center; justify-content: center;
     }
     .back-link {
@@ -46,57 +46,57 @@
     /* ── LEFT SIDEBAR ── */
     .sidebar {
       width: 220px; flex-shrink: 0;
-      background: #0f0f0f;
-      border-right: 1px solid #222;
+      background: #fff;
+      border-right: 1px solid #ebebeb;
       display: flex; flex-direction: column; overflow-y: auto;
     }
-    .opt-section { border-bottom: 1px solid #1e1e1e; padding: 10px 12px; }
+    .opt-section { border-bottom: 1px solid #f0eeec; padding: 10px 12px; }
     .opt-label {
-      font-size: 10px; font-weight: 700; color: #666;
+      font-size: 10px; font-weight: 700; color: #aaa;
       text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 7px;
       display: flex; align-items: center; gap: 5px;
     }
     .chips-wrap { display: flex; flex-wrap: wrap; gap: 4px; }
     .chip {
       display: inline-flex; align-items: center; gap: 4px;
-      background: #1a1a1a; color: #999; border: 1px solid #2a2a2a;
+      background: #f7f7f5; color: #555; border: 1px solid #e8e8e8;
       border-radius: 20px; padding: 4px 11px; font-size: 11px;
       font-weight: 600; cursor: pointer; transition: all .15s; white-space: nowrap;
       font-family: 'Poppins', sans-serif;
     }
-    .chip:hover { background: #242424; color: #ccc; border-color: #444; }
+    .chip:hover { background: #f0eeec; color: #333; border-color: #ddd; }
     .chip.active {
       background: linear-gradient(to right, #8C085E, #F2071B);
       color: #fff; border-color: transparent;
-      box-shadow: 0 2px 8px rgba(242,7,27,.35);
+      box-shadow: 0 2px 8px rgba(242,7,27,.25);
     }
     .chip.active-green {
       background: linear-gradient(to right, #F2490C, #F27507);
       color: #fff; border-color: transparent;
-      box-shadow: 0 2px 8px rgba(242,117,7,.35);
+      box-shadow: 0 2px 8px rgba(242,117,7,.25);
     }
 
     /* ── STATUS / GENERATE ── */
-    .sidebar-footer { margin-top: auto; padding: 10px 12px; border-top: 1px solid #1e1e1e; }
+    .sidebar-footer { margin-top: auto; padding: 10px 12px; border-top: 1px solid #f0eeec; background: #fafaf8; }
     .param-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
-    .param-key { font-size: 10px; color: #555; font-weight: 600; }
+    .param-key { font-size: 10px; color: #aaa; font-weight: 600; }
     .param-pill {
       display: inline-flex; align-items: center; gap: 4px;
-      background: rgba(242,117,7,.15); color: #F27507; border: 1px solid rgba(242,117,7,.3);
+      background: rgba(242,117,7,.1); color: #F27507; border: 1px solid rgba(242,117,7,.25);
       border-radius: 99px; padding: 2px 8px; font-size: 10px; font-weight: 700;
     }
-    .param-pill.pending { background: #1a1a1a; color: #555; border-color: #2a2a2a; }
+    .param-pill.pending { background: #f7f7f5; color: #bbb; border-color: #e8e8e8; }
     .btn-generate {
       width: 100%; border: none; border-radius: 8px;
       background: linear-gradient(to right, #8C085E, #A60842, #F2071B, #F2490C, #F27507);
       color: #fff; padding: 10px; font-size: 12px; font-weight: 800;
       cursor: pointer; font-family: 'Poppins', sans-serif;
       display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px;
-      transition: opacity .15s; box-shadow: 0 3px 10px rgba(242,7,27,.3);
+      transition: opacity .15s; box-shadow: 0 3px 10px rgba(242,7,27,.25);
     }
     .btn-generate:hover:not(:disabled) { opacity: .88; }
     .btn-generate:disabled { opacity: 0.3; cursor: not-allowed; box-shadow: none; }
-    .generate-hint { font-size: 10px; color: #555; text-align: center; margin-top: 5px; }
+    .generate-hint { font-size: 10px; color: #aaa; text-align: center; margin-top: 5px; }
     .generate-hint.ready { color: #F27507; font-weight: 700; }
 
     /* ── MAIN (CHAT) AREA ── */

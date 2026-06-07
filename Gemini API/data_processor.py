@@ -35,7 +35,7 @@ def _load_backend_csvs() -> pd.DataFrame | None:
     if not csv_files:
         return None
     _cached_df = pd.concat(
-        (pd.read_csv(f, encoding="latin-1") for f in csv_files),
+        (pd.read_csv(f, encoding="utf-8-sig") for f in csv_files),
         ignore_index=True,
     )
     _cached_df.columns = _cached_df.columns.str.strip()
@@ -85,9 +85,9 @@ def load_data():
         return orders, order_details, resultados
 
     # Fallback to root CSVs
-    orders = pd.read_csv(BASE_DIR / "Orders.csv")
-    order_details = pd.read_csv(BASE_DIR / "OrderDetails.csv")
-    resultados = pd.read_csv(BASE_DIR / "Resultados.csv")
+    orders = pd.read_csv(BASE_DIR / "Orders.csv", encoding="utf-8-sig")
+    order_details = pd.read_csv(BASE_DIR / "OrderDetails.csv", encoding="utf-8-sig")
+    resultados = pd.read_csv(BASE_DIR / "Resultados.csv", encoding="utf-8-sig")
     for d in (orders, order_details, resultados):
         d.columns = d.columns.str.strip()
     resultados["nombre_sku_solicitado"] = resultados["nombre_sku_solicitado"].apply(_clean_name)
