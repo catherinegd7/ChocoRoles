@@ -3,7 +3,6 @@
 import sys
 import os
 
-# Apunta al folder Gemini API donde está data_processor.py
 GEMINI_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'Gemini API')
 sys.path.insert(0, GEMINI_DIR)
 
@@ -30,7 +29,7 @@ MOCK_ALERTS = [
         "producto_sustituto": "Coca-Cola Sin Azúcar 600ml",
         "accion_recomendada": "Hablar personalmente con el cliente y ofrecer puntos de compensación.",
         "puntos_compensacion": 150,
-        "estado": "Cliente en Riesgo",
+        "estado": "Crítico",
     },
     {
         "id": "alert_002",
@@ -44,29 +43,20 @@ MOCK_ALERTS = [
         "producto_sustituto": None,
         "accion_recomendada": "Informar al cliente sobre el cambio en su pedido.",
         "puntos_compensacion": 50,
-        "estado": "Riesgo Moderado",
+        "estado": "Alto",
     },
 ]
 
-# Cache para no releer los CSVs en cada request
 _alerts_cache = None
 
 
-# ─── HELPERS ─────────────────────────────────────────────────────────────────
+# ─── HELPERS ──────────────────────────────────────────────────────────────────
 
-def _formato_cliente(customer_id) -> str:
-    """'2.05494e+18' → 'Cliente #2054' """
-    try:
-        id_str = str(customer_id).replace("e+", "").replace(".", "")
-        return f"Cliente #{id_str[:4]}"
-    except Exception:
-        return f"Cliente {customer_id}"
-
-
-def _get_tipo(score: float) -> str:
-    if score >= 70:
+def _get_tipo(nivel: str) -> str:
+    nivel = str(nivel).lower()
+    if "crítico" in nivel or "critico" in nivel:
         return "critico"
-    elif score >= 40:
+    elif "alto" in nivel:
         return "aviso"
     return "info"
 
@@ -79,7 +69,7 @@ def _get_accion(tipo: str, sustituciones: int, tasa: float) -> str | None:
     if tipo == "critico":
         return (
             f"Cliente con {sustituciones} sustituciones y tasa de afectación del {tasa:.0f}%. "
-            f"Hablar personalmente al entregar y ofrecer puntos de compensación."
+            "Hablar personalmente al entregar y ofrecer puntos de compensación."
         )
     elif tipo == "aviso":
         return f"Cliente con {sustituciones} sustituciones. Informar sobre cualquier cambio en el pedido."
@@ -87,25 +77,25 @@ def _get_accion(tipo: str, sustituciones: int, tasa: float) -> str | None:
 
 
 def _csv_row_to_alert(row: dict, index: int) -> dict:
-    score = float(row.get("riesgo_score", 0))
+    score       = float(row.get("riesgo_score", row.get("tasa_sustitucion", 0)))
     sustituciones = int(row.get("sustituciones", 0))
-    tasa = float(row.get("tasa_sustitucion", 0))
-    tipo = _get_tipo(score)
-    cedis = str(row.get("cedis", "CEDIS")).strip() if "cedis" in row else "CEDIS"
+    tasa        = float(row.get("tasa_sustitucion", 0))
+    nivel       = str(row.get("nivel_riesgo", "Medio"))
+    tipo        = _get_tipo(nivel)
 
     return {
         "id": f"alert_{index:03d}",
         "parada": index + 1,
         "tipo": tipo,
-        "cliente": _formato_cliente(row.get("customer_id", index)),
-        "cedis": cedis,
+        "cliente": f"Parada {index + 1}",   # Sin nombre real en los datos
+        "cedis": str(row.get("cedis", "CEDIS")).strip(),
         "churn_score": round(score),
         "sustituciones_mes": sustituciones,
         "producto_original": None,
         "producto_sustituto": None,
         "accion_recomendada": _get_accion(tipo, sustituciones, tasa),
         "puntos_compensacion": _get_puntos(tipo),
-        "estado": row.get("nivel_riesgo", "Desconocido"),
+        "estado": nivel,
         "tasa_sustitucion": tasa,
         "total_pedidos": row.get("total_pedidos", 0),
         "customer_id": row.get("customer_id"),
@@ -122,17 +112,15 @@ def get_all_alerts() -> list[dict]:
     if PROCESSOR_OK:
         try:
             print("📂 Cargando datos desde CSVs...")
+            # IMPORTANTE: el nuevo data_processor.py requiere order_details
             orders, order_details, resultados = load_data()
-            riesgo = get_customer_risk(orders, resultados, top_n=20)
+            riesgo = get_customer_risk(orders, order_details, resultados, top_n=20)
 
-            # Solo clientes con riesgo real
-            con_riesgo = [r for r in riesgo if float(r.get("riesgo_score", 0)) >= 40]
+            if not riesgo:
+                print("⚠ No se encontraron clientes con riesgo — usando mock")
+                return MOCK_ALERTS
 
-            if not con_riesgo:
-                # Si ninguno supera 40, mostrar top 10 de todos modos
-                con_riesgo = riesgo[:10]
-
-            alerts = [_csv_row_to_alert(r, i) for i, r in enumerate(con_riesgo)]
+            alerts = [_csv_row_to_alert(r, i) for i, r in enumerate(riesgo)]
             _alerts_cache = alerts
             print(f"✓ {len(alerts)} alertas cargadas desde CSVs")
             return alerts
@@ -149,18 +137,23 @@ def get_alert_by_id(alert_id: str) -> dict | None:
             return a
     return None
 
+
 def build_voice_script(alert: dict) -> str:
-    parada   = alert["parada"]
-    sust     = alert["sustituciones_mes"]
-    puntos   = alert["puntos_compensacion"]
-    tasa     = alert.get("tasa_sustitucion", 0)
-    estado   = alert.get("estado", "")
+    """
+    Guión de voz empático para ElevenLabs.
+    El Rol 4 puede editar estos textos directamente aquí.
+    """
+    parada = alert["parada"]
+    sust   = alert["sustituciones_mes"]
+    puntos = alert["puntos_compensacion"]
+    tasa   = alert.get("tasa_sustitucion", 0)
+    estado = alert.get("estado", "")
 
     if alert["tipo"] == "critico":
         detalle = (
             f"Ha tenido {sust} sustituciones con una tasa de afectación del {tasa:.0f} por ciento. "
             if sust > 0 else
-            f"Su nivel de riesgo es crítico. "
+            "Su nivel de riesgo es crítico. "
         )
         return (
             f"Atención conductor. En la parada {parada} hay una alerta crítica. "
@@ -178,5 +171,5 @@ def build_voice_script(alert: dict) -> str:
     else:
         return (
             f"Parada {parada}. "
-            f"Cliente satisfecho, entrega normal sin cambios. Buen servicio."
+            "Cliente satisfecho, entrega normal sin cambios. Buen servicio."
         )

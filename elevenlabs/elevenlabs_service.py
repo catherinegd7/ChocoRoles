@@ -2,25 +2,39 @@
 # Toda la lógica de comunicación con ElevenLabs va aquí
 
 import os
+import random
 import httpx
 from dotenv import load_dotenv
 
-load_dotenv()
+# Carga key.env si existe, si no carga .env normal
+_key_env = os.path.join(os.path.dirname(__file__), "key.env")
+_dot_env = os.path.join(os.path.dirname(__file__), ".env")
+if os.path.exists(_key_env):
+    load_dotenv(_key_env)
+else:
+    load_dotenv(_dot_env)
 
-ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
-ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "pNInz6obpgDQGcFmaJgB")
+ELEVENLABS_API_KEY  = os.getenv("ELEVENLABS_API_KEY")
 ELEVENLABS_MODEL_ID = os.getenv("ELEVENLABS_MODEL_ID", "eleven_multilingual_v2")
 
-ELEVENLABS_URL = f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}"
+# Agrega aquí los Voice IDs que quieran usar
+# Consíguelos en ElevenLabs → Voice Library → tres puntos → Use
+VOICE_IDS = [
+    os.getenv("ELEVENLABS_VOICE_ID", "9Godp7dNohUvXk6qp0gS"),  # voz principal del .env
+    # "EXAVITQu4vr4xnSDxMaL",  # descomenta para agregar más voces
+    # "ErXwobaYiN019PkySvjV",
+]
 
 
 async def text_to_speech(text: str) -> bytes:
     """
-    Llama a ElevenLabs y devuelve el audio en bytes (MP3).
-    El frontend lo recibe y lo reproduce directamente.
+    Llama a ElevenLabs con una voz aleatoria de VOICE_IDS y devuelve el audio en bytes (MP3).
     """
     if not ELEVENLABS_API_KEY or ELEVENLABS_API_KEY == "sk_pon_tu_key_aqui":
-        raise ValueError("API key de ElevenLabs no configurada en el archivo .env")
+        raise ValueError("API key de ElevenLabs no configurada en el archivo key.env o .env")
+
+    voice_id = random.choice(VOICE_IDS)
+    print(f"🎙 Voz seleccionada: {voice_id}")
 
     headers = {
         "xi-api-key": ELEVENLABS_API_KEY,
@@ -32,17 +46,19 @@ async def text_to_speech(text: str) -> bytes:
         "text": text,
         "model_id": ELEVENLABS_MODEL_ID,
         "voice_settings": {
-            "stability": 0.5,           # Qué tan consistente suena la voz
-            "similarity_boost": 0.8,    # Qué tan fiel al voice original
-            "style": 0.35,               # Un poco de expresividad, no exagerada
-            "use_speaker_boost": True,  # Mejora la claridad (útil para ruido de camión)
+            "stability": 0.5,
+            "similarity_boost": 0.8,
+            "style": 0.35,
+            "use_speaker_boost": True,
         },
     }
 
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+
     async with httpx.AsyncClient(timeout=30.0) as client:
-        response = await client.post(ELEVENLABS_URL, headers=headers, json=payload)
+        response = await client.post(url, headers=headers, json=payload)
 
     if response.status_code != 200:
         raise Exception(f"ElevenLabs error {response.status_code}: {response.text}")
 
-    return response.content  # bytes del MP3
+    return response.content
