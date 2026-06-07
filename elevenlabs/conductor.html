@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Swapp · Conductor</title>
+  <title>swapp · Conductor</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -63,7 +63,7 @@
     }
     .header-top { display:flex; align-items:center; justify-content:space-between; }
     .logo { font-size:20px; font-weight:900; color:#fff; letter-spacing:-.5px; }
-    .logo span { color:#ffd700; }
+    .logo span { color:#F27507; }
     .header-role {
       font-size:10px; font-weight:700; color:rgba(255,255,255,.75);
       background:rgba(255,255,255,.18); border-radius:20px; padding:3px 10px;
@@ -77,11 +77,11 @@
       display:flex; align-items:center; gap:5px;
     }
     .voice-status {
-      margin-left:auto; font-size:11px; font-weight:700; color:#ffd700;
+      margin-left:auto; font-size:11px; font-weight:700; color:#F27507;
       display:flex; align-items:center; gap:5px;
     }
     .voice-dot {
-      width:7px; height:7px; background:#ffd700; border-radius:50%;
+      width:7px; height:7px; background:#F27507; border-radius:50%;
       animation: blink 1.4s infinite;
     }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
@@ -337,7 +337,7 @@
       <!-- HEADER -->
       <div class="app-header">
         <div class="header-top">
-          <div class="logo">Sw<span>a</span>pp</div>
+          <div class="logo">sw<span>a</span>pp</div>
           <div class="header-role">🚚 Conductor</div>
         </div>
         <div class="header-meta">
@@ -395,7 +395,7 @@
     </div><!-- /phone-screen -->
   </div><!-- /phone-wrap -->
 
-  <div class="demo-label"><span>Swapp</span> · Vista Conductor — Demo interactivo</div>
+  <div class="demo-label"><span>swapp</span> · Vista Conductor — Demo interactivo</div>
 </div>
 
 <script>
@@ -407,7 +407,7 @@ const FALLBACK_ALERTS = [
     cliente:'Abarrotes Tec #8429', cedis:'CEDIS Norte',
     churn_score:87, sustituciones_mes:5, tasa_sustitucion:72,
     producto_original:'Coca-Cola 600ml ×24', producto_sustituto:'Coca-Cola Sin Azúcar 600ml',
-    accion_recomendada:'Cliente con 5 sustituciones y tasa del 72%. Preséntate con amabilidad y ofrece puntos de compensación.',
+    accion_recomendada:'5 sust. · tasa 72% — ofrece +150 pts al llegar.',
     puntos_compensacion:150, estado:'Crítico',
   },
   {
@@ -415,7 +415,7 @@ const FALLBACK_ALERTS = [
     cliente:'Mini Super Alanis #3120', cedis:'CEDIS Norte',
     churn_score:74, sustituciones_mes:3, tasa_sustitucion:58,
     producto_original:'Agua Ciel 1L ×12', producto_sustituto:'Agua Epura 1L ×12',
-    accion_recomendada:'Cliente insatisfecho con 3 sustituciones. Apartar producto antes de la entrega.',
+    accion_recomendada:'3 sust. · tasa 58% — aparta producto antes de entregar.',
     puntos_compensacion:100, estado:'Crítico',
   },
   {
@@ -423,7 +423,7 @@ const FALLBACK_ALERTS = [
     cliente:'Tienda Don Pepe #5544', cedis:'CEDIS Norte',
     churn_score:44, sustituciones_mes:1, tasa_sustitucion:31,
     producto_original:'Sprite 600ml ×12', producto_sustituto:null,
-    accion_recomendada:'Informar al cliente sobre posible cambio en su pedido.',
+    accion_recomendada:'Posible cambio en pedido — avisa al cliente.',
     puntos_compensacion:50, estado:'Riesgo Moderado',
   },
   {
@@ -439,7 +439,7 @@ const FALLBACK_ALERTS = [
     cliente:'Oxxo Periférico #7701', cedis:'CEDIS Norte',
     churn_score:51, sustituciones_mes:2, tasa_sustitucion:40,
     producto_original:'Powerade 600ml ×6', producto_sustituto:'Gatorade 600ml ×6',
-    accion_recomendada:'Confirmar con cliente antes de entregar sustituto.',
+    accion_recomendada:'2 sust. — confirma el cambio con el cliente.',
     puntos_compensacion:50, estado:'Riesgo Moderado',
   },
 ];
@@ -649,13 +649,12 @@ function simulateTTS(alert, btn) {
 function buildScript(a) {
   if (!a) return '';
   if (a.tipo === 'critico') {
-    const sust = a.sustituciones_mes > 0 ? `Ha tenido ${a.sustituciones_mes} sustituciones con tasa del ${Math.round(a.tasa_sustitucion)} por ciento. ` : '';
-    return `Atención conductor. En la parada ${a.parada} hay una alerta crítica. ${sust}Preséntate con amabilidad y comunica al cliente que recibirá ${a.puntos_compensacion} puntos de compensación. Tu atención puede retener a este cliente.`;
+    return `Parada ${a.parada}, alerta crítica. ${a.sustituciones_mes > 0 ? `${a.sustituciones_mes} sustituciones este mes. ` : ''}Ofrece ${a.puntos_compensacion} puntos al cliente.`;
   }
   if (a.tipo === 'aviso') {
-    return `Aviso para la parada ${a.parada}. El cliente ${a.cliente} puede tener cambios en su pedido. Infórmale con anticipación y recuérdale sus ${a.puntos_compensacion} puntos de compensación.`;
+    return `Parada ${a.parada}, aviso. Puede haber cambios en el pedido. Informa al cliente y recuérdale sus ${a.puntos_compensacion} puntos.`;
   }
-  return `Parada ${a.parada}. Cliente satisfecho. Entrega normal sin cambios. ¡Buen trabajo!`;
+  return `Parada ${a.parada}. Entrega normal, sin cambios.`;
 }
 
 // ── ENVIAR WHATSAPP ───────────────────────────────────────────────────────
@@ -699,7 +698,7 @@ function apartar(alertId) {
   // Simula notificación de voz corta
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance('Producto apartado. El cliente será priorizado en la entrega.');
+    const utt = new SpeechSynthesisUtterance('Producto apartado.');
     utt.lang = 'es-MX'; utt.rate = 0.95;
     window.speechSynthesis.speak(utt);
   }

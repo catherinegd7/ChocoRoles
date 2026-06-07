@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>túali × Swapp — Demo interactivo</title>
+  <title>túali × swapp — Demo interactivo</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -93,7 +93,7 @@
     }
     .header-right { display: flex; align-items: center; gap: 10px; }
 
-    /* Swapp points pill (en el header de Tuali) */
+    /* swapp points pill (en el header de Tuali) */
     .swapp-pill {
       display: flex; align-items: center; gap: 5px;
       background: rgba(255,255,255,0.18);
@@ -237,7 +237,7 @@
     .prod-price { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
     .prod-label { font-size: 10px; color: var(--text-muted); margin-bottom: 5px; }
 
-    /* Low stock badge — Swapp-branded */
+    /* Low stock badge — swapp-branded */
     .stock-warn {
       display: inline-flex; align-items: center; gap: 4px;
       background: #fff3ee;
@@ -370,7 +370,7 @@
     .sub-name { font-size: 12px; font-weight: 700; }
     .sub-price { font-size: 11px; color: var(--text-muted); }
 
-    /* Swapp points badge */
+    /* swapp points badge */
     .swapp-badge {
       display: flex; align-items: center; gap: 3px;
       background: var(--swapp-grad);
@@ -475,7 +475,7 @@
     .cuenta-name { font-size: 16px; font-weight: 800; }
     .cuenta-id { font-size: 12px; color: var(--text-muted); }
 
-    /* Swapp big counter card */
+    /* swapp big counter card */
     .swapp-counter-big {
       margin: 0 16px 14px;
       background: var(--swapp-grad);
@@ -520,6 +520,26 @@
     }
     .toast.show { transform: translateX(-50%) translateY(0); }
 
+    /* ── SWAPP ALERT STRIP ── */
+    .swapp-alert-strip {
+      display: flex; gap: 8px; padding: 10px 16px 4px; flex-shrink: 0;
+    }
+    .alert-pill {
+      flex: 1; background: var(--swapp-light);
+      border: 1px solid #ffd4bf; border-radius: 10px;
+      padding: 8px 10px; text-align: center;
+    }
+    .alert-pill-val { font-size: 16px; font-weight: 900; color: #A60842; }
+    .alert-pill-lbl { font-size: 9px; color: #8C085E; font-weight: 700; margin-top: 1px; }
+
+    /* ── LIVE SKELETON ── */
+    .skeleton {
+      background: linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);
+      background-size: 200% 100%; animation: shimmer 1.2s infinite;
+      border-radius: 8px;
+    }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
     /* ── LABEL TAG ── */
     .demo-label {
       text-align: center; font-family: 'Poppins', sans-serif;
@@ -557,9 +577,9 @@
             <div class="modal-prod-img" id="modalEmoji">🥤</div>
 
             <div class="modal-body">
-              <!-- Stock warning (Swapp branded) -->
+              <!-- Stock warning (swapp branded) -->
               <div class="stock-warn-big" id="modalStockWarn">
-                🔔 <span>¡Pocas unidades! Solo quedan <strong id="modalStockNum">3</strong>. <span style="color:#A60842;">Elige un sustituto y gana puntos.</span></span>
+                🔔 <span>¡Pocas unidades disponibles! <span style="color:#A60842;">Elige un sustituto y gana puntos.</span></span>
               </div>
 
               <div class="modal-prod-name" id="modalName">Producto</div>
@@ -577,13 +597,13 @@
 
               <!-- Earn message -->
               <div class="earn-msg" id="earnMsg">
-                Elige un sustituto y gana <strong>Puntos Swapp 🔥</strong>
+                Elige un sustituto y gana <strong>Puntos swapp 🔥</strong>
               </div>
 
               <!-- SUBSTITUTIONS SECTION -->
               <div class="subs-section" id="subsSection" style="display:none;">
                 <div class="subs-title">
-                  🔄 Sustitutos sugeridos &nbsp;·&nbsp; <span class="swapp-logo-small">Swapp</span>
+                  🔄 Sustitutos sugeridos &nbsp;·&nbsp; <span class="swapp-logo-small">swapp</span>
                 </div>
                 <div id="subsList"></div>
               </div>
@@ -608,7 +628,7 @@
         <!-- ═══════════════ SCREEN: HOME ═══════════════ -->
         <div class="screen active" id="screen-home">
 
-          <!-- Tuali Header with Swapp points -->
+          <!-- Tuali Header with swapp points -->
           <div class="tuali-header">
             <div class="tuali-header-top">
               <div>
@@ -616,14 +636,14 @@
                   <div>
                     <div class="store-label">Punto de venta</div>
                     <div class="store-name">
-                      Abarrotes El Baby
+                      Abarrotes Tec
                       <span style="font-size:12px;opacity:0.8;">▾</span>
                     </div>
                   </div>
                 </div>
               </div>
               <div class="header-right">
-                <!-- Swapp points pill inside Tuali -->
+                <!-- swapp points pill inside Tuali -->
                 <div class="swapp-pill" onclick="goTo('menu')">
                   <span class="fire">🔥</span>
                   <span id="headerPoints">120</span> pts
@@ -644,11 +664,11 @@
 
           <!-- Category chips -->
           <div class="cats-scroll">
-            <div class="cat-chip"><div class="cat-img">🥤</div><div class="cat-name">Refrescos</div></div>
-            <div class="cat-chip"><div class="cat-img">💧</div><div class="cat-name">Agua</div></div>
-            <div class="cat-chip"><div class="cat-img">🍊</div><div class="cat-name">Frutas</div></div>
-            <div class="cat-chip"><div class="cat-img">🏃</div><div class="cat-name">Deportivas</div></div>
-            <div class="cat-chip"><div class="cat-img">⚡</div><div class="cat-name">Energéticos</div></div>
+            <div class="cat-chip"><div class="cat-img"><img src="bebidas/cocasinazucar.png" style="max-width:90%;max-height:90%;object-fit:contain;"></div><div class="cat-name">Refrescos</div></div>
+            <div class="cat-chip"><div class="cat-img"><img src="bebidas/ciel.png" style="max-width:90%;max-height:90%;object-fit:contain;"></div><div class="cat-name">Agua</div></div>
+            <div class="cat-chip"><div class="cat-img"><img src="bebidas/fruta.png" style="max-width:90%;max-height:90%;object-fit:contain;"></div><div class="cat-name">Frutas</div></div>
+            <div class="cat-chip"><div class="cat-img"><img src="bebidas/deportivos.png" style="max-width:90%;max-height:90%;object-fit:contain;"></div><div class="cat-name">Deportivas</div></div>
+            <div class="cat-chip"><div class="cat-img"><img src="bebidas/monster.png" style="max-width:90%;max-height:90%;object-fit:contain;"></div><div class="cat-name">Energéticos</div></div>
           </div>
 
           <div class="scroll-area">
@@ -658,7 +678,24 @@
                 <div class="banner-logo">túali</div>
                 <div class="banner-sub">Tu aliado para crecer</div>
               </div>
-              <div class="banner-tag">Realiza tu pedido<br>y acumula<br>Puntos Swapp 🔥</div>
+              <div class="banner-tag">Realiza tu pedido<br>y acumula<br>Puntos swapp 🔥</div>
+            </div>
+
+            <!-- ── Live KPI strip (filled by JS) ── -->
+            <div id="live-stats-strip" style="display:flex;gap:8px;padding:0 16px 12px;">
+              <div class="skeleton" style="height:50px;flex:1;"></div>
+              <div class="skeleton" style="height:50px;flex:1;"></div>
+              <div class="skeleton" style="height:50px;flex:1;"></div>
+            </div>
+
+            <!-- ── Live alert products section (filled by JS) ── -->
+            <div id="live-products-section">
+              <div class="section-header">
+                <span class="section-title">🔔 Alertas swapp</span>
+                <span class="section-link" style="color:#8C085E;">Cargando…</span>
+              </div>
+              <div class="skeleton" style="height:88px;margin:0 16px 10px;border-radius:14px;"></div>
+              <div class="skeleton" style="height:88px;margin:0 16px 10px;border-radius:14px;"></div>
             </div>
 
             <!-- Refrescos -->
@@ -670,7 +707,7 @@
             <!-- Prod 0: normal -->
             <div class="product-card" onclick="openModal(0)">
               <div class="prod-img">
-                <div class="prod-badge">4 PZAS</div>🥤
+                <div class="prod-badge">4 PZAS</div><img src="bebidas/cocasinazucar.png" style="max-width:85%;max-height:85%;object-fit:contain;">
               </div>
               <div class="prod-info">
                 <div class="prod-name">Coca-Cola Sin Azúcar, Botella Pet 1.75 L, 4 Pi…</div>
@@ -686,12 +723,12 @@
 
             <!-- Prod 1: low stock -->
             <div class="product-card" onclick="openModal(1)">
-              <div class="prod-img">🍋</div>
+              <div class="prod-img"><img src="bebidas/penafiel.png" style="max-width:85%;max-height:85%;object-fit:contain;"></div>
               <div class="prod-info">
                 <div class="prod-name">Limonada Peñafiel, Botella 600 ml, Pack de 12</div>
                 <div class="prod-price">$89.90</div>
                 <div class="prod-label">Paquetes</div>
-                <div class="stock-warn">🔔 ¡Pocas unidades! — Gana pts Swapp</div>
+                <div class="stock-warn">🔔 ¡Pocas unidades! — Gana pts swapp</div>
                 <div class="qty-control">
                   <button class="qty-btn" onclick="event.stopPropagation();changeQty(1,-1)">−</button>
                   <div class="qty-num" id="qty1">0</div>
@@ -703,13 +740,13 @@
             <!-- Prod 2: low stock -->
             <div class="product-card" onclick="openModal(2)">
               <div class="prod-img">
-                <div class="prod-badge">6 PZAS</div>🫗
+                <div class="prod-badge">6 PZAS</div><img src="bebidas/ciel.png" style="max-width:85%;max-height:85%;object-fit:contain;">
               </div>
               <div class="prod-info">
                 <div class="prod-name">Agua Ciel, Pack 600 ml, 6 Piezas</div>
                 <div class="prod-price">$62.00</div>
                 <div class="prod-label">Paquetes</div>
-                <div class="stock-warn">🔔 ¡Pocas unidades! — Gana pts Swapp</div>
+                <div class="stock-warn">🔔 ¡Pocas unidades! — Gana pts swapp</div>
                 <div class="qty-control">
                   <button class="qty-btn" onclick="event.stopPropagation();changeQty(2,-1)">−</button>
                   <div class="qty-num" id="qty2">0</div>
@@ -726,7 +763,7 @@
 
             <!-- Prod 3: normal -->
             <div class="product-card" onclick="openModal(3)">
-              <div class="prod-img">⚡</div>
+              <div class="prod-img"><img src="bebidas/monster.png" style="max-width:85%;max-height:85%;object-fit:contain;"></div>
               <div class="prod-info">
                 <div class="prod-name">Monster Energy Original, Lata 473 ml, 4 Pzas</div>
                 <div class="prod-price">$145.00</div>
@@ -770,22 +807,22 @@
             <div style="font-size:18px;font-weight:800;margin-bottom:12px;">Categorías</div>
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
               <div style="background:#fff;border:0.5px solid #e0e0e0;border-radius:12px;padding:12px 6px;text-align:center;cursor:pointer;" onclick="goTo('home')">
-                <div style="font-size:28px;margin-bottom:5px;">🥤</div><div style="font-size:11px;font-weight:700;">Refrescos</div>
+                <div style="height:36px;display:flex;align-items:center;justify-content:center;margin-bottom:5px;"><img src="bebidas/cocasinazucar.png" style="max-height:32px;max-width:48px;object-fit:contain;"></div><div style="font-size:11px;font-weight:700;">Refrescos</div>
               </div>
               <div style="background:#fff;border:0.5px solid #e0e0e0;border-radius:12px;padding:12px 6px;text-align:center;">
-                <div style="font-size:28px;margin-bottom:5px;">💧</div><div style="font-size:11px;font-weight:700;">Agua</div>
+                <div style="height:36px;display:flex;align-items:center;justify-content:center;margin-bottom:5px;"><img src="bebidas/ciel.png" style="max-height:32px;max-width:48px;object-fit:contain;"></div><div style="font-size:11px;font-weight:700;">Agua</div>
               </div>
               <div style="background:#fff;border:0.5px solid #e0e0e0;border-radius:12px;padding:12px 6px;text-align:center;">
-                <div style="font-size:28px;margin-bottom:5px;">🍊</div><div style="font-size:11px;font-weight:700;">Frutas</div>
+                <div style="height:36px;display:flex;align-items:center;justify-content:center;margin-bottom:5px;"><img src="bebidas/fruta.png" style="max-height:32px;max-width:48px;object-fit:contain;"></div><div style="font-size:11px;font-weight:700;">Frutas</div>
               </div>
               <div style="background:#fff;border:0.5px solid #e0e0e0;border-radius:12px;padding:12px 6px;text-align:center;">
-                <div style="font-size:28px;margin-bottom:5px;">🏃</div><div style="font-size:11px;font-weight:700;">Deportivas</div>
+                <div style="height:36px;display:flex;align-items:center;justify-content:center;margin-bottom:5px;"><img src="bebidas/deportivos.png" style="max-height:32px;max-width:48px;object-fit:contain;"></div><div style="font-size:11px;font-weight:700;">Deportivas</div>
               </div>
               <div style="background:#fff;border:0.5px solid #e0e0e0;border-radius:12px;padding:12px 6px;text-align:center;">
-                <div style="font-size:28px;margin-bottom:5px;">⚡</div><div style="font-size:11px;font-weight:700;">Energéticos</div>
+                <div style="height:36px;display:flex;align-items:center;justify-content:center;margin-bottom:5px;"><img src="bebidas/monster.png" style="max-height:32px;max-width:48px;object-fit:contain;"></div><div style="font-size:11px;font-weight:700;">Energéticos</div>
               </div>
               <div style="background:#fff;border:0.5px solid #e0e0e0;border-radius:12px;padding:12px 6px;text-align:center;">
-                <div style="font-size:28px;margin-bottom:5px;">🧃</div><div style="font-size:11px;font-weight:700;">Jugos</div>
+                <div style="height:36px;display:flex;align-items:center;justify-content:center;margin-bottom:5px;"><img src="bebidas/nestea.png" style="max-height:32px;max-width:48px;object-fit:contain;"></div><div style="font-size:11px;font-weight:700;">Jugos</div>
               </div>
               <div style="background:#fff;border:0.5px solid #e0e0e0;border-radius:12px;padding:12px 6px;text-align:center;">
                 <div style="font-size:28px;margin-bottom:5px;">🥛</div><div style="font-size:11px;font-weight:700;">Lácteos</div>
@@ -898,7 +935,7 @@
             <div class="swapp-counter-big">
               <div class="swapp-icon-big">🔥</div>
               <div>
-                <div class="swapp-label-sm">Mis Puntos Swapp</div>
+                <div class="swapp-label-sm">Mis Puntos swapp</div>
                 <div class="swapp-pts-big" id="swappBig">120 pts</div>
                 <div class="swapp-pts-note">Canjéalos en tu próximo pedido</div>
               </div>
@@ -927,7 +964,7 @@
       </div><!-- /phone-screen -->
     </div><!-- /phone-wrap -->
 
-    <div class="demo-label">túali × <span>Swapp</span> — Demo interactivo para el pitch</div>
+    <div class="demo-label">túali × <span>swapp</span> — Demo interactivo para el pitch</div>
   </div>
 
   <script>
@@ -935,32 +972,32 @@
     const products = [
       {
         name: "Coca-Cola Sin Azúcar, Botella Pet 1.75 L, 4 Piezas",
-        price: "$108.49", label: "Paquetes", emoji: "🥤",
+        price: "$108.49", label: "Paquetes", emoji: "<img src='bebidas/cocasinazucar.png' style='max-width:90%;max-height:90%;object-fit:contain;'>",
         stock: 50, lowStock: false, subs: [
-          { name: "Pepsi Sin Azúcar 1.5 L, 4 Pzas",     price: "$98.50",  emoji: "🥤", pts: 50 },
-          { name: "Coca-Cola Original 1.75 L, 4 Pzas",  price: "$102.00", emoji: "🥤", pts: 30 }
+          { name: "Pepsi Sin Azúcar 1.5 L, 4 Pzas",     price: "$98.50",  emoji: "<img src='bebidas/cocasinazucar.png' style='max-width:90%;max-height:90%;object-fit:contain;'>", pts: 50 },
+          { name: "Coca-Cola Original 1.75 L, 4 Pzas",  price: "$102.00", emoji: "<img src='bebidas/cocasinazucar.png' style='max-width:90%;max-height:90%;object-fit:contain;'>", pts: 30 }
         ]
       },
       {
         name: "Limonada Peñafiel, Botella 600 ml, Pack de 12",
-        price: "$89.90", label: "Paquetes", emoji: "🍋",
+        price: "$89.90", label: "Paquetes", emoji: "<img src='bebidas/penafiel.png' style='max-width:90%;max-height:90%;object-fit:contain;'>",
         stock: 3, lowStock: true, subs: [
-          { name: "Squirt Toronja 600 ml, Pack 12",       price: "$85.00", emoji: "🍊", pts: 50 },
-          { name: "Limón-Té Nestea 600 ml, Pack 12",      price: "$78.00", emoji: "🧃", pts: 40 },
-          { name: "Agua Mineral Peñafiel 600 ml ×12",     price: "$55.00", emoji: "💧", pts: 30 }
+          { name: "Squirt Toronja 600 ml, Pack 12",       price: "$85.00", emoji: "<img src='bebidas/squirt.png' style='max-width:90%;max-height:90%;object-fit:contain;'>", pts: 50 },
+          { name: "Limón-Té Nestea 600 ml, Pack 12",      price: "$78.00", emoji: "<img src='bebidas/nestea.png' style='max-width:90%;max-height:90%;object-fit:contain;'>", pts: 40 },
+          { name: "Agua Mineral Peñafiel 600 ml ×12",     price: "$55.00", emoji: "<img src='bebidas/penafielmineral.png' style='max-width:90%;max-height:90%;object-fit:contain;'>", pts: 30 }
         ]
       },
       {
         name: "Agua Ciel, Pack 600 ml, 6 Piezas",
-        price: "$62.00", label: "Paquetes", emoji: "🫗",
+        price: "$62.00", label: "Paquetes", emoji: "<img src='bebidas/ciel.png' style='max-width:90%;max-height:90%;object-fit:contain;'>",
         stock: 2, lowStock: true, subs: [
-          { name: "Agua Epura 600 ml, 6 Pzas",            price: "$58.00", emoji: "💧", pts: 50 },
-          { name: "Agua Sta. María 600 ml, 6 Pzas",       price: "$55.00", emoji: "💧", pts: 40 }
+          { name: "Agua Epura 600 ml, 6 Pzas",            price: "$58.00", emoji: "<img src='bebidas/epura.png' style='max-width:90%;max-height:90%;object-fit:contain;'>", pts: 50 },
+          { name: "Agua Sta. María 600 ml, 6 Pzas",       price: "$55.00", emoji: "<img src='bebidas/stamaria.png' style='max-width:90%;max-height:90%;object-fit:contain;'>", pts: 40 }
         ]
       },
       {
         name: "Monster Energy Original, Lata 473 ml, 4 Piezas",
-        price: "$145.00", label: "Paquetes", emoji: "⚡",
+        price: "$145.00", label: "Paquetes", emoji: "<img src='bebidas/monster.png' style='max-width:90%;max-height:90%;object-fit:contain;'>",
         stock: 30, lowStock: false, subs: []
       }
     ];
@@ -999,7 +1036,7 @@
       selectedSub    = null;
       modalQty       = 1;
       document.getElementById('modalQtyNum').textContent = '1';
-      document.getElementById('modalEmoji').textContent  = currentProduct.emoji;
+      document.getElementById('modalEmoji').innerHTML  = currentProduct.emoji;
       document.getElementById('modalName').textContent   = currentProduct.name;
       document.getElementById('modalPrice').textContent  = currentProduct.price;
       document.getElementById('modalLabel').textContent  = currentProduct.label;
@@ -1012,7 +1049,7 @@
 
       if (currentProduct.lowStock) {
         warnEl.classList.add('show');
-        document.getElementById('modalStockNum').textContent = currentProduct.stock;
+        // stock count not shown to user
         subsSection.style.display = 'block';
         earnMsg.classList.add('show');
         renderSubs();
@@ -1057,7 +1094,7 @@
       const btnEl   = document.getElementById('modalAddBtn');
       const btnText = document.getElementById('modalBtnText');
       btnEl.className = 'modal-add-btn swapp-mode';
-      btnText.textContent = `Llevar sustituto · +${currentProduct.subs[idx].pts} pts Swapp 🔥`;
+      btnText.textContent = `Llevar sustituto · +${currentProduct.subs[idx].pts} pts swapp 🔥`;
     }
 
     // ── ADD TO CART ───────────────────────────────────────────────────────────
@@ -1072,7 +1109,7 @@
         swappPoints += pts;
         document.getElementById('headerPoints').textContent = swappPoints;
         document.getElementById('swappBig').textContent     = swappPoints + ' pts';
-        showToast(`🔥 +${pts} Puntos Swapp! Total: ${swappPoints} pts`);
+        showToast(`🔥 +${pts} Puntos swapp! Total: ${swappPoints} pts`);
       } else {
         showToast('✓ Producto añadido al carrito');
       }
@@ -1105,6 +1142,142 @@
     document.getElementById('productModal').addEventListener('click', function(e) {
       if (e.target === this) closeModal();
     });
+
+    // ── LIVE BACKEND CONNECTION ────────────────────────────────────────────────
+    const API_URL = 'http://localhost:5000';
+    let _liveProducts = [];
+    const PROD_EMOJIS = [
+      "<img src='bebidas/cocasinazucar.png' style='max-width:90%;max-height:90%;object-fit:contain;'>",
+      "<img src='bebidas/ciel.png' style='max-width:90%;max-height:90%;object-fit:contain;'>",
+      "<img src='bebidas/squirt.png' style='max-width:90%;max-height:90%;object-fit:contain;'>",
+      "<img src='bebidas/monster.png' style='max-width:90%;max-height:90%;object-fit:contain;'>",
+      "<img src='bebidas/nestea.png' style='max-width:90%;max-height:90%;object-fit:contain;'>",
+      "<img src='bebidas/penafiel.png' style='max-width:90%;max-height:90%;object-fit:contain;'>",
+      "<img src='bebidas/penafielmineral.png' style='max-width:90%;max-height:90%;object-fit:contain;'>",
+      "<img src='bebidas/epura.png' style='max-width:90%;max-height:90%;object-fit:contain;'>",
+      "<img src='bebidas/stamaria.png' style='max-width:90%;max-height:90%;object-fit:contain;'>",
+      "<img src='bebidas/cocasinazucar.png' style='max-width:90%;max-height:90%;object-fit:contain;'>"
+    ];
+
+    async function loadLiveData() {
+      try {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 5000);
+        const res = await fetch(API_URL + '/api/stats', { signal: ctrl.signal });
+        clearTimeout(timer);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        renderLiveStats(data);
+        renderLiveProducts(data);
+      } catch(e) {
+        document.getElementById('live-stats-strip').style.display = 'none';
+        document.getElementById('live-products-section').innerHTML = '';
+      }
+    }
+
+    function renderLiveStats(data) {
+      const strip = document.getElementById('live-stats-strip');
+      const tasa    = data.summary?.tasa_sustitucion ?? '—';
+      const total   = (data.summary?.total_sustituciones ?? 0).toLocaleString('es-MX');
+      const critico = data.summary?.riesgo_distribucion?.critico ?? 0;
+      strip.innerHTML = `
+        <div class="alert-pill">
+          <div class="alert-pill-val">${tasa}%</div>
+          <div class="alert-pill-lbl">Tasa sustitución</div>
+        </div>
+        <div class="alert-pill">
+          <div class="alert-pill-val">${total}</div>
+          <div class="alert-pill-lbl">Sustituciones</div>
+        </div>
+        <div class="alert-pill">
+          <div class="alert-pill-val">${critico}</div>
+          <div class="alert-pill-lbl">Clientes críticos</div>
+        </div>`;
+    }
+
+    function renderLiveProducts(data) {
+      const topProds = (data.productos_mas_sustituidos || []).slice(0, 3);
+      const pairs    = data.top_sustituciones || [];
+
+      // Build map: requested_product → [substitute pairs]
+      const subMap = {};
+      pairs.forEach(p => {
+        const k = p.nombre_sku_solicitado;
+        if (!subMap[k]) subMap[k] = [];
+        if (subMap[k].length < 3) subMap[k].push(p);
+      });
+
+      _liveProducts = topProds.map((p, i) => ({
+        name:      p.producto,
+        price:     `${p.frecuencia} sustituciones históricas`,
+        label:     `${p.pct_total}% del total · dato real`,
+        emoji:     PROD_EMOJIS[i % PROD_EMOJIS.length],
+        stock:     2,
+        lowStock:  true,
+        frecuencia: p.frecuencia,
+        subs: (subMap[p.producto] || []).map((s, j) => ({
+          name:  s.nombre_sku_solicitado_cambio.slice(0, 45),
+          price: 'Disponible en catálogo',
+          emoji: PROD_EMOJIS[(i + j + 1) % PROD_EMOJIS.length],
+          pts:   [50, 40, 30][j] ?? 25
+        }))
+      }));
+
+      const section = document.getElementById('live-products-section');
+      if (!topProds.length) { section.innerHTML = ''; return; }
+
+      const cards = _liveProducts.map((p, i) => `
+        <div class="product-card" onclick="openLiveModal(${i})">
+          <div class="prod-img">
+            <div class="prod-badge" style="background:#8C085E;">SUST</div>
+            ${p.emoji}
+          </div>
+          <div class="prod-info">
+            <div class="prod-name">${p.name.length > 48 ? p.name.slice(0,48)+'…' : p.name}</div>
+            <div class="prod-price" style="font-size:12px;color:#A60842;">${p.price}</div>
+            <div class="prod-label">${p.label}</div>
+            <div class="stock-warn">🔔 Alta sustitución — Gana pts swapp</div>
+          </div>
+        </div>`).join('');
+
+      section.innerHTML = `
+        <div class="section-header">
+          <span class="section-title">🔔 Alertas swapp</span>
+          <span class="section-link" style="color:#8C085E;">En vivo ●</span>
+        </div>
+        ${cards}`;
+    }
+
+    function openLiveModal(idx) {
+      const p = _liveProducts[idx];
+      if (!p) return;
+      currentProduct = p;
+      selectedSub = null;
+      modalQty    = 1;
+      document.getElementById('modalQtyNum').textContent = '1';
+      document.getElementById('modalEmoji').innerHTML  = p.emoji;
+      document.getElementById('modalName').textContent   = p.name.length > 60 ? p.name.slice(0,60)+'…' : p.name;
+      document.getElementById('modalPrice').textContent  = p.price;
+      document.getElementById('modalLabel').textContent  = p.label;
+
+      const warnEl      = document.getElementById('modalStockWarn');
+      const subsSection = document.getElementById('subsSection');
+      const earnMsg     = document.getElementById('earnMsg');
+      const btnEl       = document.getElementById('modalAddBtn');
+      const btnText     = document.getElementById('modalBtnText');
+
+      warnEl.classList.add('show');
+      warnEl.innerHTML = `🔔 <span>Producto con <strong>${p.frecuencia} sustituciones</strong> históricas. <span style="color:#A60842;">Elige un sustituto y gana puntos.</span></span>`;
+      subsSection.style.display = p.subs.length ? 'block' : 'none';
+      earnMsg.classList.add('show');
+      if (p.subs.length) renderSubs();
+      btnEl.className = 'modal-add-btn';
+      btnText.textContent = 'Añadir al carrito';
+
+      document.getElementById('productModal').classList.add('open');
+    }
+
+    document.addEventListener('DOMContentLoaded', loadLiveData);
   </script>
 </body>
 </html>
