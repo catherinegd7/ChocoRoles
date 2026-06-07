@@ -90,6 +90,23 @@
 
     /* ── MAIN (CHAT) AREA ── */
     .main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #1e0a30; }
+    .arcabot-title-bar {
+      padding: 14px 18px 10px; border-bottom: 1px solid rgba(255,255,255,.07);
+      display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+    }
+    .arcabot-avatar {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: linear-gradient(135deg, #F2071B, #F27507);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; color: #fff; flex-shrink: 0;
+    }
+    .arcabot-name { font-size: 17px; font-weight: 800; color: #f0e0ff; letter-spacing: -.3px; }
+    .arcabot-sub  { font-size: 11px; color: #7a5a9a; margin-top: 1px; }
+    .arcabot-badge {
+      margin-left: auto; background: rgba(242,117,7,.2); color: #F27507;
+      font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+      border: 1px solid rgba(242,117,7,.35);
+    }
     .chat-messages { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; background: #1e0a30; }
 
     /* ── CHAT BUBBLES ── */
@@ -254,8 +271,8 @@
     <div class="logo">sw<span>a</span>pp</div>
     <nav class="header-nav">
       <a href="/" class="nav-tab">Dashboard</a>
-      <a href="/report-builder" class="nav-tab active">Reportes IA</a>
-      <a href="/?section=analisis" class="nav-tab">Análisis IA</a>
+      <a href="/report-builder" class="nav-tab active">Reportes</a>
+      <a href="/?section=analisis" class="nav-tab">Predicciones</a>
     </nav>
     <div class="header-right">
       <div class="avatar">AC</div>
@@ -322,6 +339,14 @@
 
     <!-- ─── MAIN CHAT AREA ─── -->
     <main class="main-area">
+      <div class="arcabot-title-bar">
+        <div class="arcabot-avatar"><i class="fas fa-robot"></i></div>
+        <div>
+          <div class="arcabot-name">ArcaBot</div>
+          <div class="arcabot-sub">Asistente de análisis operativo — Arca Continental</div>
+        </div>
+        <span class="arcabot-badge">Gemini AI</span>
+      </div>
       <div id="chat-messages" class="chat-messages"></div>
       <div class="input-bar">
         <div class="input-row">

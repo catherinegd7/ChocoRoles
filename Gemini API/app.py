@@ -433,6 +433,103 @@ reason: una sola oración explicando por qué ese análisis aporta valor despué
         return jsonify({"ok": False, "error": str(e), "trace": traceback.format_exc()}), 500
 
 
+@app.route("/api/reportes/<tipo>")
+def reporte_estatico(tipo):
+    """Return structured report data computed from CSV (no AI)."""
+    try:
+        import pandas as pd
+        orders, _, resultados = load_data()
+
+        # ── date filtering ──────────────────────────────────────────
+        if "fecha_pedido" in orders.columns:
+            orders["fecha_pedido"] = pd.to_datetime(orders["fecha_pedido"], errors="coerce")
+            max_date = orders["fecha_pedido"].max()
+            if pd.notna(max_date):
+                if tipo == "diario":
+                    cutoff = max_date - pd.Timedelta(days=1)
+                elif tipo == "semanal":
+                    cutoff = max_date - pd.Timedelta(days=7)
+                elif tipo == "mensual":
+                    cutoff = max_date - pd.Timedelta(days=30)
+                else:
+                    cutoff = pd.Timestamp("2000-01-01")
+                o = orders[orders["fecha_pedido"] >= cutoff]
+                if len(o) < 10:   # fallback: not enough rows for that window
+                    o = orders
+                periodo_label = f"{cutoff.strftime('%d/%m/%Y')} — {max_date.strftime('%d/%m/%Y')}"
+            else:
+                o = orders
+                periodo_label = "Período completo"
+        else:
+            o = orders
+            periodo_label = "Período completo"
+
+        r = resultados[resultados["id_pedido"].isin(o["id_pedido"])]
+        top_n = {"diario": 5, "semanal": 8, "mensual": 12, "anual": 20}.get(tipo, 10)
+
+        # ── KPIs ────────────────────────────────────────────────────
+        n_ped = len(o)
+        n_sust = len(r)
+        tasa = round(n_sust / max(n_ped, 1) * 100, 1)
+        merged_c = r.merge(o[["id_pedido", "customer_id"]], on="id_pedido", how="left")
+        subs_per = merged_c.groupby("customer_id").size()
+        criticos = int((subs_per >= 3).sum())
+
+        # ── Top sustituciones ────────────────────────────────────────
+        pairs = (
+            r.groupby(["nombre_sku_solicitado", "nombre_sku_solicitado_cambio"])
+            .size().reset_index(name="frecuencia")
+            .sort_values("frecuencia", ascending=False).head(top_n)
+        )
+        top_sust = [{"solicitado": row.nombre_sku_solicitado[:45],
+                     "sustituto": row.nombre_sku_solicitado_cambio[:45],
+                     "frecuencia": int(row.frecuencia)}
+                    for _, row in pairs.iterrows()]
+
+        # ── CEDIS críticos ───────────────────────────────────────────
+        if "cedis" in o.columns:
+            mc = r.merge(o[["id_pedido", "cedis"]], on="id_pedido", how="left")
+            cedis_cnt = mc.groupby("cedis").size().sort_values(ascending=False).head(top_n)
+            cedis_list = [{"cedis": str(k), "sustituciones": int(v)} for k, v in cedis_cnt.items()]
+        else:
+            cedis_list = []
+
+        # ── Productos más vulnerables ────────────────────────────────
+        prod_cnt = r["nombre_sku_solicitado"].value_counts().head(top_n)
+        total_sust = max(len(r), 1)
+        productos = [{"producto": p[:45], "veces": int(f), "pct": round(f / total_sust * 100, 1)}
+                     for p, f in prod_cnt.items()]
+
+        # ── Distribución de riesgo clientes ─────────────────────────
+        subs_per_all = merged_c.groupby("customer_id").size()
+        risk_dist = {
+            "critico": int((subs_per_all >= 5).sum()),
+            "alto":    int(((subs_per_all >= 3) & (subs_per_all < 5)).sum()),
+            "medio":   int(((subs_per_all >= 1) & (subs_per_all < 3)).sum()),
+        }
+
+        # ── Top sustitutos (productos que más reemplazan) ────────────
+        sust_cnt = r["nombre_sku_solicitado_cambio"].value_counts().head(5)
+        top_sustitutos = [{"producto": p[:45], "veces": int(f)} for p, f in sust_cnt.items()]
+
+        # ── Business unit breakdown (anual only) ─────────────────────
+        bu_data = []
+        if tipo == "anual" and "business_unit" in o.columns:
+            mb = r.merge(o[["id_pedido", "business_unit"]], on="id_pedido", how="left")
+            bu_cnt = mb.groupby("business_unit").size().sort_values(ascending=False)
+            bu_data = [{"bu": str(k), "sustituciones": int(v)} for k, v in bu_cnt.items()]
+
+        return jsonify({
+            "ok": True, "tipo": tipo, "periodo": periodo_label,
+            "kpis": {"pedidos": n_ped, "sustituciones": n_sust, "tasa": tasa, "criticos": criticos},
+            "top_sustituciones": top_sust, "cedis_criticos": cedis_list,
+            "productos_vulnerables": productos, "riesgo_clientes": risk_dist,
+            "top_sustitutos": top_sustitutos, "business_units": bu_data,
+        })
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
 @app.route("/api/mongo/status")
 def mongo_status():
     """Return MongoDB connection status and available collections."""
@@ -733,36 +830,117 @@ def prediccion_impacto_economico():
             "cliente_mayor_valor_en_riesgo": top_critico,
         }
 
-        prompt = f"""Director financiero Arca Continental. HTML sin DOCTYPE. Sin emojis. Solo HTML.
+        prompt = f"""Director financiero y estratega de Arca Continental. HTML sin DOCTYPE. Sin emojis. Solo HTML.
+Usa EXACTAMENTE las clases CSS indicadas: kpi-row, kpi-pill, kp-val, kp-lbl, kp-risk, plan-item, prio-badge, plan-text, plan-roi, roi-bar-wrap, roi-bar.
 
-DATOS: {json.dumps(resumen, ensure_ascii=False, default=str)}
+DATOS REALES: {json.dumps(resumen, ensure_ascii=False, default=str)}
 
-Genera exactamente este HTML sin emojis ni iconos:
-<h3>Impacto Economico</h3>
-<table><thead><tr><th>KPI</th><th>Valor</th><th>Nivel</th></tr></thead>
+Genera el siguiente HTML completo sin emojis, usando los datos reales para calcular cifras:
+
+<h3>Plan de Accion e Impacto Economico</h3>
+
+<div class="kpi-row">
+  <div class="kpi-pill"><div class="kp-val">[N criticos]</div><div class="kp-lbl">Clientes Criticos</div><div class="kp-risk alto">Riesgo Alto</div></div>
+  <div class="kpi-pill"><div class="kp-val">$[valor en riesgo MXN formateado]</div><div class="kp-lbl">Valor en Riesgo</div><div class="kp-risk alto">Inmediato</div></div>
+  <div class="kpi-pill"><div class="kp-val">[tasa]%</div><div class="kp-lbl">Tasa de Sustitucion</div><div class="kp-risk [alto|medio segun umbral]">[nivel]</div></div>
+  <div class="kpi-pill"><div class="kp-val">$[perdida mensual estimada MXN]</div><div class="kp-lbl">Perdida Proyectada/Mes</div><div class="kp-risk medio">Proyectado</div></div>
+</div>
+
+<h4>Escenarios de Intervencion</h4>
+<table><thead><tr><th>Escenario</th><th>Clientes Recuperados</th><th>Perdida/Mes</th><th>Perdida Anual</th><th>Inversion Estimada</th></tr></thead>
 <tbody>
-<tr><td>Clientes Criticos</td><td>[N]</td><td>Alto</td></tr>
-<tr><td>Valor en Riesgo</td><td>$[monto MXN]</td><td>Inmediato</td></tr>
-<tr><td>Tasa Sustitucion</td><td>[%]</td><td>[nivel segun umbral]</td></tr>
-<tr><td>Perdida proyectada/mes</td><td>$[estimado MXN]</td><td>Proyectado</td></tr>
+  <tr><td>Sin intervencion</td><td>0%</td><td>$[calculo]</td><td>$[calculo x12]</td><td>$0</td></tr>
+  <tr><td>Intervencion parcial (top 3)</td><td>[%]</td><td>$[calculo reducido]</td><td>$[anual]</td><td>$[estimado bajo]</td></tr>
+  <tr><td>Plan completo de retencion</td><td>[%]</td><td>$[minimo]</td><td>$[anual minimo]</td><td>$[estimado total]</td></tr>
 </tbody></table>
-<h4>Cliente prioritario</h4>
-<p>[ID + valor historico + accion especifica en 1 linea]</p>
-<h4>Proyeccion</h4>
-<table><thead><tr><th>Escenario</th><th>Clientes perdidos</th><th>Perdida/mes</th><th>Anual</th></tr></thead>
-<tbody>[2 filas: sin intervencion vs con plan]</tbody></table>
-<h4>Plan de rescate</h4>
-<ul>[3 bullets: accion + responsable + plazo, max 12 palabras c/u]</ul>
-<p class="rec"><strong>Direccion:</strong> [Una decision ejecutiva, max 15 palabras]</p>"""
+
+<h4>Plan de Accion Prioritario</h4>
+[Para cada una de las 5 acciones, un bloque plan-item:]
+<div class="plan-item">
+  <span class="prio-badge [alta|media|baja]">[ALTA|MEDIA|BAJA]</span>
+  <div class="plan-text"><strong>[Nombre de la accion]</strong> — [Descripcion concreta: que hacer, quien, en cuanto tiempo, max 20 palabras]<div class="roi-bar-wrap"><div class="roi-bar" style="width:[N]%"></div></div></div>
+  <span class="plan-roi">ROI ~[X]x</span>
+</div>
+
+<p class="rec"><strong>Decision ejecutiva:</strong> [Una decision de alto impacto para implementar esta semana, max 20 palabras]</p>"""
 
         response = gemini_generate(
             contents=prompt,
             config=types.GenerateContentConfig(
-                system_instruction="Director de estrategia financiera de Arca Continental. Español. Tono ejecutivo, cifras concretas en pesos mexicanos. Jamas uses emojis, iconos unicode ni simbolos especiales.",
+                system_instruction="Director de estrategia financiera de Arca Continental. Español. Cifras reales en pesos mexicanos. Tono ejecutivo y preciso. Jamas uses emojis ni iconos unicode.",
                 temperature=0.3,
             ),
         )
         return jsonify({"ok": True, "prediccion": response.text, "resumen_datos": resumen})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route("/api/predicciones/acaparadores", methods=["POST"])
+def prediccion_acaparadores():
+    """Detect high-variance 'hoarder' customers who destabilize route inventory."""
+    try:
+        orders, _, resultados = load_data()
+
+        if "Total" not in orders.columns or orders["Total"].isna().all():
+            return jsonify({"ok": False, "error": "Sin datos de valor de pedido"}), 400
+
+        stats = (
+            orders.groupby("customer_id")["Total"]
+            .agg(["count", "mean", "std", "max", "min", "sum"])
+            .reset_index()
+        )
+        stats.columns = ["customer_id", "n_pedidos", "promedio", "std_dev", "max_pedido", "min_pedido", "total_compras"]
+        stats["coef_variacion"] = (stats["std_dev"] / stats["promedio"].clip(0.01)).fillna(0).round(3)
+        stats["ratio_max_avg"]  = (stats["max_pedido"] / stats["promedio"].clip(0.01)).fillna(1).round(2)
+        stats["riesgo_score"]   = (stats["coef_variacion"] * 0.55 + ((stats["ratio_max_avg"].clip(1,10) - 1) / 9) * 0.45).clip(0, 1).round(3)
+
+        # Only customers with enough history to be meaningful
+        significant = stats[stats["n_pedidos"] >= 3].nlargest(8, "riesgo_score")
+
+        # Enrich with their most substituted products
+        merged = resultados.merge(orders[["id_pedido", "customer_id"]], on="id_pedido", how="left")
+        top_sust_per_cust = (
+            merged.groupby(["customer_id", "nombre_sku_solicitado"])
+            .size().reset_index(name="freq")
+            .sort_values("freq", ascending=False)
+            .groupby("customer_id").first().reset_index()
+            .rename(columns={"nombre_sku_solicitado": "prod_mas_sustituido", "freq": "veces_sustituido"})
+        )
+
+        result = significant.merge(top_sust_per_cust, on="customer_id", how="left")
+        result["customer_id"] = result["customer_id"].astype(str)
+        acap_data = result[["customer_id","n_pedidos","promedio","max_pedido","coef_variacion","ratio_max_avg","riesgo_score","total_compras","prod_mas_sustituido","veces_sustituido"]].round(2).to_dict("records")
+
+        total_rutas = orders["cedis"].nunique() if "cedis" in orders.columns else "N/D"
+
+        prompt = f"""Analista de rutas y distribucion Arca Continental. HTML sin DOCTYPE. Sin emojis. Solo HTML.
+
+CLIENTES CON COMPORTAMIENTO IRREGULAR (ordenados por riesgo de acaparamiento):
+{json.dumps(acap_data, ensure_ascii=False, default=str)}
+
+Campos: customer_id, n_pedidos (historial), promedio (valor promedio por pedido MXN), max_pedido (pedido mas alto), coef_variacion (0-1, mayor = mas irregular), ratio_max_avg (max/promedio), riesgo_score (0-1), total_compras, prod_mas_sustituido.
+
+Total CEDIS/rutas analizadas: {total_rutas}
+
+Genera exactamente este HTML sin emojis:
+<h3>Clientes Acaparadores — Alerta de Inventario de Ruta</h3>
+<p><strong>Contexto:</strong> [1 oracion: impacto del acaparamiento en rutas de distribucion]</p>
+<h4>Clientes con Mayor Riesgo de Acaparamiento</h4>
+<table><thead><tr><th>Cliente</th><th>Pedido Max</th><th>Promedio</th><th>Varianza</th><th>Producto critico</th><th>Riesgo</th><th>Accion</th></tr></thead>
+<tbody>[8 filas, riesgo como porcentaje, accion en 4 palabras max]</tbody></table>
+<h4>Regla de Limite por Ruta</h4>
+<ul>[3 bullets: regla especifica para el vendedor — limite de cajas, condicion, justificacion en 10 palabras max]</ul>
+<p class="rec"><strong>Instruccion al vendedor:</strong> [Politica concreta de limite de compra para clientes de alta varianza, max 20 palabras]</p>"""
+
+        response = gemini_generate(
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction="Analista de distribucion y rutas de Arca Continental. Español directo. Jamas uses emojis ni simbolos unicode especiales.",
+                temperature=0.3,
+            ),
+        )
+        return jsonify({"ok": True, "prediccion": response.text, "clientes_analizados": len(acap_data)})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
