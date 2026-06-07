@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from mock_data import get_all_alerts, get_alert_by_id, build_voice_script
 from elevenlabs_service import text_to_speech
+from whatsapp_service import enviar_alerta_whatsapp
 
 app = FastAPI(title="Order Rescue API", version="1.0.0")
 
@@ -73,6 +74,35 @@ async def get_alert_audio(alert_id: str):
         media_type="audio/mpeg",
         headers={"Content-Disposition": f"inline; filename=alerta_{alert_id}.mp3"},
     )
+
+
+@app.post("/alerts/{alert_id}/whatsapp")
+async def send_alert_whatsapp(alert_id: str, numero: str | None = None):
+    """
+    Genera el audio de la alerta con ElevenLabs y lo manda
+    como nota de voz por WhatsApp Business API.
+    - numero: opcional, sobreescribe el destino del key.env
+    """
+    alert = get_alert_by_id(alert_id)
+    if not alert:
+        raise HTTPException(status_code=404, detail="Alerta no encontrada")
+
+    script = build_voice_script(alert)
+
+    try:
+        result = await enviar_alerta_whatsapp(script, numero)
+    except ValueError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Error enviando WhatsApp: {str(e)}")
+
+    return {
+        "ok": True,
+        "alert_id": alert_id,
+        "cliente": alert["cliente"],
+        "mensaje": script,
+        "whatsapp": result,
+    }
 
 
 @app.get("/alerts/{alert_id}/script")

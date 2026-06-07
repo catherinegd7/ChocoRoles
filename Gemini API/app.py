@@ -3,7 +3,7 @@ import json
 import os
 import re
 from dotenv import load_dotenv
-load_dotenv("key.env")
+load_dotenv(os.path.join(os.path.dirname(__file__), "key.env"))
 import time
 import uuid
 import traceback
@@ -16,7 +16,7 @@ from data_processor import (
     get_mongo_client_profile, get_mongo_clientes_riesgo, list_mongo_collections,
 )
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder=os.path.join(os.path.dirname(__file__), 'templates'))
 CORS(app)
 
 API_KEY = os.environ["GEMINI_API_KEY"]

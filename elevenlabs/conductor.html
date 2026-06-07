@@ -1,405 +1,732 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Order Rescue — Conductor</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Swapp · Conductor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #f4f4f0;
-      color: #1a1a1a;
+      font-family: 'Poppins', sans-serif;
+      background: #e8e8e6;
       min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
     }
 
-    /* ── Header ── */
-    .header {
-      background: #e63329;
-      color: white;
-      padding: 1rem 1.25rem;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-    .header-icon { font-size: 24px; }
-    .header-title { font-size: 17px; font-weight: 600; }
-    .header-sub { font-size: 12px; opacity: 0.85; }
-    .header-badge {
-      margin-left: auto;
-      background: rgba(255,255,255,0.25);
-      border-radius: 999px;
-      padding: 4px 12px;
-      font-size: 12px;
-      font-weight: 600;
+    :root {
+      --swapp: linear-gradient(to right,#8C085E,#A60842,#F2071B,#F2490C,#F27507);
+      --red:   #F2071B;
+      --orange:#F27507;
+      --purple:#8C085E;
+      --bg:    #f7f7f5;
+      --card:  #ffffff;
+      --border:#ebebeb;
+      --muted: #888;
+      --text:  #1a1a1a;
     }
 
-    /* ── Status bar ── */
+    /* ── PHONE FRAME ── */
+    .phone-wrap {
+      background: #111; border-radius: 54px; padding: 14px;
+      box-shadow: 0 40px 80px rgba(0,0,0,.4), 0 0 0 8px #222;
+    }
+    .notch-row { display:flex; justify-content:center; padding:6px 0 8px; }
+    .notch-pill {
+      width:110px; height:22px; background:#1c1c1c; border-radius:999px;
+      display:flex; align-items:center; justify-content:center; gap:6px;
+    }
+    .notch-dot { width:8px;  height:8px;  background:#2d2d2d; border-radius:50%; }
+    .notch-cam { width:10px; height:10px; background:#2d2d2d; border-radius:50%; }
+
+    .phone-screen {
+      width:362px; height:760px;
+      background: var(--bg);
+      border-radius:40px; overflow:hidden;
+      position:relative; display:flex; flex-direction:column;
+    }
+    .home-bar-row { display:flex; justify-content:center; padding:10px 0 5px; }
+    .home-bar { width:110px; height:4px; background:#333; border-radius:99px; }
+
     .status-bar {
-      background: white;
-      border-bottom: 1px solid #e8e8e4;
-      padding: 10px 1.25rem;
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-    }
-    .pill {
-      white-space: nowrap;
-      font-size: 11px;
-      font-weight: 500;
-      padding: 4px 10px;
-      border-radius: 999px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .pill-green  { background: #e8f5e9; color: #2e7d32; }
-    .pill-teal   { background: #e0f2f1; color: #00695c; }
-    .pill-red    { background: #ffebee; color: #c62828; }
-
-    /* ── Content ── */
-    .content { padding: 1rem 1.25rem; max-width: 480px; margin: 0 auto; }
-
-    .section-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin: 1rem 0 8px;
+      padding:10px 20px 4px;
+      display:flex; justify-content:space-between; align-items:center;
+      font-size:12px; font-weight:700;
+      background:transparent; flex-shrink:0;
     }
 
-    /* ── Alert card ── */
-    .card {
-      background: white;
-      border-radius: 14px;
-      border: 1px solid #e8e8e4;
-      padding: 1rem 1.125rem;
-      margin-bottom: 10px;
-      position: relative;
-      overflow: hidden;
+    /* ── HEADER ── */
+    .app-header {
+      background: linear-gradient(to right,#8C085E,#A60842,#F2071B,#F2490C,#F27507);
+      padding:12px 16px 10px; flex-shrink:0;
     }
-    .card::before {
-      content: '';
-      position: absolute;
-      left: 0; top: 0; bottom: 0;
-      width: 4px;
+    .header-top { display:flex; align-items:center; justify-content:space-between; }
+    .logo { font-size:20px; font-weight:900; color:#fff; letter-spacing:-.5px; }
+    .logo span { color:#ffd700; }
+    .header-role {
+      font-size:10px; font-weight:700; color:rgba(255,255,255,.75);
+      background:rgba(255,255,255,.18); border-radius:20px; padding:3px 10px;
     }
-    .card.critico::before  { background: #e53935; }
-    .card.aviso::before    { background: #fb8c00; }
-    .card.info::before     { background: #00897b; }
-
-    .card-top {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      margin-bottom: 8px;
+    .header-meta {
+      display:flex; align-items:center; gap:8px; margin-top:8px;
     }
-    .card-title { font-size: 14px; font-weight: 600; color: #1a1a1a; margin-bottom: 3px; }
-    .card-body  { font-size: 13px; color: #555; line-height: 1.5; }
-
-    .badge {
-      font-size: 10px;
-      font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 6px;
-      white-space: nowrap;
-      margin-left: 8px;
-      flex-shrink: 0;
+    .route-pill {
+      font-size:11px; font-weight:700; color:#fff;
+      background:rgba(255,255,255,.2); border-radius:20px; padding:4px 10px;
+      display:flex; align-items:center; gap:5px;
     }
-    .badge-critico { background: #ffebee; color: #c62828; }
-    .badge-aviso   { background: #fff3e0; color: #e65100; }
-    .badge-info    { background: #e0f2f1; color: #00695c; }
-
-    .meta { font-size: 11px; color: #999; margin-top: 6px; }
-
-    /* ── Churn bar ── */
-    .churn-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
-    .churn-label { font-size: 11px; color: #888; white-space: nowrap; }
-    .churn-bg { flex: 1; height: 5px; background: #f0f0ec; border-radius: 999px; overflow: hidden; }
-    .churn-fill { height: 100%; border-radius: 999px; transition: width 0.6s ease; }
-    .churn-score { font-size: 11px; font-weight: 600; white-space: nowrap; }
-
-    /* ── Play button ── */
-    .play-btn {
-      width: 100%;
-      margin-top: 10px;
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: 1px solid #ddd;
-      background: #fafaf8;
-      font-size: 13px;
-      font-weight: 500;
-      color: #1a1a1a;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: background 0.15s, transform 0.1s;
+    .voice-status {
+      margin-left:auto; font-size:11px; font-weight:700; color:#ffd700;
+      display:flex; align-items:center; gap:5px;
     }
-    .play-btn:hover  { background: #f0f0ec; }
-    .play-btn:active { transform: scale(0.98); }
-    .play-btn.loading { opacity: 0.55; cursor: not-allowed; }
-    .play-btn.playing { background: #e0f2f1; border-color: #80cbc4; color: #00695c; }
-
-    /* ── Wave animation ── */
-    .wave { display: none; align-items: center; gap: 2px; height: 18px; }
-    .wave.active { display: flex; }
-    .wave span {
-      display: block;
-      width: 3px;
-      background: #00897b;
-      border-radius: 2px;
-      animation: wv 0.6s ease-in-out infinite;
+    .voice-dot {
+      width:7px; height:7px; background:#ffd700; border-radius:50%;
+      animation: blink 1.4s infinite;
     }
-    .wave span:nth-child(1) { height: 5px;  animation-delay: 0s; }
-    .wave span:nth-child(2) { height: 13px; animation-delay: 0.1s; }
-    .wave span:nth-child(3) { height: 18px; animation-delay: 0.2s; }
-    .wave span:nth-child(4) { height: 11px; animation-delay: 0.3s; }
-    .wave span:nth-child(5) { height: 7px;  animation-delay: 0.15s; }
-    @keyframes wv {
-      0%, 100% { transform: scaleY(0.4); }
-      50%       { transform: scaleY(1); }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+    /* ── SCROLL AREA ── */
+    .scroll-area { overflow-y:auto; flex:1; padding:0 0 8px; }
+    .scroll-area::-webkit-scrollbar { display:none; }
+
+    /* ── STATS ROW ── */
+    .stats-row {
+      display:grid; grid-template-columns:repeat(3,1fr);
+      gap:8px; padding:12px 14px 8px;
+    }
+    .stat-card {
+      background:var(--card); border-radius:12px;
+      border:1px solid var(--border);
+      padding:10px 8px; text-align:center;
+    }
+    .stat-num { font-size:20px; font-weight:900; line-height:1; }
+    .stat-label { font-size:9px; font-weight:700; color:var(--muted); margin-top:3px; text-transform:uppercase; letter-spacing:.04em; }
+
+    /* ── SECTION LABEL ── */
+    .section-lbl {
+      font-size:10px; font-weight:800; color:var(--muted);
+      text-transform:uppercase; letter-spacing:.08em;
+      padding:8px 14px 4px;
     }
 
-    .status-msg {
-      font-size: 11px;
-      text-align: center;
-      margin-top: 5px;
-      min-height: 14px;
-      color: #999;
+    /* ── ALERT CARD ── */
+    .alert-card {
+      margin:0 10px 10px;
+      background:var(--card); border-radius:16px;
+      border:1.5px solid var(--border);
+      overflow:hidden; transition:box-shadow .2s;
     }
-    .status-msg.error   { color: #c62828; }
-    .status-msg.success { color: #2e7d32; }
+    .alert-card.critico { border-color:#F2071B; }
+    .alert-card.aviso   { border-color:#F27507; }
+    .alert-card.ok      { border-color:#22c55e; }
 
-    /* ── Loading state ── */
-    .loading-state {
-      text-align: center;
-      padding: 2rem;
-      color: #999;
-      font-size: 14px;
+    .alert-top {
+      padding:12px 14px 10px;
+      display:flex; gap:10px; align-items:flex-start;
+    }
+    .stop-num {
+      width:36px; height:36px; border-radius:10px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      font-size:15px; font-weight:900; color:#fff;
+    }
+    .stop-num.critico { background:linear-gradient(135deg,#8C085E,#F2071B); }
+    .stop-num.aviso   { background:linear-gradient(135deg,#F2490C,#F27507); }
+    .stop-num.ok      { background:#22c55e; }
+
+    .alert-info { flex:1; }
+    .alert-cliente { font-size:13px; font-weight:800; margin-bottom:2px; }
+    .alert-cedis   { font-size:10px; color:var(--muted); font-weight:600; }
+
+    .alert-badge {
+      font-size:9px; font-weight:800; padding:3px 8px; border-radius:20px;
+      white-space:nowrap;
+    }
+    .badge-critico { background:#fff0f0; color:#F2071B; border:1px solid #ffd0d0; }
+    .badge-aviso   { background:#fff8f0; color:#F27507; border:1px solid #ffe0c0; }
+    .badge-ok      { background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; }
+
+    /* Risk bar */
+    .risk-row { padding:0 14px 8px; display:flex; align-items:center; gap:8px; }
+    .risk-bar-bg {
+      flex:1; height:6px; background:#f0f0f0; border-radius:99px; overflow:hidden;
+    }
+    .risk-bar-fill { height:100%; border-radius:99px; transition:width .6s; }
+    .risk-pct { font-size:10px; font-weight:800; }
+
+    /* Detail row */
+    .detail-row {
+      padding:0 14px 10px;
+      font-size:11px; color:var(--muted); line-height:1.5; font-weight:600;
+    }
+    .detail-row strong { color:var(--text); }
+
+    /* Product substitution row */
+    .sust-row {
+      margin:0 14px 10px;
+      background:#fff8f0; border:1px solid #ffe4c0;
+      border-radius:10px; padding:8px 10px;
+      display:flex; align-items:center; gap:8px;
+      font-size:11px; font-weight:700;
+    }
+    .sust-arrow { font-size:16px; }
+
+    /* Action buttons */
+    .action-row { display:flex; gap:8px; padding:0 14px 14px; }
+    .btn-voice {
+      flex:1; border:none; border-radius:10px; padding:9px 10px;
+      font-size:11px; font-weight:800; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; gap:6px;
+      font-family:inherit;
+      background: linear-gradient(to right,#8C085E,#F2071B);
+      color:#fff; transition:opacity .15s;
+    }
+    .btn-voice:active { opacity:.8; }
+    .btn-voice.playing { background:linear-gradient(to right,#22c55e,#16a34a); }
+
+    .btn-apartar {
+      border:1.5px solid #F2071B; border-radius:10px; padding:9px 10px;
+      font-size:11px; font-weight:800; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; gap:6px;
+      font-family:inherit; background:#fff0f0; color:#F2071B;
+      transition:all .15s;
+    }
+    .btn-apartar.done {
+      background:#f0fdf4; border-color:#16a34a; color:#16a34a;
+    }
+    .btn-apartar:active { opacity:.8; }
+
+    .btn-wa {
+      border:none; border-radius:10px; padding:9px 10px;
+      font-size:11px; font-weight:800; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; gap:5px;
+      font-family:inherit; background:#25D366; color:#fff;
+      transition:opacity .15s;
+    }
+    .btn-wa:active { opacity:.8; }
+    .btn-wa.sending { background:#aaa; }
+
+    /* ── VOICE OVERLAY (alerta de voz activa) ── */
+    .voice-overlay {
+      position:absolute; inset:0; z-index:200;
+      background:rgba(0,0,0,.72);
+      display:none; flex-direction:column;
+      align-items:center; justify-content:center; gap:16px;
+      border-radius:inherit;
+    }
+    .voice-overlay.active { display:flex; }
+
+    .voice-wave {
+      display:flex; gap:5px; align-items:center; height:48px;
+    }
+    .wave-bar {
+      width:5px; background:#fff; border-radius:99px;
+      animation: wave 1s ease-in-out infinite;
+    }
+    .wave-bar:nth-child(1){ height:18px; animation-delay:0s; }
+    .wave-bar:nth-child(2){ height:32px; animation-delay:.1s; }
+    .wave-bar:nth-child(3){ height:44px; animation-delay:.2s; }
+    .wave-bar:nth-child(4){ height:28px; animation-delay:.3s; }
+    .wave-bar:nth-child(5){ height:40px; animation-delay:.4s; }
+    .wave-bar:nth-child(6){ height:22px; animation-delay:.5s; }
+    .wave-bar:nth-child(7){ height:36px; animation-delay:.15s; }
+    @keyframes wave {
+      0%,100%{ transform:scaleY(1); }
+      50%     { transform:scaleY(.4); }
     }
 
-    /* ── Footer ── */
-    .footer {
-      text-align: center;
-      padding: 1.5rem;
-      font-size: 11px;
-      color: #bbb;
+    .voice-card {
+      background:#fff; border-radius:20px;
+      padding:20px 22px; width:300px; text-align:center;
+    }
+    .voice-icon { font-size:36px; margin-bottom:8px; }
+    .voice-title { font-size:15px; font-weight:900; margin-bottom:6px; }
+    .voice-msg { font-size:12px; color:var(--muted); line-height:1.5; font-weight:600; margin-bottom:14px; }
+    .voice-close {
+      width:100%; padding:10px; border:none; border-radius:10px;
+      background:linear-gradient(to right,#8C085E,#F2071B);
+      color:#fff; font-size:13px; font-weight:800; cursor:pointer; font-family:inherit;
+    }
+
+    /* ── TOAST ── */
+    .toast {
+      position:absolute; bottom:68px; left:50%;
+      transform:translateX(-50%) translateY(50px);
+      background:#111; color:#fff;
+      padding:8px 16px; border-radius:20px;
+      font-size:11px; font-weight:700; z-index:300;
+      transition:transform .25s ease; white-space:nowrap;
+      pointer-events:none;
+    }
+    .toast.show { transform:translateX(-50%) translateY(0); }
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav {
+      display:flex; border-top:1px solid var(--border);
+      background:#fff; padding:8px 0 10px; flex-shrink:0;
+    }
+    .bottom-tab {
+      flex:1; display:flex; flex-direction:column; align-items:center;
+      gap:3px; cursor:pointer; font-size:9px; font-weight:700;
+      color:var(--muted); padding:4px 0; text-transform:uppercase; letter-spacing:.04em;
+    }
+    .bottom-tab.active { color:#F2071B; }
+    .bottom-tab svg { width:20px; height:20px; }
+
+    /* ── DEMO LABEL ── */
+    .demo-label {
+      text-align:center; font-size:11px; font-weight:700;
+      color:#666; margin-top:14px; letter-spacing:.5px;
+    }
+    .demo-label span {
+      background:linear-gradient(to right,#8C085E,#F27507);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      font-weight:900;
+    }
+
+    /* ── SHIMMER for loading ── */
+    @keyframes shimmer {
+      0%   { background-position:-300px 0; }
+      100% { background-position:300px 0; }
+    }
+    .shimmer {
+      background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);
+      background-size:600px 100%;
+      animation:shimmer 1.2s infinite;
+      border-radius:8px;
     }
   </style>
 </head>
 <body>
 
-<div class="header">
-  <span class="header-icon">🚚</span>
-  <div>
-    <div class="header-title">Order Rescue</div>
-    <div class="header-sub">Panel del conductor</div>
-  </div>
-  <div class="header-badge" id="alertCount">...</div>
-</div>
+<div>
+  <div class="phone-wrap">
+    <div class="notch-row">
+      <div class="notch-pill">
+        <div class="notch-dot"></div>
+        <div class="notch-cam"></div>
+      </div>
+    </div>
 
-<div class="status-bar">
-  <span class="pill pill-green">🟢 En línea</span>
-  <span class="pill pill-teal">📍 Ruta 7 · 12 paradas</span>
-  <span class="pill pill-red" id="alertPill">🔔 Cargando...</span>
-</div>
+    <div class="phone-screen">
+      <!-- TOAST -->
+      <div class="toast" id="toast"></div>
 
-<div class="content">
-  <div class="section-label">Alertas activas</div>
-  <div id="alertsContainer">
-    <div class="loading-state">Cargando alertas...</div>
-  </div>
-</div>
+      <!-- VOICE OVERLAY -->
+      <div class="voice-overlay" id="voiceOverlay">
+        <div class="voice-wave">
+          <div class="wave-bar"></div><div class="wave-bar"></div>
+          <div class="wave-bar"></div><div class="wave-bar"></div>
+          <div class="wave-bar"></div><div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+        </div>
+        <div class="voice-card">
+          <div class="voice-icon" id="overlayIcon">🔊</div>
+          <div class="voice-title" id="overlayTitle">Alerta de voz</div>
+          <div class="voice-msg" id="overlayMsg">Cargando mensaje…</div>
+          <button class="voice-close" onclick="closeVoice()">✓ Entendido</button>
+        </div>
+      </div>
 
-<div class="footer">Order Rescue · Arca Continental · Powered by ElevenLabs</div>
+      <!-- STATUS BAR -->
+      <div class="status-bar">
+        <span>9:41</span>
+        <span>●●●● 🔋</span>
+      </div>
+
+      <!-- HEADER -->
+      <div class="app-header">
+        <div class="header-top">
+          <div class="logo">Sw<span>a</span>pp</div>
+          <div class="header-role">🚚 Conductor</div>
+        </div>
+        <div class="header-meta">
+          <div class="route-pill">📍 Ruta CEDIS Norte</div>
+          <div class="voice-status">
+            <div class="voice-dot"></div>
+            Voz activa
+          </div>
+        </div>
+      </div>
+
+      <!-- STATS ROW -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-num" id="stat-paradas" style="color:#F2071B">–</div>
+          <div class="stat-label">Paradas</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="stat-criticos" style="color:#8C085E">–</div>
+          <div class="stat-label">Críticos</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="stat-avisos" style="color:#F27507">–</div>
+          <div class="stat-label">Avisos</div>
+        </div>
+      </div>
+
+      <div class="scroll-area" id="alertList">
+        <div class="section-lbl">Cargando alertas de ruta…</div>
+        <!-- cards se inyectan por JS -->
+      </div>
+
+      <div class="bottom-nav">
+        <div class="bottom-tab active">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+          </svg>
+          Ruta
+        </div>
+        <div class="bottom-tab">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
+          </svg>
+          Alertas
+        </div>
+        <div class="bottom-tab">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+          Historial
+        </div>
+      </div>
+
+      <div class="home-bar-row"><div class="home-bar"></div></div>
+    </div><!-- /phone-screen -->
+  </div><!-- /phone-wrap -->
+
+  <div class="demo-label"><span>Swapp</span> · Vista Conductor — Demo interactivo</div>
+</div>
 
 <script>
-  // ── Config ──────────────────────────────────────────────────────────────────
-  // Cambia este URL si tu backend corre en otro puerto
-  const API_BASE = 'http://localhost:8000';
+// ── CONFIG ─────────────────────────────────────────────────────────────────
+const API = 'http://localhost:8000';          // FastAPI ElevenLabs server
+const FALLBACK_ALERTS = [
+  {
+    id:'alert_001', parada:1, tipo:'critico',
+    cliente:'Abarrotes El Baby #8429', cedis:'CEDIS Norte',
+    churn_score:87, sustituciones_mes:5, tasa_sustitucion:72,
+    producto_original:'Coca-Cola 600ml ×24', producto_sustituto:'Coca-Cola Sin Azúcar 600ml',
+    accion_recomendada:'Cliente con 5 sustituciones y tasa del 72%. Preséntate con amabilidad y ofrece puntos de compensación.',
+    puntos_compensacion:150, estado:'Crítico',
+  },
+  {
+    id:'alert_002', parada:2, tipo:'critico',
+    cliente:'Mini Super Alanis #3120', cedis:'CEDIS Norte',
+    churn_score:74, sustituciones_mes:3, tasa_sustitucion:58,
+    producto_original:'Agua Ciel 1L ×12', producto_sustituto:'Agua Epura 1L ×12',
+    accion_recomendada:'Cliente insatisfecho con 3 sustituciones. Apartar producto antes de la entrega.',
+    puntos_compensacion:100, estado:'Crítico',
+  },
+  {
+    id:'alert_003', parada:3, tipo:'aviso',
+    cliente:'Tienda Don Pepe #5544', cedis:'CEDIS Norte',
+    churn_score:44, sustituciones_mes:1, tasa_sustitucion:31,
+    producto_original:'Sprite 600ml ×12', producto_sustituto:null,
+    accion_recomendada:'Informar al cliente sobre posible cambio en su pedido.',
+    puntos_compensacion:50, estado:'Riesgo Moderado',
+  },
+  {
+    id:'alert_004', parada:4, tipo:'ok',
+    cliente:'Abarrotes Ramírez #2210', cedis:'CEDIS Norte',
+    churn_score:12, sustituciones_mes:0, tasa_sustitucion:5,
+    producto_original:null, producto_sustituto:null,
+    accion_recomendada:null,
+    puntos_compensacion:0, estado:'Satisfecho',
+  },
+  {
+    id:'alert_005', parada:5, tipo:'aviso',
+    cliente:'Oxxo Periférico #7701', cedis:'CEDIS Norte',
+    churn_score:51, sustituciones_mes:2, tasa_sustitucion:40,
+    producto_original:'Powerade 600ml ×6', producto_sustituto:'Gatorade 600ml ×6',
+    accion_recomendada:'Confirmar con cliente antes de entregar sustituto.',
+    puntos_compensacion:50, estado:'Riesgo Moderado',
+  },
+];
 
-  // ── Estado ──────────────────────────────────────────────────────────────────
-  let currentAudio = null;
-  let currentAlertId = null;
+// Estado de "apartados"
+const apartados = new Set();
+// Estado de audio activo
+let currentAudio = null;
+// Alerts cargados (API o fallback)
+let loadedAlerts = [];
 
-  // ── Cargar alertas al iniciar ────────────────────────────────────────────────
-  async function loadAlerts() {
-    try {
-      const res = await fetch(`${API_BASE}/alerts`);
-      if (!res.ok) throw new Error('Error al cargar alertas');
-      const alerts = await res.json();
-      renderAlerts(alerts);
-    } catch (e) {
-      document.getElementById('alertsContainer').innerHTML =
-        `<div class="loading-state" style="color:#c62828;">
-          ⚠ No se pudo conectar al backend.<br>
-          <small>Asegúrate de que FastAPI esté corriendo en ${API_BASE}</small>
-        </div>`;
-    }
+// ── LOAD ALERTS ───────────────────────────────────────────────────────────
+async function loadAlerts() {
+  try {
+    const res = await fetch(API + '/alerts', { signal: AbortSignal.timeout(3000) });
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) throw new Error('empty');
+    loadedAlerts = data;
+  } catch {
+    loadedAlerts = FALLBACK_ALERTS;
+  }
+  renderAlerts(loadedAlerts);
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function renderAlerts(alerts) {
+  // Stats
+  const criticos = alerts.filter(a => a.tipo === 'critico').length;
+  const avisos   = alerts.filter(a => a.tipo === 'aviso').length;
+  document.getElementById('stat-paradas').textContent  = alerts.length;
+  document.getElementById('stat-criticos').textContent = criticos;
+  document.getElementById('stat-avisos').textContent   = avisos;
+
+  const list = document.getElementById('alertList');
+  list.innerHTML = '';
+
+  // Sección críticos
+  const crits = alerts.filter(a => a.tipo === 'critico');
+  if (crits.length) {
+    const lbl = document.createElement('div');
+    lbl.className = 'section-lbl';
+    lbl.textContent = `⚠️ Clientes en riesgo crítico (${crits.length})`;
+    list.appendChild(lbl);
+    crits.forEach(a => list.appendChild(makeCard(a)));
   }
 
-  // ── Render ──────────────────────────────────────────────────────────────────
-  function renderAlerts(alerts) {
-    const criticos = alerts.filter(a => a.tipo === 'critico').length;
-    document.getElementById('alertCount').textContent = `${criticos} críticas`;
-    document.getElementById('alertPill').textContent = `🔔 ${alerts.length} alertas`;
+  // Sección avisos
+  const aviss = alerts.filter(a => a.tipo === 'aviso');
+  if (aviss.length) {
+    const lbl = document.createElement('div');
+    lbl.className = 'section-lbl';
+    lbl.style.marginTop = '4px';
+    lbl.textContent = `🔔 Avisos de ruta (${aviss.length})`;
+    list.appendChild(lbl);
+    aviss.forEach(a => list.appendChild(makeCard(a)));
+  }
 
-    const container = document.getElementById('alertsContainer');
-    container.innerHTML = '';
+  // Sección ok
+  const oks = alerts.filter(a => a.tipo === 'ok');
+  if (oks.length) {
+    const lbl = document.createElement('div');
+    lbl.className = 'section-lbl';
+    lbl.style.marginTop = '4px';
+    lbl.textContent = `✅ Entrega normal (${oks.length})`;
+    list.appendChild(lbl);
+    oks.forEach(a => list.appendChild(makeCard(a)));
+  }
 
-    alerts.forEach(alert => {
-      const churnColor = alert.churn_score >= 70 ? '#e53935'
-                       : alert.churn_score >= 40 ? '#fb8c00' : '#43a047';
+  // Auto-play primera alerta crítica al cargar (como Waze)
+  if (crits.length > 0) {
+    setTimeout(() => {
+      triggerVoice(crits[0]);
+      simulateTTS(crits[0], null);
+    }, 1200);
+  }
+}
 
-      const badgeClass = `badge-${alert.tipo}`;
-      const badgeLabel = alert.tipo === 'critico' ? '🔴 Crítico'
-                       : alert.tipo === 'aviso'   ? '🟠 Aviso' : '🟢 Info';
+function makeCard(a) {
+  const div = document.createElement('div');
+  div.className = `alert-card ${a.tipo}`;
+  div.id = `card-${a.id}`;
 
-      const bodyText = alert.producto_original
-        ? alert.producto_sustituto
-          ? `<strong>${alert.producto_original}</strong> → <strong>${alert.producto_sustituto}</strong>`
-          : `<strong>${alert.producto_original}</strong> no disponible hoy`
-        : 'Entrega completa sin cambios';
+  const riskColor = a.tipo === 'critico' ? '#F2071B' : a.tipo === 'aviso' ? '#F27507' : '#22c55e';
+  const scoreW    = Math.min(a.churn_score, 100);
 
-      const accion = alert.accion_recomendada
-        ? `<div style="margin-top:6px; font-size:12px; color:#555; background:#fafaf8; border-radius:8px; padding:6px 8px;">
-            💡 ${alert.accion_recomendada}
-           </div>`
-        : '';
+  // Sustitución row
+  const sustHTML = a.producto_original ? `
+    <div class="sust-row">
+      <span>📦</span>
+      <span style="flex:1;">
+        <span style="text-decoration:${a.producto_sustituto ? 'line-through' : 'none'};color:#aaa;">${a.producto_original}</span>
+        ${a.producto_sustituto ? `<span class="sust-arrow">→</span><strong style="color:#F2071B;">${a.producto_sustituto}</strong>` : ''}
+      </span>
+      ${a.producto_sustituto ? `<span style="background:linear-gradient(to right,#8C085E,#F27507);color:#fff;font-size:9px;font-weight:800;padding:3px 7px;border-radius:20px;">+${a.puntos_compensacion} pts</span>` : ''}
+    </div>` : '';
 
-      container.innerHTML += `
-        <div class="card ${alert.tipo}" id="card_${alert.id}">
-          <div class="card-top">
-            <div>
-              <div class="card-title">Parada ${alert.parada} — ${alert.cliente}</div>
-              <div class="card-body">${bodyText}</div>
-            </div>
-            <span class="badge ${badgeClass}">${badgeLabel}</span>
-          </div>
+  // Botones según tipo
+  const apartadoBtn = (a.tipo === 'critico') ? `
+    <button class="btn-apartar" id="btn-ap-${a.id}" onclick="apartar('${a.id}')">
+      📦 Apartar
+    </button>` : '';
 
-          <div class="churn-row">
-            <span class="churn-label">Riesgo churn</span>
-            <div class="churn-bg">
-              <div class="churn-fill" style="width:${alert.churn_score}%; background:${churnColor};"></div>
-            </div>
-            <span class="churn-score" style="color:${churnColor};">${alert.churn_score}%</span>
-          </div>
+  const waBtn = (a.tipo !== 'ok') ? `
+    <button class="btn-wa" id="btn-wa-${a.id}" onclick="enviarWA('${a.id}')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.999 2C6.477 2 2 6.477 2 12c0 1.822.487 3.53 1.338 5L2 22l5.13-1.31A9.96 9.96 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/></svg>
+      WhatsApp
+    </button>` : '';
 
-          ${accion}
+  div.innerHTML = `
+    <div class="alert-top">
+      <div class="stop-num ${a.tipo}">${a.parada}</div>
+      <div class="alert-info">
+        <div class="alert-cliente">${a.cliente}</div>
+        <div class="alert-cedis">${a.cedis}</div>
+      </div>
+      <div class="alert-badge badge-${a.tipo}">
+        ${ a.tipo === 'critico' ? '🚨 Crítico' : a.tipo === 'aviso' ? '⚠️ Aviso' : '✅ Normal' }
+      </div>
+    </div>
 
-          <div class="meta">👤 ${alert.cliente} · ${alert.cedis} · ${alert.sustituciones_mes} sustituciones este mes</div>
+    ${ a.tipo !== 'ok' ? `
+    <div class="risk-row">
+      <span style="font-size:10px;font-weight:700;color:var(--muted);">Riesgo</span>
+      <div class="risk-bar-bg">
+        <div class="risk-bar-fill" style="width:${scoreW}%;background:${riskColor};"></div>
+      </div>
+      <span class="risk-pct" style="color:${riskColor};">${a.churn_score}%</span>
+    </div>` : '' }
 
-          <button class="play-btn" id="btn_${alert.id}" onclick="playAlert('${alert.id}')">
-            <div class="wave" id="wave_${alert.id}">
-              <span></span><span></span><span></span><span></span><span></span>
-            </div>
-            <span id="icon_${alert.id}">🔊</span>
-            <span id="label_${alert.id}">Escuchar alerta de voz</span>
-          </button>
-          <div class="status-msg" id="msg_${alert.id}"></div>
-        </div>
-      `;
+    ${ a.accion_recomendada ? `
+    <div class="detail-row">
+      ${a.accion_recomendada}
+    </div>` : '' }
+
+    ${sustHTML}
+
+    <div class="action-row">
+      <button class="btn-voice" id="btn-v-${a.id}" onclick="playVoice('${a.id}')">
+        🔊 Escuchar
+      </button>
+      ${waBtn}
+      ${apartadoBtn}
+    </div>
+  `;
+  return div;
+}
+
+// ── VOICE PLAYBACK ────────────────────────────────────────────────────────
+async function playVoice(alertId) {
+  const btn = document.getElementById('btn-v-' + alertId);
+
+  // Busca en los alerts realmente cargados (API o fallback)
+  let alert = loadedAlerts.find(a => a.id === alertId) || FALLBACK_ALERTS.find(a => a.id === alertId);
+
+  // Muestra overlay
+  triggerVoice(alert);
+
+  // Intenta audio real de ElevenLabs
+  try {
+    if (btn) { btn.textContent = '⏳ Cargando…'; btn.disabled = true; }
+    const res = await fetch(`${API}/alerts/${alertId}/audio`, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) throw new Error('no audio');
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    if (currentAudio) { currentAudio.pause(); URL.revokeObjectURL(currentAudio.src); }
+    currentAudio = new Audio(url);
+    currentAudio.play();
+    if (btn) { btn.className = 'btn-voice playing'; btn.textContent = '▶ Reproduciendo…'; btn.disabled = false; }
+    currentAudio.onended = () => {
+      if (btn) { btn.className = 'btn-voice'; btn.textContent = '🔊 Escuchar alerta'; }
+    };
+  } catch {
+    // Sin conexión a ElevenLabs → simula con voz del navegador
+    simulateTTS(alert, btn);
+  }
+}
+
+function triggerVoice(alert) {
+  if (!alert) return;
+  const icon  = alert.tipo === 'critico' ? '🚨' : alert.tipo === 'aviso' ? '⚠️' : '✅';
+  const title = alert.tipo === 'critico' ? '¡Alerta Crítica!' : alert.tipo === 'aviso' ? 'Aviso de Ruta' : 'Entrega Normal';
+  const msg   = buildScript(alert);
+  document.getElementById('overlayIcon').textContent  = icon;
+  document.getElementById('overlayTitle').textContent = title;
+  document.getElementById('overlayMsg').textContent   = msg;
+  document.getElementById('voiceOverlay').classList.add('active');
+}
+
+function closeVoice() {
+  document.getElementById('voiceOverlay').classList.remove('active');
+  if (currentAudio) { currentAudio.pause(); }
+}
+
+function simulateTTS(alert, btn) {
+  const script = buildScript(alert);
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(script);
+    utt.lang = 'es-MX'; utt.rate = 0.95; utt.pitch = 1;
+    // Prefiere voz en español
+    const voices = window.speechSynthesis.getVoices();
+    const esVoice = voices.find(v => v.lang.startsWith('es'));
+    if (esVoice) utt.voice = esVoice;
+    utt.onend = () => {
+      if (btn) { btn.className = 'btn-voice'; btn.textContent = '🔊 Escuchar alerta'; btn.disabled = false; }
+    };
+    if (btn) { btn.className = 'btn-voice playing'; btn.textContent = '▶ Reproduciendo…'; btn.disabled = false; }
+    window.speechSynthesis.speak(utt);
+  } else {
+    showToast('🔊 Sin soporte de voz en este navegador');
+    if (btn) { btn.className = 'btn-voice'; btn.textContent = '🔊 Escuchar alerta'; btn.disabled = false; }
+  }
+}
+
+function buildScript(a) {
+  if (!a) return '';
+  if (a.tipo === 'critico') {
+    const sust = a.sustituciones_mes > 0 ? `Ha tenido ${a.sustituciones_mes} sustituciones con tasa del ${Math.round(a.tasa_sustitucion)} por ciento. ` : '';
+    return `Atención conductor. En la parada ${a.parada} hay una alerta crítica. ${sust}Preséntate con amabilidad y comunica al cliente que recibirá ${a.puntos_compensacion} puntos de compensación. Tu atención puede retener a este cliente.`;
+  }
+  if (a.tipo === 'aviso') {
+    return `Aviso para la parada ${a.parada}. El cliente ${a.cliente} puede tener cambios en su pedido. Infórmale con anticipación y recuérdale sus ${a.puntos_compensacion} puntos de compensación.`;
+  }
+  return `Parada ${a.parada}. Cliente satisfecho. Entrega normal sin cambios. ¡Buen trabajo!`;
+}
+
+// ── ENVIAR WHATSAPP ───────────────────────────────────────────────────────
+async function enviarWA(alertId) {
+  const btn = document.getElementById('btn-wa-' + alertId);
+  if (!btn || btn.dataset.sent) return;
+
+  btn.className = 'btn-wa sending';
+  btn.textContent = '⏳ Enviando…';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`${API}/alerts/${alertId}/whatsapp`, {
+      method: 'POST',
+      signal: AbortSignal.timeout(15000),
     });
-  }
-
-  // ── Reproducir audio desde el backend ───────────────────────────────────────
-  async function playAlert(alertId) {
-    const btn   = document.getElementById(`btn_${alertId}`);
-    const wave  = document.getElementById(`wave_${alertId}`);
-    const icon  = document.getElementById(`icon_${alertId}`);
-    const label = document.getElementById(`label_${alertId}`);
-    const msg   = document.getElementById(`msg_${alertId}`);
-
-    // Si ya está sonando esta alerta, pausar
-    if (currentAudio && currentAlertId === alertId) {
-      currentAudio.pause();
-      currentAudio = null;
-      resetBtn(alertId);
-      return;
-    }
-
-    // Si hay otro audio sonando, pararlo
-    if (currentAudio) {
-      currentAudio.pause();
-      currentAudio = null;
-      if (currentAlertId) resetBtn(currentAlertId);
-    }
-
-    // Estado: cargando
-    btn.classList.add('loading');
-    btn.disabled = true;
-    icon.textContent = '⏳';
-    label.textContent = 'Generando audio...';
-    msg.textContent = 'Conectando con ElevenLabs...';
-    msg.className = 'status-msg';
-
-    try {
-      // Pide el audio al backend — el backend llama a ElevenLabs
-      const res = await fetch(`${API_BASE}/alerts/${alertId}/audio`);
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.detail || 'Error en el servidor');
-      }
-
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-
-      currentAudio = audio;
-      currentAlertId = alertId;
-
-      // Estado: reproduciendo
-      btn.classList.remove('loading');
-      btn.disabled = false;
-      btn.classList.add('playing');
-      wave.classList.add('active');
-      icon.textContent = '⏸';
-      label.textContent = 'Reproduciendo... (toca para pausar)';
-      msg.textContent = '✓ Audio generado con ElevenLabs';
-      msg.className = 'status-msg success';
-
-      audio.play();
-      audio.onended = () => { resetBtn(alertId); currentAudio = null; };
-      audio.onerror = () => {
-        resetBtn(alertId);
-        msg.textContent = '⚠ Error al reproducir';
-        msg.className = 'status-msg error';
-        currentAudio = null;
-      };
-
-    } catch (e) {
-      btn.classList.remove('loading');
-      btn.disabled = false;
-      resetBtn(alertId);
-      msg.textContent = '⚠ ' + (e.message || 'Error de conexión');
-      msg.className = 'status-msg error';
-    }
-  }
-
-  function resetBtn(alertId) {
-    const btn   = document.getElementById(`btn_${alertId}`);
-    const wave  = document.getElementById(`wave_${alertId}`);
-    const icon  = document.getElementById(`icon_${alertId}`);
-    const label = document.getElementById(`label_${alertId}`);
-    if (!btn) return;
-    btn.classList.remove('loading', 'playing');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    btn.dataset.sent = '1';
+    btn.className = 'btn-wa';
+    btn.style.background = '#128C7E';
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.999 2C6.477 2 2 6.477 2 12c0 1.822.487 3.53 1.338 5L2 22l5.13-1.31A9.96 9.96 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/></svg> ✅ Enviado`;
     btn.disabled = false;
-    wave.classList.remove('active');
-    icon.textContent = '🔊';
-    label.textContent = 'Escuchar alerta de voz';
-    currentAlertId = null;
+    showToast('📲 Nota de voz enviada por WhatsApp');
+  } catch (err) {
+    btn.className = 'btn-wa';
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.999 2C6.477 2 2 6.477 2 12c0 1.822.487 3.53 1.338 5L2 22l5.13-1.31A9.96 9.96 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/></svg> WhatsApp`;
+    btn.disabled = false;
+    showToast('⚠️ Error enviando. Revisar servidor.');
+    console.error('WA error:', err);
   }
+}
 
-  // ── Init ────────────────────────────────────────────────────────────────────
+// ── APARTAR PRODUCTO ──────────────────────────────────────────────────────
+function apartar(alertId) {
+  const btn = document.getElementById('btn-ap-' + alertId);
+  if (apartados.has(alertId)) return;
+  apartados.add(alertId);
+  if (btn) { btn.className = 'btn-apartar done'; btn.textContent = '✅ Producto apartado'; }
+  showToast('📦 Producto apartado para cliente crítico');
+  // Simula notificación de voz corta
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance('Producto apartado. El cliente será priorizado en la entrega.');
+    utt.lang = 'es-MX'; utt.rate = 0.95;
+    window.speechSynthesis.speak(utt);
+  }
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  // Carga voces del navegador (async en algunos browsers)
+  if ('speechSynthesis' in window) window.speechSynthesis.getVoices();
   loadAlerts();
+});
 </script>
 </body>
 </html>
