@@ -309,10 +309,7 @@
       <!-- Section nav -->
       <div class="section-nav">
         <button class="section-tab active" onclick="showSection('dashboard', this)">Dashboard</button>
-        <button class="section-tab" onclick="showSection('reportes', this)">Reportes IA</button>
-        <button class="section-tab" onclick="showSection('clientes', this)">Clientes Riesgo</button>
-        <button class="section-tab" onclick="showSection('sustituciones', this)">Sustituciones</button>
-        <button class="section-tab" onclick="showSection('cedis', this)">CEDIS</button>
+        <button class="section-tab" onclick="showSection('reporte', this)">Reporte IA</button>
       </div>
 
       <div class="col-content">
@@ -347,114 +344,44 @@
               <div style="height:200px"><canvas id="chart-bu"></canvas></div>
             </div>
           </div>
+          <!-- Risk + Sust compacto en el dashboard principal -->
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title"><i class="fas fa-exclamation-triangle" style="color:#F2071B;margin-right:6px"></i>Clientes en Riesgo</span>
+                <span style="font-size:10px;color:#bbb">Top 5 críticos</span>
+              </div>
+              <div id="risk-list-dash"></div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title"><i class="fas fa-exchange-alt" style="color:#F2490C;margin-right:6px"></i>Top Sustituciones</span>
+              </div>
+              <table>
+                <thead><tr><th>#</th><th>Solicitado</th><th></th><th>Sustituido por</th><th>Freq.</th></tr></thead>
+                <tbody id="dash-sust-table"><tr><td colspan="5" style="text-align:center;color:#bbb;padding:16px">Cargando…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
           <div style="font-size:10px;color:#bbb;text-align:right" id="last-update"></div>
         </div>
 
-        <!-- ─── REPORTES IA (dark chat) ─── -->
-        <div id="sec-reportes" class="section-content">
-          <div class="dark-chat-wrap">
+        <!-- ─── REPORTE IA ─── -->
+        <div id="sec-reporte" class="section-content">
+          <div class="dark-chat-wrap" style="min-height:200px">
             <div class="dark-chat-header">
               <i class="fas fa-robot dark-chat-icon"></i>
-              <span class="dark-chat-title">Copiloto IA — Reportes</span>
+              <span class="dark-chat-title">Reportes Ejecutivos — Gemini AI</span>
               <span class="dark-chat-badge">Gemini API</span>
-              <a href="/report-builder" class="dark-chat-link">Generador completo →</a>
+              <a href="/report-builder" class="dark-chat-link">Análisis avanzado →</a>
             </div>
-            <div class="dark-chat-messages" id="chat-messages">
-              <div class="bubble-ai">
-                <div class="bubble-tag">SWAPP</div>
-                <div class="bubble-text">¡Hola! Puedo generar reportes rápidos o responder preguntas sobre los datos del CEDI. Usa los botones de abajo o escríbeme.</div>
-              </div>
+            <div class="dark-report-strip" style="padding:18px 14px;gap:12px;justify-content:center;flex-wrap:wrap">
+              <button onclick="generateReport('diario')"  class="report-btn dark-quick-btn" style="padding:11px 22px"><i class="fas fa-calendar-day" style="margin-right:6px"></i>Diario</button>
+              <button onclick="generateReport('semanal')" class="report-btn dark-quick-btn" style="padding:11px 22px"><i class="fas fa-calendar-week" style="margin-right:6px"></i>Semanal</button>
+              <button onclick="generateReport('mensual')" class="report-btn dark-quick-btn" style="padding:11px 22px"><i class="fas fa-calendar-alt" style="margin-right:6px"></i>Mensual</button>
+              <button onclick="generateReport('anual')"   class="report-btn dark-quick-btn" style="padding:11px 22px"><i class="fas fa-calendar" style="margin-right:6px"></i>Anual</button>
             </div>
-            <div class="dark-report-strip">
-              <span class="dark-strip-label">Reporte rápido:</span>
-              <button onclick="generateReport('diario')"  class="report-btn dark-quick-btn"><i class="fas fa-calendar-day" style="margin-right:4px"></i>Diario</button>
-              <button onclick="generateReport('semanal')" class="report-btn dark-quick-btn"><i class="fas fa-calendar-week" style="margin-right:4px"></i>Semanal</button>
-              <button onclick="generateReport('mensual')" class="report-btn dark-quick-btn"><i class="fas fa-calendar-alt" style="margin-right:4px"></i>Mensual</button>
-              <button onclick="generateReport('anual')"   class="report-btn dark-quick-btn"><i class="fas fa-calendar" style="margin-right:4px"></i>Anual</button>
-            </div>
-            <div class="dark-chat-input-area">
-              <input class="dark-chat-input" id="chat-input"
-                placeholder="Pregunta sobre los datos: ¿cuál CEDIS tiene más problemas?…"
-                onkeydown="if(event.key==='Enter')sendChat()" />
-              <button class="dark-chat-send" onclick="sendChat()">
-                <i class="fas fa-paper-plane"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- ─── CLIENTES EN RIESGO ─── -->
-        <div id="sec-clientes" class="section-content">
-          <div class="card">
-            <div class="card-header">
-              <span class="card-title"><i class="fas fa-exclamation-triangle" style="color:#F2071B;margin-right:6px"></i>Clientes en Riesgo de Abandono</span>
-              <span style="font-size:11px;color:#bbb">Ordenados por score de riesgo</span>
-            </div>
-            <div id="risk-list"></div>
-          </div>
-        </div>
-
-        <!-- ─── SUSTITUCIONES ─── -->
-        <div id="sec-sustituciones" class="section-content">
-          <div class="card">
-            <div class="card-header">
-              <span class="card-title"><i class="fas fa-exchange-alt" style="color:#F2490C;margin-right:6px"></i>Análisis de Sustituciones</span>
-              <div class="sust-tab-bar">
-                <button class="sust-tab active" onclick="showSustTab('pares', this)">Pares Frecuentes</button>
-                <button class="sust-tab" onclick="showSustTab('solicitados', this)">Más Sustituidos</button>
-                <button class="sust-tab" onclick="showSustTab('sustitutos', this)">Sustitutos</button>
-              </div>
-            </div>
-
-            <div id="sust-pares" class="sust-panel active">
-              <table>
-                <thead><tr><th>#</th><th>Producto Solicitado</th><th></th><th>Sustituto</th><th>Frecuencia</th></tr></thead>
-                <tbody id="sust-table-body">
-                  <tr><td colspan="5" style="text-align:center;color:#bbb;padding:20px">Cargando...</td></tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div id="sust-solicitados" class="sust-panel">
-              <div style="height:240px;margin-bottom:10px"><canvas id="chart-sust-solicitados"></canvas></div>
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-                <div>
-                  <div style="font-size:10px;color:#aaa;text-transform:uppercase;font-weight:600;margin-bottom:2px">Total sustituciones</div>
-                  <div style="font-size:22px;font-weight:800;color:#F2490C" id="sust-total-count">—</div>
-                </div>
-                <div id="sust-concentration" style="text-align:right"></div>
-              </div>
-              <table>
-                <thead><tr><th>#</th><th>Producto</th><th>Veces Sustituido</th><th>% Total</th><th>Volumen</th></tr></thead>
-                <tbody id="sust-sol-table"><tr><td colspan="5" style="text-align:center;color:#bbb;padding:20px">Cargando...</td></tr></tbody>
-              </table>
-            </div>
-
-            <div id="sust-sustitutos" class="sust-panel">
-              <div style="height:240px;margin-bottom:10px"><canvas id="chart-sust-sustitutos"></canvas></div>
-              <div style="display:flex;gap:10px;margin-bottom:10px">
-                <div style="flex:1;background:#f7f7f5;border-radius:8px;padding:12px">
-                  <div style="font-size:10px;color:#aaa;text-transform:uppercase;font-weight:600;margin-bottom:4px">Sustituto #1</div>
-                  <div style="font-size:13px;font-weight:700;color:#2e9e5a" id="sust-top1-name">—</div>
-                  <div style="font-size:11px;color:#aaa;margin-top:3px" id="sust-top1-detail">—</div>
-                </div>
-                <div style="flex:1;background:#f7f7f5;border-radius:8px;padding:12px" id="sust-top3-comodin"></div>
-              </div>
-              <table>
-                <thead><tr><th>#</th><th>Sustituto</th><th>Veces Usado</th><th>% Total</th><th>Reemplaza a</th><th>Volumen</th></tr></thead>
-                <tbody id="sust-sub-table"><tr><td colspan="6" style="text-align:center;color:#bbb;padding:20px">Cargando...</td></tr></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- ─── CEDIS ─── -->
-        <div id="sec-cedis" class="section-content">
-          <div class="card">
-            <div class="card-header">
-              <span class="card-title"><i class="fas fa-warehouse" style="color:#F2490C;margin-right:6px"></i>CEDIS – Detalle de Sustituciones</span>
-            </div>
-            <div style="height:420px"><canvas id="chart-cedis-detail"></canvas></div>
+            <div class="dark-chat-messages" id="report-output" style="display:none;max-height:400px"></div>
           </div>
         </div>
 
@@ -465,7 +392,6 @@
   <!-- ═══════ SCRIPTS ═══════ -->
   <script>
     const API = 'http://localhost:5000';
-    const chatSessionId = 'dash-' + Math.random().toString(36).slice(2);
     let dashboardData = null;
     let chartsCreated = {};
     let pendingNotifications = [];
@@ -476,7 +402,6 @@
       document.querySelectorAll('.section-tab').forEach(b => b.classList.remove('active'));
       document.getElementById('sec-' + name).classList.add('active');
       el.classList.add('active');
-      if (name === 'cedis' && dashboardData && !chartsCreated['cedis-detail']) buildCedisDetailChart();
       return false;
     }
 
@@ -496,8 +421,8 @@
         dashboardData = await res.json();
         updateKPIs();
         buildCharts();
-        buildRiskList();
-        buildSustTable();
+        buildRiskListDash();
+        buildDashSustTable();
         const now = new Date().toLocaleString('es-MX');
         document.getElementById('last-update').textContent = 'Actualizado: ' + now;
         setTimeout(() => scheduleNotifications(), 1200);
@@ -556,16 +481,6 @@
       }, { plugins: { legend: { labels: { color: '#777', font: { size: 11, family: 'Poppins' }, boxWidth: 12 } } } });
     }
 
-    function buildCedisDetailChart() {
-      const cedis = dashboardData.cedis_criticos;
-      mkChart('chart-cedis-detail', 'bar', {
-        labels: cedis.map(c => 'CEDIS ' + c.cedis),
-        datasets: [{ label: 'Sustituciones', data: cedis.map(c => c.total_sustituciones),
-          backgroundColor: 'rgba(242,73,12,.7)', borderColor: '#F2490C', borderWidth: 1, borderRadius: 6 }],
-      }, { ...CD, plugins: { legend: { display: false } } });
-      chartsCreated['cedis-detail'] = true;
-    }
-
     function mkChart(id, type, data, options) {
       if (chartsCreated[id]) chartsCreated[id].destroy();
       const ctx = document.getElementById(id)?.getContext('2d');
@@ -573,155 +488,55 @@
       chartsCreated[id] = new Chart(ctx, { type, data, options: { responsive: true, maintainAspectRatio: false, ...options } });
     }
 
-    // ─── RISK LIST ───────────────────────────────────────────────────
-    function buildRiskList() {
-      const container = document.getElementById('risk-list');
+    // ─── RISK LIST COMPACT (dashboard) ──────────────────────────────
+    function buildRiskListDash() {
+      const container = document.getElementById('risk-list-dash');
       const COLOR = { Crítico: '#F2071B', Alto: '#F2490C', Medio: '#A60842', Bajo: '#2e9e5a' };
       const PILL  = { Crítico: 'pill-critico', Alto: 'pill-alto', Medio: 'pill-medio', Bajo: 'pill-bajo' };
-      container.innerHTML = dashboardData.clientes_riesgo.map(c => {
+      const top5  = dashboardData.clientes_riesgo.filter(c => c.nivel_riesgo === 'Crítico').slice(0, 5);
+      container.innerHTML = top5.map(c => {
         const col = COLOR[c.nivel_riesgo] || '#999';
         const pct = c.riesgo_score;
-        const fillCol = pct >= 70 ? '#F2071B' : pct >= 40 ? '#F2490C' : '#2e9e5a';
         return `<div class="risk-row">
           <div class="risk-avatar" style="background:${col}">${c.customer_id.toString().slice(-2)}</div>
           <div class="risk-info">
             <div class="risk-name">Cliente ${c.customer_id}</div>
-            <div class="risk-sub">${c.sustituciones} sustituciones · ${c.tasa_sustitucion}%</div>
-            <div style="display:flex;align-items:center;gap:7px;margin-top:4px">
-              <div class="bar-track" style="width:80px"><div class="bar-fill" style="width:${pct}%;background:${fillCol}"></div></div>
-              <span style="font-size:11px;font-weight:700;color:${fillCol}">${pct}%</span>
+            <div class="risk-sub">${c.sustituciones} sust. · ${c.tasa_sustitucion}%</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:3px">
+              <div class="bar-track" style="width:70px"><div class="bar-fill" style="width:${pct}%;background:${col}"></div></div>
+              <span style="font-size:11px;font-weight:700;color:${col}">${pct}%</span>
             </div>
           </div>
           <span class="pill ${PILL[c.nivel_riesgo]||''}">${c.nivel_riesgo}</span>
         </div>`;
-      }).join('');
+      }).join('') || '<p style="color:#bbb;font-size:12px;padding:12px">Sin clientes críticos.</p>';
     }
 
-    // ─── SUSTITUCIONES TABLE ─────────────────────────────────────────
-    function buildSustTable() {
-      const tbody = document.getElementById('sust-table-body');
-      const maxFreq = Math.max(...dashboardData.top_sustituciones.map(s => s.frecuencia), 1);
-      tbody.innerHTML = dashboardData.top_sustituciones.map((s, i) => {
+    // ─── TOP SUST TABLE (dashboard) ──────────────────────────────────
+    function buildDashSustTable() {
+      const tbody = document.getElementById('dash-sust-table');
+      const top5  = dashboardData.top_sustituciones.slice(0, 5);
+      const maxF  = Math.max(...top5.map(s => s.frecuencia), 1);
+      tbody.innerHTML = top5.map((s, i) => {
         const col = i === 0 ? '#F2071B' : i < 3 ? '#F2490C' : '#aaa';
+        const nm1 = s.nombre_sku_solicitado.length > 22 ? s.nombre_sku_solicitado.slice(0,22)+'…' : s.nombre_sku_solicitado;
+        const nm2 = s.nombre_sku_solicitado_cambio.length > 22 ? s.nombre_sku_solicitado_cambio.slice(0,22)+'…' : s.nombre_sku_solicitado_cambio;
         return `<tr>
           <td style="color:#bbb">${i+1}</td>
-          <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.nombre_sku_solicitado}</td>
-          <td style="text-align:center"><i class="fas fa-arrow-right" style="color:#F2071B"></i></td>
-          <td style="color:#F2490C;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.nombre_sku_solicitado_cambio}</td>
-          <td>
-            <div style="display:flex;align-items:center;gap:7px">
-              <div class="bar-track" style="width:70px"><div class="bar-fill" style="width:${Math.round(s.frecuencia/maxFreq*100)}%;background:${col}"></div></div>
-              <span style="font-size:12px;font-weight:700;color:${col}">${s.frecuencia}x</span>
-            </div>
-          </td>
-        </tr>`;
-      }).join('');
-      buildSustSolicitados();
-      buildSustSubstitutos();
-    }
-
-    function buildSustSolicitados() {
-      const data = dashboardData.productos_mas_sustituidos;
-      if (!data || !data.length) return;
-      const totalSust = dashboardData.summary.total_sustituciones;
-      document.getElementById('sust-total-count').textContent = totalSust.toLocaleString('es-MX');
-      mkChart('chart-sust-solicitados', 'bar', {
-        labels: data.map(p => trunc(p.producto, 28)),
-        datasets: [{ label: 'Veces sustituido', data: data.map(p => p.frecuencia),
-          backgroundColor: data.map((_, i) => i===0?'rgba(242,7,27,.85)':i<3?'rgba(242,73,12,.75)':'rgba(200,200,200,.6)'),
-          borderColor: data.map((_, i) => i===0?'#F2071B':i<3?'#F2490C':'#ccc'),
-          borderWidth: 1, borderRadius: 4 }],
-      }, { ...CD, indexAxis: 'y', plugins: { legend: { display: false } } });
-
-      const top3sum = data.slice(0, 3).reduce((a, b) => a + b.frecuencia, 0);
-      const top3pct = totalSust > 0 ? Math.round(top3sum / totalSust * 100) : 0;
-      document.getElementById('sust-concentration').innerHTML =
-        `<div style="font-size:18px;font-weight:800;color:#F2071B">${top3pct}%</div><div style="font-size:10px;color:#aaa">Top 3 del total</div>`;
-
-      const maxF = Math.max(...data.map(d => d.frecuencia), 1);
-      document.getElementById('sust-sol-table').innerHTML = data.map((p, i) => {
-        const col = i===0?'#F2071B':i<3?'#F2490C':'#aaa';
-        return `<tr>
-          <td style="color:#bbb">${i+1}</td>
-          <td>${p.producto}</td>
-          <td style="font-weight:700;color:${col}">${p.frecuencia.toLocaleString('es-MX')}</td>
-          <td style="color:#aaa">${p.pct_total??'—'}%</td>
-          <td><div class="bar-track" style="width:80px"><div class="bar-fill" style="width:${Math.round(p.frecuencia/maxF*100)}%;background:${col}"></div></div></td>
+          <td>${nm1}</td>
+          <td style="text-align:center"><i class="fas fa-arrow-right" style="color:#F2071B;font-size:10px"></i></td>
+          <td style="color:#F2490C">${nm2}</td>
+          <td><span style="font-size:12px;font-weight:700;color:${col}">${s.frecuencia}x</span></td>
         </tr>`;
       }).join('');
     }
 
-    function buildSustSubstitutos() {
-      const data = dashboardData.productos_sustitutos;
-      if (!data || !data.length) return;
-      mkChart('chart-sust-sustitutos', 'bar', {
-        labels: data.map(p => trunc(p.producto_sustituto, 28)),
-        datasets: [{ label: 'Veces usado como sustituto', data: data.map(p => p.frecuencia),
-          backgroundColor: data.map((_, i) => i===0?'rgba(46,158,90,.85)':i<3?'rgba(46,158,90,.65)':'rgba(200,200,200,.5)'),
-          borderColor: data.map((_, i) => i===0?'#2e9e5a':i<3?'#2e9e5a':'#ccc'),
-          borderWidth: 1, borderRadius: 4 }],
-      }, { ...CD, indexAxis: 'y', plugins: { legend: { display: false } } });
-
-      if (data[0]) {
-        document.getElementById('sust-top1-name').textContent = data[0].producto_sustituto;
-        document.getElementById('sust-top1-detail').textContent = `${data[0].frecuencia} veces · reemplaza ${data[0].productos_distintos} producto(s)`;
-      }
-      document.getElementById('sust-top3-comodin').innerHTML =
-        `<div style="font-size:10px;color:#aaa;text-transform:uppercase;font-weight:600;margin-bottom:4px">Top comodines</div>` +
-        data.slice(0, 3).map(p => `
-          <div style="display:flex;justify-content:space-between;margin-bottom:3px">
-            <span style="font-size:11px;color:#555;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.producto_sustituto}</span>
-            <span style="font-size:11px;font-weight:700;color:#2e9e5a;margin-left:6px">${p.productos_distintos}</span>
-          </div>`).join('');
-
-      const maxF = Math.max(...data.map(d => d.frecuencia), 1);
-      document.getElementById('sust-sub-table').innerHTML = data.map((p, i) => {
-        const col = i===0?'#2e9e5a':i<3?'#2e9e5a':'#aaa';
-        return `<tr>
-          <td style="color:#bbb">${i+1}</td>
-          <td>${p.producto_sustituto}</td>
-          <td style="font-weight:700;color:${col}">${p.frecuencia.toLocaleString('es-MX')}</td>
-          <td style="color:#aaa">${p.pct_total??'—'}%</td>
-          <td style="color:#aaa">${p.productos_distintos} prod.</td>
-          <td><div class="bar-track" style="width:70px"><div class="bar-fill" style="width:${Math.round(p.frecuencia/maxF*100)}%;background:${col}"></div></div></td>
-        </tr>`;
-      }).join('');
-    }
-
-    // ─── SUSTITUCIONES TABS ──────────────────────────────────────────
-    function showSustTab(name, btn) {
-      document.querySelectorAll('.sust-panel').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.sust-tab').forEach(b => b.classList.remove('active'));
-      document.getElementById('sust-' + name).classList.add('active');
-      btn.classList.add('active');
-      if (name === 'solicitados' && dashboardData) buildSustSolicitados();
-      if (name === 'sustitutos' && dashboardData) buildSustSubstitutos();
-    }
-
-    // ─── DARK CHAT (Reportes IA) ──────────────────────────────────────
-    async function sendChat() {
-      const input = document.getElementById('chat-input');
-      const msg = input.value.trim();
-      if (!msg) return;
-      input.value = '';
-      addBubble(msg, 'user');
-      const typing = addBubble('…', 'ai');
-      try {
-        const res = await fetch(API + '/api/rb/chat', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: msg, session_id: chatSessionId }),
-        });
-        const data = await res.json();
-        typing.querySelector('.bubble-text').textContent = data.response || 'Sin respuesta.';
-      } catch (e) {
-        typing.querySelector('.bubble-text').textContent = 'Error al conectar con el servidor.';
-      }
-    }
-
+    // ─── REPORTES IA ─────────────────────────────────────────────────
     async function generateReport(type) {
       const typeName = { diario: 'Diario', semanal: 'Semanal', mensual: 'Mensual', anual: 'Anual' }[type] || type;
-      addBubble(`Generar reporte ${typeName}`, 'user');
-      const typing = addBubble('Generando reporte con Gemini AI…', 'ai');
+      const out = document.getElementById('report-output');
+      out.style.display = 'block';
+      out.innerHTML = `<div class="bubble-ai"><div class="bubble-tag">SWAPP</div><div class="bubble-text">Generando reporte ${typeName} con Gemini AI…</div></div>`;
       document.querySelectorAll('.report-btn').forEach(b => b.disabled = true);
       try {
         const res = await fetch(API + '/api/report', {
@@ -731,28 +546,15 @@
         const data = await res.json();
         if (!data.ok) throw new Error(data.error);
         const ts = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
-        typing.querySelector('.bubble-text').innerHTML =
-          `<strong>Reporte ${typeName}</strong> · ${ts}<div class="report-out" style="margin-top:8px">${data.report}</div>`;
+        out.innerHTML = `<div class="bubble-ai">
+          <div class="bubble-tag">SWAPP</div>
+          <div class="bubble-text"><strong>Reporte ${typeName}</strong> · ${ts}<div class="report-out" style="margin-top:8px">${data.report}</div></div>
+        </div>`;
       } catch (e) {
-        typing.querySelector('.bubble-text').textContent = 'Error generando reporte: ' + e.message;
+        out.innerHTML = `<div class="bubble-ai"><div class="bubble-tag">SWAPP</div><div class="bubble-text" style="color:#F2071B">Error generando reporte: ${e.message}</div></div>`;
       } finally {
         document.querySelectorAll('.report-btn').forEach(b => b.disabled = false);
       }
-    }
-
-    function addBubble(text, type) {
-      const msgs = document.getElementById('chat-messages');
-      const div = document.createElement('div');
-      if (type === 'user') {
-        div.className = 'bubble-user';
-        div.innerHTML = `<div class="bubble-text">${text}</div>`;
-      } else {
-        div.className = 'bubble-ai';
-        div.innerHTML = `<div class="bubble-tag">SWAPP</div><div class="bubble-text">${text}</div>`;
-      }
-      msgs.appendChild(div);
-      msgs.scrollTop = msgs.scrollHeight;
-      return div;
     }
 
     // ─── NOTIFICATIONS ────────────────────────────────────────────────
