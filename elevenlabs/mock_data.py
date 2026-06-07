@@ -172,10 +172,3 @@ def build_voice_script(alert: dict) -> str:
             f"Parada {parada}. "
             "Cliente satisfecho, entrega normal sin cambios. Buen servicio."
         )
-
-def build_apartar_script(alert: dict) -> str:
-    parada = alert["parada"]
-    puntos = alert["puntos_compensacion"]
-    return (
-        f"Producto apartado para la parada {parada}. "
-    )
