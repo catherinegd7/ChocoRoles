@@ -12,10 +12,7 @@ except ImportError:
 BASE_DIR = Path(__file__).parent.parent
 BACKEND_DIR = BASE_DIR / "backend"
 
-MONGO_URI = (
-    "mongodb+srv://agustovalentin07_db_user:elbichosiu"
-    "@basededatossi.7woegj5.mongodb.net/?appName=BaseDeDatosSi"
-)
+MONGO_URI = "mongodb+srv://agustovalentin07_db_user:elbichosiu@basededatossi.7woegj5.mongodb.net/?appName=BaseDeDatosSi"
 MONGO_DB = "HackathonArca"
 
 _cached_df: pd.DataFrame | None = None
@@ -50,7 +47,7 @@ def _get_mongo_db():
     if not _MONGO_AVAILABLE:
         return None
     if _mongo_client is None:
-        _mongo_client = MongoClient(MONGO_URI, tlsCAFile=certifi.where(), serverSelectionTimeoutMS=5000)
+        _mongo_client = MongoClient(MONGO_URI, tlsCAFile=certifi.where(), serverSelectionTimeoutMS=8080)
     return _mongo_client[MONGO_DB]
 
 

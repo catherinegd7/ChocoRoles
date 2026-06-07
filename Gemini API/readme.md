@@ -8,4 +8,4 @@ pip install -r requirements.txt
 
 # 3. Corre el servidor
 python app.py
-Luego abre tu navegador en http://localhost:5000.
+Luego abre tu navegador en http://localhost:8080.
