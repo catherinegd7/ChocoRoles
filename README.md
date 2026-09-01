@@ -1,43 +1,43 @@
 # Order Rescue 🥤
 
-**🏆 Hack4Her – 1er Lugar (Arca Continental Challenge, 2026)**
+**🏆 Hack4Her – 1st Place (Arca Continental Challenge, 2026)**
 
-Ganadora del primer lugar en hackathon nacional de 24 horas. Plataforma basada en inteligencia artificial para la optimización de decisiones en cadena de suministro, integrando análisis predictivo, automatización de reportes y sistemas de notificación en tiempo real con **Python**, **Gemini API** y **MongoDB**.
+Winner of a 24-hour national hackathon. An AI-powered platform for supply chain decision optimization, integrating predictive analytics, automated reporting, and real-time notification systems with **Python**, the **Gemini API**, and **MongoDB**.
 
-## ¿Qué problema resuelve?
+## What problem does it solve?
 
-En los CEDIS de Arca Continental, cuando un producto se agota en un pedido, el cliente recibe una sustitución sin previo aviso, lo que genera quejas y riesgo de que la tienda deje de comprar (churn). Order Rescue detecta ese riesgo antes de que ocurra: identifica qué productos son propensos a desabasto, qué clientes están en riesgo de abandono y le da a cada rol (supervisor, conductor, cliente) la herramienta para actuar a tiempo.
+At Arca Continental's distribution centers (CEDIS), when a product is out of stock, the customer's order gets substituted without warning — which leads to complaints and the risk of the store dropping the account (churn). Order Rescue flags that risk before it happens: it identifies which products are prone to running out, which customers are at risk of churning, and gives each role (supervisor, driver, customer) a tool to act in time.
 
-## Cómo funciona
+## How it works
 
-1. **Análisis de datos** (`backend/`): limpia y consolida los pedidos históricos, calcula la probabilidad de sustitución por producto y un score de riesgo de abandono por cliente.
-2. **IA generativa con Gemini** (`Gemini API/`): dashboard con métricas en vivo, chatbot **ArcaBot** para que el supervisor del almacén pregunte por el estado del CEDIS, un generador de reportes automáticos, y predicciones (stock, temporada, impacto económico, detección de acaparadores) conectadas a MongoDB.
-3. **Notificaciones de voz** (`elevenlabs/`): convierte las alertas de riesgo en audios con ElevenLabs TTS y los envía al conductor como nota de voz por WhatsApp, para avisar sustituciones o problemas antes de la entrega.
-4. **App del cliente** (`frontend/`): interfaz en React donde la tienda ve sus productos en riesgo, elige un sustituto ("Plan B") con un clic y confirma el pedido.
+1. **Data analysis** (`backend/`): cleans and consolidates historical orders, calculates each product's substitution probability and a churn-risk score per customer.
+2. **Generative AI with Gemini** (`Gemini API/`): a live-metrics dashboard, the **ArcaBot** chatbot for warehouse supervisors to ask about CEDIS status, an automated report generator, and predictions (stock, seasonality, economic impact, hoarder detection) connected to MongoDB.
+3. **Voice notifications** (`elevenlabs/`): turns risk alerts into audio using ElevenLabs TTS and sends them to the driver as a WhatsApp voice note, warning about substitutions or issues before delivery.
+4. **Customer app** (`frontend/`): a React interface where the store sees its at-risk products, picks a substitute ("Plan B") with one click, and confirms the order.
 
-## Estructura del proyecto
+## Project structure
 
 ```
 ChocoRoles/
-├── backend/           # Limpieza de datos y cálculo de riesgo (poderMotor.py, limpieza.py, merge.py)
-├── Gemini API/         # Backend Flask: dashboard, ArcaBot, reportes y predicciones con Gemini + MongoDB
-├── elevenlabs/         # Backend FastAPI: alertas de voz (ElevenLabs) y envío por WhatsApp al conductor
-├── frontend/           # App React + Vite para el cliente (pedidos y sustituciones)
-└── *.csv               # Datos de pedidos usados para el análisis
+├── backend/           # Data cleaning and risk scoring (poderMotor.py, limpieza.py, merge.py)
+├── Gemini API/         # Flask backend: dashboard, ArcaBot, reports and predictions with Gemini + MongoDB
+├── elevenlabs/         # FastAPI backend: voice alerts (ElevenLabs) and WhatsApp delivery to the driver
+├── frontend/           # React + Vite app for the customer (orders and substitutions)
+└── *.csv               # Order data used for the analysis
 ```
 
 ## Stack
 
 Python (Flask, FastAPI, pandas), Google Gemini API, MongoDB, ElevenLabs TTS, WhatsApp Business API, React + Vite + Tailwind.
 
-## Cómo correrlo
+## Running it
 
-Cada módulo tiene su propio setup y `readme.md` con el detalle:
+Each module has its own setup, detailed in its own `readme.md`:
 
-- [`Gemini API/readme.md`](Gemini%20API/readme.md) — dashboard, ArcaBot y reportes (`python app.py`, puerto 8080)
-- [`elevenlabs/readme.md`](elevenlabs/readme.md) — alertas de voz y WhatsApp (`uvicorn main:app --reload`, puerto 8000)
-- [`frontend/`](frontend/) — app del cliente (`npm install && npm run dev`)
+- [`Gemini API/readme.md`](Gemini%20API/readme.md) — dashboard, ArcaBot and reports (`python app.py`, port 8080)
+- [`elevenlabs/readme.md`](elevenlabs/readme.md) — voice alerts and WhatsApp (`uvicorn main:app --reload`, port 8000)
+- [`frontend/`](frontend/) — customer app (`npm install && npm run dev`)
 
-## Equipo
+## Team
 
-Proyecto desarrollado en 24 horas para el reto de Arca Continental en Hack4Her 2026.
+Built in 24 hours for the Arca Continental challenge at Hack4Her 2026.
