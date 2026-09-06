@@ -1,4 +1,4 @@
-# Order Rescue 🥤
+# SWAPP - Order Rescue
 
 **🏆 Hack4Her – 1st Place (Arca Continental Challenge, 2026)**
 
